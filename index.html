@@ -393,7 +393,7 @@ function pgDash(){
   <div class="met"><div class="mv cg">${S.clients.filter(c=>c.status==='Active').length}</div><div class="ml">${S.lang==='ko'?'활성 고객':'Active clients'}</div></div>
 </div>
 <div class="sh">${S.lang==='ko'?'팀 현황':'Team status'}</div>
-<div class="tgrid">${S.team.map(m=>`<div class="tcard"><div class="tc-head">${av(m.name,m.initials)}<div><div style="font-weight:700;font-size:13px">${esc(m.name)}</div><div style="font-size:11px;color:#aaa">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||esc(m.role)}</div></div></div><div class="tc-row"><span style="color:#888">${S.lang==='ko'?'도구':'Tool'}</span><span style="font-size:11px;font-weight:500">${esc(m.tool||'—')}</span></div></div>`).join('')}</div>
+<div class="tgrid">${S.team.map(m=>`<div class="tcard"><div class="tc-head">${av(m.name,m.initials)}<div><div style="font-weight:700;font-size:13px">${esc(m.name)}</div><div style="font-size:11px;color:#aaa">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||esc(m.role)}</div></div></div><div class="tc-row"><span style="color:#888">${S.lang==='ko'?'도구':'Tool'}: </span><span style="font-size:11px;font-weight:500">${esc(m.tool||'—')}</span></div></div>`).join('')}</div>
 <div class="sh">${S.lang==='ko'?'이번 주 우선 업무':'Priority tasks'}</div>
 <div class="tlist">${pri.length?pri.map(x=>`<div class="trow">${pb(x.priority)}<span class="ttxt">${esc(S.lang==='ko'&&x.title_ko?x.title_ko:x.title)}</span><span style="font-size:11px;color:#aaa">${esc(x.owner)}</span>&nbsp;${bdg(x.status)}</div>`).join(''):`<div class="nodata">🎉 All tasks done!</div>`}</div>`;
 }
