@@ -389,7 +389,7 @@ const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
 
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
-  document.getElementById('nav-links').innerHTML=visNav.map(n=>`<div class="ni${S.page===n.key?' on':''}" onclick="goPage('${n.key}')"><i class="ti ${n.icon}" style="font-size:15px" aria-hidden="true"></i>${lbl(n)}</div>`).join('');
+  (()=>{let h='',lastSec=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==lastSec){h+=`<div class="sb-section-label">${n.sec}</div>`;lastSec=n.sec;}else if(!n.sec&&lastSec){h+='<div style="height:2px"></div>';lastSec=null;}h+=`<div class="ni${S.page===n.key?' on':''}" onclick="goPage('${n.key}')"><span class="ni-e">${n.e||'📄'}</span><span>${S.lang==='ko'&&n.labelKo?n.labelKo:n.label}</span></div>`;});document.getElementById('nav-links').innerHTML=h;})();
   const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
   try{document.getElementById('main').innerHTML=`<div class="page-content">${(pages[S.page]||pgDash)()}</div>`;}catch(e){document.getElementById('main').innerHTML=`<div class="page-content"><p style="color:var(--re);padding:20px">Error: ${e.message}</p></div>`;}
 }
