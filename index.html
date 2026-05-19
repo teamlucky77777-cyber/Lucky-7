@@ -210,7 +210,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.5 · Build: 20260519-12</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.6 · Build: 20260519-13</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -551,7 +551,6 @@ function pgStaffDir(){
 
 function pgRecruitment(){
   const ko=S.lang==='ko';
-  const tab=S.recruitTab||'tracker';
   function cpuPass(cpu){if(!cpu)return null;const c=cpu.toLowerCase();const ig=S.recruitReqs?.min_intel_gen||8;const rg=S.recruitReqs?.min_ryzen_gen||3;const im=c.match(/i[3579][\s\-]?(\d{4,5})/);if(im){return parseInt(im[1].toString().slice(0,-3))>=ig;}const rm=c.match(/ryzen\s*[357]\s*(\d{4})/);if(rm){return parseInt(rm[1].toString()[0])>=rg;}return null;}
   function ramPass(r){if(!r)return null;const n=parseInt(r);const min=S.recruitReqs?.min_ram||8;return isNaN(n)?null:n>=min;}
   function spdPass(s){if(!s)return null;const n=parseInt(s);const min=S.recruitReqs?.min_speed||70;return isNaN(n)?null:n>=min;}
@@ -696,41 +695,7 @@ function pgRecruitment(){
     +addForm
     +'<div class="tw"><table><thead><tr><th>Name</th><th>CPU</th><th>GPU</th><th>RAM</th><th>Speed</th><th>OS</th><th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 
-  const _ig=R.min_intel_gen,_rg=R.min_ryzen_gen;
-  const _intelTxt=_ig===8?'8th gen+':_ig+'th gen+';
-  const _ryzenTxt=_rg===3?'3000+ series':_rg+'000+ series';
-  const _jobLines=[
-    'Operator Wanted — Lucky 7 (Lineage Classic)',
-    '',
-    'We are looking for dedicated operators to join our character progression service.',
-    '',
-    '📋 Requirements:',
-    '• PC: '+(R.os_label||'Windows 10/11'),
-    '• CPU: Intel i5 '+_intelTxt+' or AMD Ryzen 5 '+_ryzenTxt,
-    '• GPU: '+(R.gpu_label||'GTX 1050 Ti+ / RX 560+'),
-    '• RAM: Minimum '+R.min_ram+'GB',
-    '• Internet: Minimum '+R.min_speed+' Mbps'
-  ];
-  if(R.require_static_ip!==false) _jobLines.push('• Public Static IP (mandatory)');
-  if(R.require_lan_cable!==false) _jobLines.push('• LAN cable (mandatory — no WiFi)');
-  _jobLines.push('','💰 Payment: Weekly, based on performance','⏰ Hours: Flexible shifts available','📍 Remote position','','How to apply:','1. Screenshot your PC specs (Task Manager → Performance)','2. Screenshot your speed test (fast.com)','3. Confirm you have a public static IP and LAN cable','4. DM us with your specs','','Only applicants who meet ALL hardware requirements will be contacted.');
-  const jobTxt=_jobLines.join('\n');
-  const jobHTML='<div style="max-width:600px">'
-    +'<div style="background:var(--bg-sb);border:1px solid var(--br);border-radius:var(--r2);padding:20px;margin-bottom:16px">'
-    +'<div class="sh" style="margin-bottom:12px">Job Post Preview</div>'
-    +'<pre id="job-post-txt" style="white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.7;color:var(--tx)">'+jobTxt+'</pre>'
-    +'</div>'
-    +'<button class="btn-add" id="copy-job-btn" onclick="copyJobPost()">📋 '+(ko?'클립보드에 복사':'Copy to clipboard')+'</button>'
-    +'<div style="margin-top:12px;padding:10px 14px;background:var(--ac-bg);border-radius:var(--r);font-size:12px;color:var(--ac)">💡 '+(ko?'이 채용공고를 Discord, Instagram에 붙여넣기하세요':'Paste this into Discord or Instagram to recruit')+'</div>'
-    +'</div>';
-
-  const tabStyle=(active)=>active?'padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;background:var(--tx);color:var(--bg)':'padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;background:transparent;color:var(--tx2)';
-  return '<div class="ph">🎯 '+(ko?'채용':'Recruitment')+'</div>'
-    +'<div style="display:inline-flex;border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:20px">'
-    +'<button style="'+tabStyle(tab==='tracker')+'" onclick="S.recruitTab=\'tracker\';render()">'+(ko?'지원자 트래커':'Applicant Tracker')+'</button>'
-    +'<button style="'+tabStyle(tab==='jobpost')+';border-left:1px solid var(--br)" onclick="S.recruitTab=\'jobpost\';render()">'+(ko?'채용 공고':'Job Posting')+'</button>'
-    +'</div>'
-    +(tab==='tracker'?trackerHTML:jobHTML);
+  return '<div class="ph">🎯 '+(ko?'채용':'Recruitment')+'</div>'+trackerHTML;
 }
 
 async function addRecruitFull(){
@@ -767,10 +732,7 @@ async function saveRequirements(){
     render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[saveRequirements]',e);}
 }
-function copyJobPost(){
-  const txt=document.getElementById('job-post-txt').textContent;
-  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('copy-job-btn');b.textContent='✅ Copied!';setTimeout(()=>{b.textContent='📋 Copy to clipboard';},2000);});
-}
+
 
 
 
