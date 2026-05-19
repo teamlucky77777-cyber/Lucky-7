@@ -673,9 +673,24 @@ async function addTask(){const ti=document.getElementById('nt-t').value.trim();i
 async function toggleClient(id){const ord=['Active','Paused','Completed'];const c=S.clients.find(x=>x.id===id);const ns=ord[(ord.indexOf(c.status)+1)%3];await sb.from('clients').update({status:ns}).eq('id',id);S.clients=S.clients.map(x=>x.id===id?{...x,status:ns}:x);render();}
 async function delClient(id){if(!confirm('Delete?'))return;await sb.from('clients').delete().eq('id',id);S.clients=S.clients.filter(c=>c.id!==id);render();}
 async function addClient(){const n=document.getElementById('nc-n').value.trim();if(!n)return;const {data,error}=await sb.from('clients').insert({name:n,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();if(error){alert('Failed: '+error.message);return;}if(data)S.clients.push(data);S.showAddClient=false;render();}
+async function addMember(){
+  const name=document.getElementById('nm-name').value.trim();
+  if(!name)return;
+  const obj={id:crypto.randomUUID(),name,initials:document.getElementById('nm-ini').value,role:document.getElementById('nm-role').value.toLowerCase()||'staff',status:document.getElementById('nm-status').value,isp:document.getElementById('nm-isp').value,tool:document.getElementById('nm-tool').value,since:document.getElementById('nm-since').value};
+  const {data,error}=await sb.from('user_profiles').insert(obj).select().single();
+  if(error){alert('Save failed: '+error.message);return;}
+  if(data)S.team.push(data);
+  S.showAddMember=false;render();
+}
+async function delMember(id){
+  if(!confirm('Remove this staff member?'))return;
+  const {error}=await sb.from('user_profiles').delete().eq('id',id);
+  if(error){alert('Delete failed: '+error.message);return;}
+  S.team=S.team.filter(m=>m.id!==id);render();
+}
 function toggleEdit(id){S.editMember=S.editMember===id?null:id;render();}
 function cancelEdit(){S.editMember=null;render();}
-async function saveMember(id){const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};await sb.from('user_profiles').update(upd).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;render();}
+async function saveMember(id){const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};const {error}=await sb.from('user_profiles').update(upd).eq('id',id);if(error){alert('Save failed: '+error.message);return;}S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;render();}
 async function moveRecruit(id,stage){await sb.from('recruits').update({stage}).eq('id',id);S.recruits=S.recruits.map(r=>r.id===id?{...r,stage}:r);render();}
 async function delRecruit(id){if(!confirm('Delete?'))return;await sb.from('recruits').delete().eq('id',id);S.recruits=S.recruits.filter(r=>r.id!==id);render();}
 async function addRecruit(){const n=document.getElementById('nr-n').value.trim();if(!n)return;const {data,error}=await sb.from('recruits').insert({name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'}).select().single();if(data)S.recruits.push(data);S.showAddRecruit=false;render();}
