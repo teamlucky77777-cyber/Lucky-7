@@ -268,8 +268,8 @@ const PERMS = {
   ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
   manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
   settlement: ['dash','clients'],
-  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team'],
-  staff:      ['dash','pcs_view','tasks_view','tasks_done'],
+  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit'],
+  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit'],
   player:     ['player']
 };
 const can = (f) => (PERMS[S.profile?.role||'player']||[]).includes(f);
@@ -284,6 +284,7 @@ const NAV_ITEMS = [
   { key:'clients', label:'Clients', labelKo:'클라이언트', icon:'ti-briefcase', perm:'clients' },
   { key:'team', label:'Team', labelKo:'팀', icon:'ti-users', perm:'team' },
   { key:'reports', label:'Reports', labelKo:'보고서', icon:'ti-file-description', perm:'reports' },
+  { key:'reports', label:'My Reports', labelKo:'내 보고서', icon:'ti-file-description', perm:'reports_submit' },
   { key:'invite', label:'Invite Codes', labelKo:'초대 코드', icon:'ti-key', perm:'invite' },
   { key:'users', label:'User Roles', labelKo:'사용자 역할', icon:'ti-shield', perm:'users' },
   { key:'player', label:'My Order', labelKo:'내 주문', icon:'ti-sword', perm:'player' },
@@ -399,7 +400,7 @@ async function loadAll(){
   const loads=[sb.from('user_profiles').select('*'),sb.from('tasks').select('*').order('created_at'),sb.from('korea_pcs').select('*').order('num')];
   if(can('clients')) loads.push(sb.from('clients').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
   if(can('recruitment')) loads.push(sb.from('recruits').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
-  if(can('reports')) loads.push(sb.from('reports').select('*').order('created_at',{ascending:false})); else loads.push(Promise.resolve({data:[]}));
+  if(can('reports')) loads.push(sb.from('reports').select('*').order('created_at',{ascending:false})); else if(can('reports_submit')) loads.push(sb.from('reports').select('*').eq('created_by',S.user.id).order('created_at',{ascending:false})); else loads.push(Promise.resolve({data:[]}));
   if(can('invite')) loads.push(sb.from('invite_codes').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
   const [t,tk,pc,cl,rec,rep,codes]=await Promise.all(loads);
   S.team=t.data||[];S.tasks=tk.data||[];S.pcs=pc.data||[];
@@ -491,10 +492,11 @@ ${addRForm}<div class="pipe">${pipe}</div>`;
 // ── REPORTS ───────────────────────────────────────────────────────────────
 function pgReports(){
   const viewed=S.reports.find(r=>r.id===S.viewReport);
+  const isSubmitter=can('reports_submit')&&!can('reports');
   const addF=S.showAddReport?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 보고서':'Create report'}</div><div class="fg2" style="margin-bottom:10px"><label>${S.lang==='ko'?'주차':'Week'}</label><input id="rp-wk" placeholder="2026 W21"></div>${[['rp-sum',S.lang==='ko'?'요약':'Summary'],['rp-don',S.lang==='ko'?'완료':'Done this week'],['rp-stk',S.lang==='ko'?'이슈':'Issues'],['rp-nxt',S.lang==='ko'?'다음 주':'Next week']].map(([id,l])=>`<div class="fg2" style="margin-bottom:10px"><label>${l}</label><textarea id="${id}" rows="3" placeholder="${l}..." style="width:100%;padding:8px 10px;border:1px solid #dde1e7;border-radius:6px;font-size:12px;font-family:inherit;outline:none;resize:vertical;background:#fff;color:#1a1a2e"></textarea></div>`).join('')}<div style="display:flex;gap:8px"><button class="btn-add" onclick="addReport()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddReport=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
-  const vH=viewed?`<div class="rview"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div><div style="font-size:16px;font-weight:700">${esc(viewed.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(viewed.created_at).toLocaleDateString()}</div></div><button class="btn-del" onclick="delReport(${viewed.id})">🗑 Delete</button></div><div class="rsnap"><div class="rsc"><div class="rsv">${viewed.snap?.staff||0}</div><div class="rsl">Staff</div></div><div class="rsc"><div class="rsv">${viewed.snap?.done||0}</div><div class="rsl">Done</div></div><div class="rsc"><div class="rsv">${viewed.snap?.clients||0}</div><div class="rsl">Clients</div></div></div>${[['summary','Summary'],['done_items','Done'],['stuck_items','Issues'],['next_week','Next week']].filter(([k])=>viewed[k]).map(([k,l])=>`<div class="rsec"><div class="rsec-t">${l}</div><div class="rsec-b">${esc(viewed[k])}</div></div>`).join('')}</div>`:S.showAddReport?'':'<div class="rempty">Select a report or create one</div>';
+  const vH=viewed?`<div class="rview"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div><div style="font-size:16px;font-weight:700">${esc(viewed.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(viewed.created_at).toLocaleDateString()}${viewed.submitted_by?` · Submitted by <strong>${esc(viewed.submitted_by)}</strong>`:''}</div></div><button class="btn-del" onclick="delReport(${viewed.id})">🗑 Delete</button></div><div class="rsnap"><div class="rsc"><div class="rsv">${viewed.snap?.staff||0}</div><div class="rsl">Staff</div></div><div class="rsc"><div class="rsv">${viewed.snap?.done||0}</div><div class="rsl">Done</div></div><div class="rsc"><div class="rsv">${viewed.snap?.clients||0}</div><div class="rsl">Clients</div></div></div>${[['summary','Summary'],['done_items','Done'],['stuck_items','Issues'],['next_week','Next week']].filter(([k])=>viewed[k]).map(([k,l])=>`<div class="rsec"><div class="rsec-t">${l}</div><div class="rsec-b">${esc(viewed[k])}</div></div>`).join('')}</div>`:S.showAddReport?'':'<div class="rempty">Select a report or create one</div>';
   return`<div class="ph">${S.lang==='ko'?'주간 보고서':'Reports — For Geonhui'}</div>
-<div class="rlayout"><div><div class="shr"><div class="sh">Reports</div><button class="btn-add btn-sm" onclick="S.showAddReport=!S.showAddReport;S.viewReport=null;render()">+ New</button></div>${S.reports.map(r=>`<div class="ritem${S.viewReport===r.id?' on':''}" onclick="S.viewReport=${r.id};S.showAddReport=false;render()"><div style="font-size:12px;font-weight:700">${esc(r.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(r.created_at).toLocaleDateString()}</div></div>`).join('')||`<div style="font-size:12px;color:#aaa;padding:8px 0">No reports yet</div>`}</div><div>${addF||vH}</div></div>`;
+<div class="rlayout"><div><div class="shr"><div class="sh">Reports</div><button class="btn-add btn-sm" onclick="S.showAddReport=!S.showAddReport;S.viewReport=null;render()">+ New</button></div>${S.reports.map(r=>`<div class="ritem${S.viewReport===r.id?' on':''}" onclick="S.viewReport=${r.id};S.showAddReport=false;render()"><div style="font-size:12px;font-weight:700">${esc(r.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(r.created_at).toLocaleDateString()}${r.submitted_by?` · ${esc(r.submitted_by)}`:''}</div></div>`).join('')||`<div style="font-size:12px;color:#aaa;padding:8px 0">No reports yet</div>`}</div><div>${addF||vH}</div></div>`;
 }
 
 // ── INVITE CODES ──────────────────────────────────────────────────────────
