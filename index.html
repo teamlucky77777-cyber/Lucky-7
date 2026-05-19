@@ -1,35 +1,4 @@
-<
-async function addRecruitFull(){
-  const n=document.getElementById('nr-n').value.trim();
-  if(!n)return;
-  const sipVal=document.getElementById('nr-sip').value;
-  const lanVal=document.getElementById('nr-lan').value;
-  const obj={
-    name:n,
-    source:document.getElementById('nr-s').value,
-    date_applied:document.getElementById('nr-d').value,
-    stage:'Applied',
-    cpu:document.getElementById('nr-cpu').value,
-    ram:document.getElementById('nr-ram').value,
-    speed:document.getElementById('nr-spd').value,
-    os:document.getElementById('nr-os').value,
-    static_ip:sipVal===''?null:sipVal==='yes',
-    lan_cable:lanVal===''?null:lanVal==='yes'
-  };
-  const {data,error}=await sb.from('recruits').insert(obj).select().single();
-  if(error){alert('Save failed: '+error.message);return;}
-  if(data)S.recruits.push(data);
-  S.showAddRecruit=false;render();
-}
-function copyJobPost(){
-  const txt=document.getElementById('job-post-text').textContent;
-  navigator.clipboard.writeText(txt).then(()=>{
-    const btn=document.getElementById('copy-job-btn');
-    btn.textContent='✅ Copied!';
-    setTimeout(()=>{btn.textContent='📋 Copy to clipboard';},2000);
-  });
-}
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -39,96 +8,83 @@ function copyJobPost(){
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#fff;--bg-sb:#f7f6f3;--bg-hover:#efefee;--bg-active:#e9e9e7;--bg-card:#fff;--bg-input:#fff;--text:#37352f;--text2:#787774;--text3:#acaba8;--border:#e9e9e7;--border2:#d3d1cb;--acc:#2383e2;--acc-bg:#e8f3ff;--gr:#0f7b6c;--gr-bg:#edf3ec;--re:#e03e3e;--re-bg:#fbe4e4;--ye:#cb912f;--ye-bg:#fdf3d0;--pu:#6940a5;--pu-bg:#f4f0fb;--r:4px;--r2:8px}
-[data-theme=dark]{--bg:#191919;--bg-sb:#1f1f1f;--bg-hover:#2f2f2f;--bg-active:#373737;--bg-card:#252525;--bg-input:#252525;--text:#cfcfce;--text2:#9b9a97;--text3:#555553;--border:#2f2f2f;--border2:#404040;--acc:#529cca;--acc-bg:#1c3149;--gr:#4dab9a;--gr-bg:#1b3134;--re:#e16060;--re-bg:#3a1616;--ye:#dfab01;--ye-bg:#3b2f00;--pu:#9a6dd7;--pu-bg:#2d1f45}
-body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(--bg);color:var(--text);min-height:100vh}
+:root{--bg:#fff;--bg-sb:#f7f6f3;--bg-h:#efefee;--bg-a:#e9e9e7;--bg-c:#fff;--bg-i:#fff;--tx:#37352f;--tx2:#787774;--tx3:#acaba8;--br:#e9e9e7;--br2:#d3d1cb;--ac:#2383e2;--ac-bg:#e8f3ff;--gr:#0f7b6c;--gr-bg:#edf3ec;--re:#e03e3e;--re-bg:#fbe4e4;--ye:#cb912f;--ye-bg:#fdf3d0;--pu:#6940a5;--pu-bg:#f4f0fb;--r:4px;--r2:8px}
+[data-theme=dark]{--bg:#191919;--bg-sb:#1f1f1f;--bg-h:#2f2f2f;--bg-a:#373737;--bg-c:#252525;--bg-i:#252525;--tx:#cfcfce;--tx2:#9b9a97;--tx3:#555553;--br:#2f2f2f;--br2:#404040;--ac:#529cca;--ac-bg:#1c3149;--gr:#4dab9a;--gr-bg:#1b3134;--re:#e16060;--re-bg:#3a1616;--ye:#dfab01;--ye-bg:#3b2f00;--pu:#9a6dd7;--pu-bg:#2d1f45}
+body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(--bg);color:var(--tx)}
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
-.auth-box{background:var(--bg-card);border-radius:var(--r2);padding:40px;width:400px;border:1px solid var(--border)}
+.auth-box{background:var(--bg-c);border-radius:var(--r2);padding:40px;width:400px;border:1px solid var(--br)}
 .auth-logo{text-align:center;font-size:40px;margin-bottom:8px}
 .auth-title{text-align:center;font-size:20px;font-weight:700;margin-bottom:4px}
-.auth-sub{text-align:center;font-size:13px;color:var(--text2);margin-bottom:24px}
-.auth-tabs{display:flex;margin-bottom:20px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.auth-tab{flex:1;padding:8px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--text2);font-family:inherit}
-.auth-tab.on{background:var(--text);color:var(--bg)}
+.auth-sub{text-align:center;font-size:13px;color:var(--tx2);margin-bottom:24px}
+.auth-tabs{display:flex;margin-bottom:20px;border:1px solid var(--br);border-radius:var(--r);overflow:hidden}
+.auth-tab{flex:1;padding:8px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--tx2);font-family:inherit}
+.auth-tab.on{background:var(--tx);color:var(--bg)}
 .auth-err{background:var(--re-bg);color:var(--re);border-radius:var(--r);padding:8px 12px;font-size:13px;margin-bottom:12px}
 .auth-ok{background:var(--gr-bg);color:var(--gr);border-radius:var(--r);padding:8px 12px;font-size:13px;margin-bottom:12px}
 .role-pick{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.role-opt{padding:10px;border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;text-align:center;font-size:13px;background:var(--bg);color:var(--text2)}
-.role-opt.on{border-color:var(--text);background:var(--text);color:var(--bg);font-weight:500}
+.role-opt{padding:10px;border:1.5px solid var(--br);border-radius:var(--r);cursor:pointer;text-align:center;font-size:13px;background:var(--bg);color:var(--tx2)}
+.role-opt.on{border-color:var(--tx);background:var(--tx);color:var(--bg);font-weight:500}
 .ro-icon{font-size:20px;display:block;margin-bottom:4px}
 .invite-field{display:none}.invite-field.show{display:block}
 #app-screen{display:none}
 #app{display:flex;min-height:100vh}
-#sb{width:240px;background:var(--bg-sb);display:flex;flex-direction:column;min-height:100vh;border-right:1px solid var(--border);flex-shrink:0}
-.sb-top{padding:10px 12px;display:flex;align-items:center;gap:8px;border-radius:var(--r);margin:6px 6px 0;cursor:default}
-.sb-ws-name{font-size:14px;font-weight:700;color:var(--text)}
-.sb-user-line{padding:2px 14px 6px;font-size:12px;color:var(--text3)}
-.sb-badge{padding:0 14px 8px;display:block}
-.sb-badge span{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+#sb{width:240px;background:var(--bg-sb);display:flex;flex-direction:column;min-height:100vh;border-right:1px solid var(--br);flex-shrink:0}
+.sb-top{padding:10px 14px;display:flex;align-items:center;gap:8px}
+.sb-ws-name{font-size:14px;font-weight:700;color:var(--tx)}
+.sb-user-line{padding:2px 14px 4px;font-size:12px;color:var(--tx3)}
+.sb-badge-wrap{padding:0 14px 8px}
+.sb-badge-wrap span{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
 .sb-ceo{background:var(--ye-bg)!important;color:var(--ye)!important}
 .sb-manager{background:var(--gr-bg)!important;color:var(--gr)!important}
-.sb-settlement{background:var(--acc-bg)!important;color:var(--acc)!important}
+.sb-settlement{background:var(--ac-bg)!important;color:var(--ac)!important}
 .sb-hr{background:var(--pu-bg)!important;color:var(--pu)!important}
-.sb-staff{background:var(--bg-active)!important;color:var(--text2)!important}
+.sb-staff{background:var(--bg-a)!important;color:var(--tx2)!important}
 .sb-player{background:var(--re-bg)!important;color:var(--re)!important}
-.sb-divider{height:1px;background:var(--border);margin:4px 12px}
-.sb-section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 14px 3px}
+.sb-div{height:1px;background:var(--br);margin:4px 12px 6px}
+.sb-sec{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:8px 14px 3px}
 .sb-nav{flex:1;padding:0 6px 8px}
-.ni{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13px;margin:1px 0;user-select:none}
-.ni:hover{background:var(--bg-hover);color:var(--text)}
-.ni.on{background:var(--bg-active);color:var(--text);font-weight:500}
+.ni{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:var(--r);cursor:pointer;color:var(--tx2);font-size:13px;margin:1px 0;user-select:none}
+.ni:hover{background:var(--bg-h);color:var(--tx)}.ni.on{background:var(--bg-a);color:var(--tx);font-weight:500}
 .ni-e{width:20px;text-align:center;font-size:14px;flex-shrink:0}
-.sb-bot{padding:8px;border-top:1px solid var(--border)}
+.sb-bot{padding:8px;border-top:1px solid var(--br)}
 .lang-row{display:flex;gap:4px;margin-bottom:4px}
-.lbtn{flex:1;padding:5px;font-size:11px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit}
-.lbtn.on{background:var(--text);color:var(--bg);border-color:var(--text)}
-.theme-btn,.signout{width:100%;padding:6px 10px;font-size:12px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;border-radius:var(--r);text-align:left;display:flex;align-items:center;gap:6px;margin-top:2px}
-.theme-btn:hover,.signout:hover{background:var(--bg-hover);color:var(--text)}
-.signout:hover{color:var(--re)}
+.lbtn{flex:1;padding:5px;font-size:11px;border-radius:var(--r);border:1px solid var(--br);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit}
+.lbtn.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.t-btn,.so-btn{width:100%;padding:6px 10px;font-size:12px;border:none;background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;border-radius:var(--r);text-align:left;display:flex;align-items:center;gap:6px;margin-top:2px}
+.t-btn:hover{background:var(--bg-h);color:var(--tx)}.so-btn:hover{background:var(--bg-h);color:var(--re)}
 #main{flex:1;overflow:auto;background:var(--bg)}
 .page-content{max-width:900px;margin:0 auto;padding:40px 60px}
-.ph{font-size:30px;font-weight:700;margin-bottom:4px;line-height:1.2}
-.psub{font-size:13px;color:var(--text3);margin-bottom:28px}
-.sh{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px}
+.ph{font-size:30px;font-weight:700;margin-bottom:4px;line-height:1.2;display:flex;align-items:center;gap:10px}
+.psub{font-size:13px;color:var(--tx3);margin-bottom:28px}
+.sh{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:8px}
 .shr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
-.met{background:var(--bg-card);border-radius:var(--r2);padding:14px 16px;border:1px solid var(--border)}
-.mv{font-size:28px;font-weight:700;line-height:1.1}
-.ml{font-size:12px;color:var(--text2);margin-top:3px}
-.cg{color:var(--gr)}.cb{color:var(--acc)}.ca{color:var(--ye)}.cr{color:var(--re)}
+.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.met{background:var(--bg-c);border-radius:var(--r2);padding:14px 16px;border:1px solid var(--br)}
+.mv{font-size:28px;font-weight:700;line-height:1.1}.ml{font-size:12px;color:var(--tx2);margin-top:3px}
+.cg{color:var(--gr)}.cb{color:var(--ac)}.ca{color:var(--ye)}.cr{color:var(--re)}
 .bdg{display:inline-block;font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--r)}
-.bs{background:var(--gr-bg);color:var(--gr)}.bi{background:var(--acc-bg);color:var(--acc)}.bw{background:var(--ye-bg);color:var(--ye)}.bx{background:var(--bg-active);color:var(--text2)}.bd{background:var(--re-bg);color:var(--re)}
+.bs{background:var(--gr-bg);color:var(--gr)}.bi{background:var(--ac-bg);color:var(--ac)}.bw{background:var(--ye-bg);color:var(--ye)}.bx{background:var(--bg-a);color:var(--tx2)}.bd{background:var(--re-bg);color:var(--re)}
 .pb{display:inline-block;font-size:11px;font-weight:600;padding:1px 6px;border-radius:var(--r)}
-.pbp1{background:var(--re-bg);color:var(--re)}.pbp2{background:var(--ye-bg);color:var(--ye)}.pbp3{background:var(--acc-bg);color:var(--acc)}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:24px}
-.tcard{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
-.tc-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.tc-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
-.tc-row:last-child{border:none}
-.tw{background:var(--bg-card);border-radius:var(--r2);border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+.pbp1{background:var(--re-bg);color:var(--re)}.pbp2{background:var(--ye-bg);color:var(--ye)}.pbp3{background:var(--ac-bg);color:var(--ac)}
+.tw{background:var(--bg-c);border-radius:var(--r2);border:1px solid var(--br);overflow:hidden;margin-bottom:20px}
 table{width:100%;border-collapse:collapse}
 thead{background:var(--bg-sb)}
-th{padding:8px 12px;font-size:12px;color:var(--text2);font-weight:500;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:8px 12px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+th{padding:8px 12px;font-size:12px;color:var(--tx2);font-weight:500;text-align:left;border-bottom:1px solid var(--br);white-space:nowrap}
+td{padding:8px 12px;font-size:13px;border-bottom:1px solid var(--br);color:var(--tx);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg-hover)}
-.erow>td{padding:0!important;border-bottom:1px solid var(--border)!important}
-.erow-in{background:var(--acc-bg);padding:14px 16px;border-left:3px solid var(--acc)}
-button{font-family:'Inter',sans-serif;font-size:13px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
-button:hover{background:var(--bg-hover)}
-.btn-add{background:var(--text);color:var(--bg);border-color:var(--text)}
-.btn-add:hover{opacity:.85}
-.btn-del{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;font-size:13px}
-.btn-del:hover{color:var(--re)}
+tr:hover td{background:var(--bg-h)}
+.erow>td{padding:0!important;border-bottom:1px solid var(--br)!important}
+.erow-in{background:var(--ac-bg);padding:14px 16px;border-left:3px solid var(--ac)}
+button{font-family:'Inter',sans-serif;font-size:13px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--br);background:var(--bg);color:var(--tx);cursor:pointer}
+button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg);border-color:var(--tx)}.btn-add:hover{opacity:.85}
+.btn-del{background:none;border:none;color:var(--tx3);cursor:pointer;padding:4px;font-size:13px}.btn-del:hover{color:var(--re)}
 .btn-sm{font-size:12px;padding:3px 8px;border-radius:var(--r)}
-.btn-edit{font-size:11px;padding:4px 9px;border-radius:var(--r)}
-.btn-edit.on{background:var(--acc-bg);color:var(--acc);border-color:var(--acc)}
-.fbox{background:var(--acc-bg);border:1px solid var(--acc);border-radius:var(--r2);padding:16px;margin-bottom:16px;border-left:3px solid var(--acc)}
-.fbox-t{font-weight:600;font-size:13px;color:var(--acc);margin-bottom:12px}
+.fbox{background:var(--ac-bg);border:1px solid var(--ac);border-radius:var(--r2);padding:16px;margin-bottom:16px;border-left:3px solid var(--ac)}
+.fbox-t{font-weight:600;font-size:13px;color:var(--ac);margin-bottom:12px}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:12px}
-.fg label,.fg2 label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:500}
-.fg input,.fg select,.fg2 input,.fg2 select,.fg2 textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--text);outline:none;background:var(--bg-input)}
-.fg input:focus,.fg select:focus,.fg2 input:focus,.fg2 select:focus,.fg2 textarea:focus{border-color:var(--acc)}
+.fg label,.fg2 label{display:block;font-size:11px;color:var(--tx2);margin-bottom:3px;font-weight:500}
+.fg input,.fg select,.fg2 input,.fg2 select,.fg2 textarea{width:100%;padding:7px 10px;border:1px solid var(--br);border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--tx);outline:none;background:var(--bg-i)}
+.fg input:focus,.fg select:focus,.fg2 input:focus,.fg2 select:focus,.fg2 textarea:focus{border-color:var(--ac)}
 .fg2 textarea{resize:vertical}
 .pcgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
 .pcc{border-radius:var(--r);padding:10px 4px;text-align:center}
@@ -137,52 +93,52 @@ button:hover{background:var(--bg-hover)}
 .pcc-warn{background:var(--ye-bg);border:1px solid #e8d5a0}.pcc-warn .pcc-n,.pcc-warn .pcc-s{color:var(--ye)}
 .pcc-off{background:var(--re-bg);border:1px solid #f0c4c4}.pcc-off .pcc-n,.pcc-off .pcc-s{color:var(--re)}
 .pcc-n{font-size:12px;font-weight:600}.pcc-s{font-size:10px;opacity:.8;margin-top:1px}
-.tlist{background:var(--bg-card);border-radius:var(--r2);border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
-.trow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border)}
-.trow:last-child{border:none}.trow:hover{background:var(--bg-hover)}.trow.done{opacity:.5}
-.tcheck{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
-.tcheck:hover{border-color:var(--acc)}.tcheck.on{background:var(--gr);border-color:var(--gr);color:#fff}.tcheck.ip{background:var(--ye-bg);border-color:var(--ye);color:var(--ye)}
-.ttxt{flex:1;font-size:13px}.ttxt.s{text-decoration:line-through;color:var(--text3)}
+.tlist{background:var(--bg-c);border-radius:var(--r2);border:1px solid var(--br);overflow:hidden;margin-bottom:16px}
+.trow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--br)}
+.trow:last-child{border:none}.trow:hover{background:var(--bg-h)}.trow.done{opacity:.5}
+.tcheck{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--br2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+.tcheck:hover{border-color:var(--ac)}.tcheck.on{background:var(--gr);border-color:var(--gr);color:#fff}.tcheck.ip{background:var(--ye-bg);border-color:var(--ye);color:var(--ye)}
+.ttxt{flex:1;font-size:13px}.ttxt.s{text-decoration:line-through;color:var(--tx3)}
 .pills{display:flex;gap:6px;flex-wrap:wrap}
-.pill{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg);cursor:pointer;color:var(--text2)}
-.pill.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.pill{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--br);background:var(--bg);cursor:pointer;color:var(--tx2)}
+.pill.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.pc-col{background:var(--bg-sb);border-radius:var(--r2);padding:12px;border:1px solid var(--border)}
+.pc-col{background:var(--bg-sb);border-radius:var(--r2);padding:12px;border:1px solid var(--br)}
 .pc-col-h{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.pc-cnt{font-size:11px;background:var(--bg-active);border-radius:20px;padding:2px 7px;color:var(--text2)}
-.pc-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:9px 10px;margin-bottom:6px}
-.pc-name{font-weight:600;font-size:13px;margin-bottom:2px}.pc-meta{font-size:11px;color:var(--text3);margin-bottom:6px}
+.pc-cnt{font-size:11px;background:var(--bg-a);border-radius:20px;padding:2px 7px;color:var(--tx2)}
+.pc-card{background:var(--bg-c);border:1px solid var(--br);border-radius:var(--r);padding:9px 10px;margin-bottom:6px}
+.pc-name{font-weight:600;font-size:13px;margin-bottom:2px}.pc-meta{font-size:11px;color:var(--tx3);margin-bottom:6px}
 .rlayout{display:grid;grid-template-columns:200px 1fr;gap:16px}
 .ritem{padding:8px 10px;border-radius:var(--r);cursor:pointer;margin-bottom:2px}
-.ritem:hover{background:var(--bg-hover)}.ritem.on{background:var(--bg-active)}
-.rview{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r2);padding:24px}
+.ritem:hover{background:var(--bg-h)}.ritem.on{background:var(--bg-a)}
+.rview{background:var(--bg-c);border:1px solid var(--br);border-radius:var(--r2);padding:24px}
 .rsnap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
-.rsc{background:var(--bg-sb);border-radius:var(--r);padding:12px;text-align:center;border:1px solid var(--border)}
-.rsv{font-size:22px;font-weight:700}.rsl{font-size:11px;color:var(--text2)}
+.rsc{background:var(--bg-sb);border-radius:var(--r);padding:12px;text-align:center;border:1px solid var(--br)}
+.rsv{font-size:22px;font-weight:700}.rsl{font-size:11px;color:var(--tx2)}
 .rsec{margin-bottom:16px}
-.rsec-t{font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
-.rsec-b{font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap}
-.rempty{display:flex;align-items:center;justify-content:center;height:180px;font-size:13px;color:var(--text3);border:1px dashed var(--border);border-radius:var(--r2)}
-.code-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
-.code-role{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;text-transform:uppercase;width:100px;text-align:center}
-.code-val{flex:1;font-family:monospace;font-size:13px;font-weight:600;color:var(--text);background:var(--bg-sb);padding:6px 10px;border-radius:var(--r);border:1px solid var(--border)}
-.code-used{text-decoration:line-through;color:var(--text3)}.code-status{font-size:12px;color:var(--text3)}
+.rsec-t{font-size:11px;font-weight:600;color:var(--tx2);border-bottom:1px solid var(--br);padding-bottom:4px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.rsec-b{font-size:13px;color:var(--tx);line-height:1.7;white-space:pre-wrap}
+.rempty{display:flex;align-items:center;justify-content:center;height:180px;font-size:13px;color:var(--tx3);border:1px dashed var(--br);border-radius:var(--r2)}
+.code-card{background:var(--bg-c);border:1px solid var(--br);border-radius:var(--r2);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.code-role{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;text-transform:uppercase;width:100px;text-align:center;display:inline-block}
+.code-val{flex:1;font-family:monospace;font-size:13px;font-weight:600;color:var(--tx);background:var(--bg-sb);padding:6px 10px;border-radius:var(--r);border:1px solid var(--br)}
+.code-used{text-decoration:line-through;color:var(--tx3)}.code-status{font-size:12px;color:var(--tx3)}
 .player-wrap{max-width:560px;margin:0 auto}
 .player-hero{background:linear-gradient(135deg,#1a2332,#0f7b6c);border-radius:12px;padding:28px 24px;color:#fff;margin-bottom:20px;text-align:center}
 .player-char{font-size:26px;font-weight:700;margin-bottom:4px}.player-server{font-size:13px;opacity:.8;margin-bottom:16px}
 .player-status-big{display:inline-block;font-size:13px;font-weight:600;padding:5px 16px;border-radius:20px;background:rgba(255,255,255,.2)}
-.player-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:12px}
-.player-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:12px}
-.player-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-.player-row:last-child{border:none}.player-key{color:var(--text2)}.player-val{font-weight:600}
+.player-card{background:var(--bg-c);border:1px solid var(--br);border-radius:var(--r2);padding:18px;margin-bottom:12px}
+.player-card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:12px}
+.player-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--br);font-size:13px}
+.player-row:last-child{border:none}.player-key{color:var(--tx2)}.player-val{font-weight:600}
 .player-note{background:var(--gr-bg);border:1px solid #c4dfcc;border-radius:var(--r);padding:12px;font-size:13px;color:var(--gr);line-height:1.6}
-.player-none{text-align:center;padding:60px 20px;color:var(--text3)}
+.player-none{text-align:center;padding:60px 20px;color:var(--tx3)}
 .av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
-.nodata{padding:20px;text-align:center;font-size:13px;color:var(--text3)}
-.tip{font-size:12px;color:var(--text3);margin-bottom:16px}
-.info-tag{font-size:12px;background:var(--acc-bg);color:var(--acc);padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
-.setup-box{background:var(--ye-bg);border:1px solid var(--border2);border-radius:var(--r2);padding:20px}
-.setup-box h3{color:var(--ye);margin-bottom:8px}.setup-box code{background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:var(--r);font-size:12px;display:block;margin:4px 0;word-break:break-all}
+.nodata{padding:20px;text-align:center;font-size:13px;color:var(--tx3)}
+.tip{font-size:12px;color:var(--tx3);margin-bottom:16px}
+.info-tag{font-size:12px;background:var(--ac-bg);color:var(--ac);padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+.setup-box{background:var(--ye-bg);border:1px solid var(--br2);border-radius:var(--r2);padding:20px}
+.setup-box h3{color:var(--ye);margin-bottom:8px}.setup-box code{background:var(--bg);border:1px solid var(--br);padding:2px 6px;border-radius:var(--r);font-size:12px;display:block;margin:4px 0;word-break:break-all}
 </style>
 </head>
 <body>
@@ -235,18 +191,18 @@ button:hover{background:var(--bg-hover)}
 <div id="app-screen">
   <div id="app">
     <nav id="sb">
-      <div class="sb-top">
-        <div class="sb-brand">🍀 Lucky 7</div>
-        <div class="sb-user" id="sb-name">...</div>
-        <div id="sb-badge"></div>
-      </div>
+      <div class="sb-top"><span style="font-size:18px">🍀</span><span class="sb-ws-name">Lucky 7</span></div>
+      <div class="sb-user-line" id="sb-name">Loading...</div>
+      <div class="sb-badge-wrap" id="sb-badge"></div>
+      <div class="sb-div"></div>
       <div class="sb-nav" id="nav-links"></div>
       <div class="sb-bot">
-        <div style="display:flex;gap:4px;margin-bottom:8px">
+        <div class="lang-row">
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <button class="signout" onclick="signOut()">← Sign out</button>
+        <button class="t-btn" onclick="toggleTheme()"><span id="t-icon">🌙</span><span id="t-lbl">Dark mode</span></button>
+        <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
     </nav>
     <main id="main"><div style="padding:40px;text-align:center;color:#aaa">Loading...</div></main>
@@ -261,10 +217,10 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','recruitment'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','recruitment'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
   settlement: ['dash','clients'],
-  hr:         ['dash','tasks_view','tasks_edit','tasks_done','team','reports_submit','recruitment'],
+  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit'],
   player:     ['player']
 };
@@ -273,7 +229,7 @@ const can = (f) => (PERMS[S.profile?.role||'player']||[]).includes(f);
 const ROLE_LABELS = { ceo:'CEO', manager:'Manager', settlement:'Settlement', hr:'HR', staff:'Staff', player:'Player' };
 const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', staff:'🖥', player:'🎮' };
 
-const NAV_ITEMS = [
+const NAV_ITEMS=[
   {key:'dashboard',label:'Dashboard',labelKo:'대시보드',e:'🏠',perm:'dash',sec:null},
   {key:'pcs',label:'Korea PCs',labelKo:'한국 PC',e:'🖥️',perm:'pcs_view',sec:'Operations'},
   {key:'tasks',label:'Tasks',labelKo:'업무',e:'✅',perm:'tasks_view',sec:null},
@@ -412,17 +368,17 @@ async function loadAll(){
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
-function toggleTheme(){const d=document.documentElement;const dark=d.getAttribute('data-theme')==='dark';d.setAttribute('data-theme',dark?'light':'dark');document.getElementById('theme-icon').textContent=dark?'🌙':'☀️';document.getElementById('theme-lbl').textContent=dark?'Dark mode':'Light mode';localStorage.setItem('l7t',dark?'light':'dark');}
-function initTheme(){const s=localStorage.getItem('l7t')||'light';document.documentElement.setAttribute('data-theme',s);const d=s==='dark';const i=document.getElementById('theme-icon');const l=document.getElementById('theme-lbl');if(i)i.textContent=d?'☀️':'🌙';if(l)l.textContent=d?'Light mode':'Dark mode';}
+function toggleTheme(){const d=document.documentElement;const dk=d.getAttribute('data-theme')==='dark';d.setAttribute('data-theme',dk?'light':'dark');const i=document.getElementById('t-icon');const l=document.getElementById('t-lbl');if(i)i.textContent=dk?'🌙':'☀️';if(l)l.textContent=dk?'Dark mode':'Light mode';localStorage.setItem('l7t',dk?'light':'dark');}
+function initTheme(){const s=localStorage.getItem('l7t')||'light';document.documentElement.setAttribute('data-theme',s);const dk=s==='dark';const i=document.getElementById('t-icon');const l=document.getElementById('t-lbl');if(i)i.textContent=dk?'☀️':'🌙';if(l)l.textContent=dk?'Light mode':'Dark mode';}
 function setLang(l){S.lang=l;document.getElementById('btn-en').classList.toggle('on',l==='en');document.getElementById('btn-ko').classList.toggle('on',l==='ko');render();}
-function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.recruitTab='tracker';S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
+function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
 const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
 
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
-  (()=>{let h='',lastSec=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==lastSec){h+=`<div class="sb-section-label">${n.sec}</div>`;lastSec=n.sec;}else if(!n.sec&&lastSec){h+='<div style="height:2px"></div>';lastSec=null;}h+=`<div class="ni${S.page===n.key?' on':''}" onclick="goPage('${n.key}')"><span class="ni-e">${n.e||'📄'}</span><span>${S.lang==='ko'&&n.labelKo?n.labelKo:n.label}</span></div>`;});document.getElementById('nav-links').innerHTML=h;})();
+  (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
   const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
-  try{document.getElementById('main').innerHTML=`<div class="page-content">${(pages[S.page]||pgDash)()}</div>`;}catch(e){document.getElementById('main').innerHTML=`<div class="page-content"><p style="color:var(--re);padding:20px">Error: ${e.message}</p></div>`;}
+  try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';}
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
@@ -481,182 +437,141 @@ ${addForm}<div class="tw"><table><thead><tr><th>Client</th><th>Character</th><th
 }
 
 // ── TEAM ──────────────────────────────────────────────────────────────────
-// ─── STAFF DIRECTORY PAGE ────────────────────────────────────────────────
 function pgStaffDir(){
   const ko=S.lang==='ko';
-  const rows=S.team.map(m=>`
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:8px"><div class="av" style="width:28px;height:28px;font-size:11px;background:${(n=>(['#185FA5','#0F6E56','#854F0B','#791F1F','#534AB7','#993556','#444441'])[(n||'?').charCodeAt(0)%7])(m.name)}22;border:1.5px solid ${(n=>(['#185FA5','#0F6E56','#854F0B','#791F1F','#534AB7','#993556','#444441'])[(n||'?').charCodeAt(0)%7])(m.name)};color:${(n=>(['#185FA5','#0F6E56','#854F0B','#791F1F','#534AB7','#993556','#444441'])[(n||'?').charCodeAt(0)%7])(m.name)}">${(m.initials||m.name.slice(0,2)).toUpperCase()}</div><div><strong>${(m.name||'').replace(/&/g,'&amp;')}</strong><div style="font-size:10px;color:var(--text3)">${m.role||''}</div></div></div></td>
-      <td>${m.isp||'—'}</td>
-      <td style="font-size:12px;color:var(--text2)">${m.tool||'—'}</td>
-      <td>${m.since||'—'}</td>
-      <td style="text-align:right">${can('users')?`<button class="btn-sm btn-edit${S.editMember===m.id?' on':''}" onclick="toggleEdit('${m.id}')">${ko?'편집':'Edit'}</button>`:''}${can('users')&&m.id!==S.profile.id?`<button class="btn-del" onclick="delMember('${m.id}')">🗑</button>`:''}</td>
-    </tr>
-    ${S.editMember===m.id?`<tr class="erow"><td colspan="5"><div class="erow-in">
-      <div class="fgrid">
-        <div class="fg2"><label>${ko?'이름':'Name'}</label><input id="e-name" value="${(m.name||'').replace(/"/g,'&quot;')}"></div>
-        <div class="fg2"><label>Initials</label><input id="e-ini" value="${(m.initials||'').replace(/"/g,'&quot;')}"></div>
-        <div class="fg2"><label>ISP</label><select id="e-isp">${['IndiHome','MyRepublic','Biznet','Other'].map(o=>`<option${o===m.isp?' selected':''}>${o}</option>`).join('')}</select></div>
-        <div class="fg2"><label>${ko?'원격 도구':'Tool'}</label><input id="e-tool" value="${(m.tool||'').replace(/"/g,'&quot;')}" placeholder="AnyViewer..."></div>
-        <div class="fg2"><label>${ko?'입사일':'Since'}</label><input id="e-since" value="${(m.since||'').replace(/"/g,'&quot;')}"></div>
-      </div>
-      <div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember('${m.id}')">${ko?'저장':'Save'}</button><button onclick="cancelEdit()">${ko?'취소':'Cancel'}</button></div>
-    </div></td></tr>`:''}
-  `).join('');
-  const addForm=S.showAddMember&&can('users')?`<div class="fbox"><div class="fbox-t">${ko?'새 직원 추가':'New staff member'}</div>
-    <div class="fgrid">
-      <div class="fg2"><label>${ko?'이름':'Name'}</label><input id="nm-name" placeholder="Name"></div>
-      <div class="fg2"><label>Initials</label><input id="nm-ini" placeholder="BL"></div>
-      <div class="fg2"><label>Role</label><input id="nm-role" placeholder="Manager..."></div>
-      <div class="fg2"><label>${ko?'상태':'Status'}</label><select id="nm-status">${['Active','Inactive','Trial'].map(o=>`<option>${o}</option>`).join('')}</select></div>
-      <div class="fg2"><label>ISP</label><select id="nm-isp">${['IndiHome','MyRepublic','Biznet','Other'].map(o=>`<option>${o}</option>`).join('')}</select></div>
-      <div class="fg2"><label>${ko?'원격 도구':'Tool'}</label><input id="nm-tool" placeholder="AnyViewer..."></div>
-      <div class="fg2"><label>${ko?'입사일':'Since'}</label><input id="nm-since" placeholder="Jan 2026"></div>
-    </div>
-    <div style="display:flex;gap:8px"><button class="btn-add" onclick="addMember()">${ko?'저장':'Save'}</button><button onclick="S.showAddMember=false;S.recruitTab='tracker';render()">${ko?'취소':'Cancel'}</button></div>
-  </div>`:'';
-  return`<div class="ph">👤 ${ko?'직원 목록':'Staff Directory'}</div>
-<div class="mets">
-  <div class="met"><div class="mv cg">${S.team.length}</div><div class="ml">${ko?'전체 직원':'Total'}</div></div>
-  <div class="met"><div class="mv" style="color:var(--pu)">${S.team.filter(m=>['ceo','manager'].includes(m.role)).length}</div><div class="ml">Management</div></div>
-</div>
-<div class="shr"><div class="sh">${ko?'전체 목록':'All members'}</div>${can('users')?`<button class="btn-add" onclick="S.showAddMember=!S.showAddMember;render()">+ ${ko?'직원 추가':'Add member'}</button>`:''}</div>
-${addForm}
-<div class="tw"><table><thead><tr><th>${ko?'이름':'Name'}</th><th>ISP</th><th>${ko?'도구':'Tool'}</th><th>${ko?'입사일':'Since'}</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="5" class="nodata">${ko?'데이터 없음':'No members'}</td></tr>`}</tbody></table></div>`;
+  const C=['#185FA5','#0F6E56','#854F0B','#791F1F','#534AB7','#993556','#444441'];
+  const clr=n=>C[(n||'?').charCodeAt(0)%C.length];
+  const rows=S.team.map(m=>{
+    const c=clr(m.name);
+    return '<tr>'
+      +'<td><div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="av" style="width:28px;height:28px;font-size:11px;background:'+c+'22;border:1.5px solid '+c+';color:'+c+'">'+(m.initials||m.name.slice(0,2)).toUpperCase()+'</div>'
+      +'<div><strong>'+(m.name||'')+'</strong><div style="font-size:10px;color:var(--tx3)">'+(m.role||'')+'</div></div></div></td>'
+      +'<td>'+(m.isp||'—')+'</td>'
+      +'<td style="font-size:12px;color:var(--tx2)">'+(m.tool||'—')+'</td>'
+      +'<td>'+(m.since||'—')+'</td>'
+      +'<td style="text-align:right">'+(can('users')?'<button class="btn-sm'+(S.editMember===m.id?' btn-add':'')+'" onclick="toggleEdit(''+m.id+'')">'+(ko?'편집':'Edit')+'</button>':'')+'</td>'
+      +'</tr>'
+      +(S.editMember===m.id?'<tr class="erow"><td colspan="5"><div class="erow-in">'
+        +'<div class="fgrid">'
+        +'<div class="fg2"><label>'+(ko?'이름':'Name')+'</label><input id="e-name" value="'+((m.name||'').replace(/"/g,'&quot;'))+'"></div>'
+        +'<div class="fg2"><label>Initials</label><input id="e-ini" value="'+((m.initials||'').replace(/"/g,'&quot;'))+'"></div>'
+        +'<div class="fg2"><label>ISP</label><select id="e-isp">'+['IndiHome','MyRepublic','Biznet','Other'].map(o=>'<option'+(o===m.isp?' selected':'')+'>'+o+'</option>').join('')+'</select></div>'
+        +'<div class="fg2"><label>Tool</label><input id="e-tool" value="'+((m.tool||'').replace(/"/g,'&quot;'))+'"></div>'
+        +'<div class="fg2"><label>'+(ko?'입사일':'Since')+'</label><input id="e-since" value="'+((m.since||'').replace(/"/g,'&quot;'))+'"></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember(''+m.id+'')">'+(ko?'저장':'Save')+'</button><button onclick="cancelEdit()">'+(ko?'취소':'Cancel')+'</button></div>'
+        +'</div></td></tr>':'');
+  }).join('');
+  const addF=S.showAddMember&&can('users')?'<div class="fbox"><div class="fbox-t">'+(ko?'새 직원 추가':'New staff member')+'</div>'
+    +'<div class="fgrid">'
+    +'<div class="fg2"><label>'+(ko?'이름':'Name')+'</label><input id="nm-name" placeholder="Name"></div>'
+    +'<div class="fg2"><label>Initials</label><input id="nm-ini" placeholder="BL"></div>'
+    +'<div class="fg2"><label>Role</label><input id="nm-role" placeholder="Manager..."></div>'
+    +'<div class="fg2"><label>Status</label><select id="nm-status">'+['Active','Inactive','Trial'].map(o=>'<option>'+o+'</option>').join('')+'</select></div>'
+    +'<div class="fg2"><label>ISP</label><select id="nm-isp">'+['IndiHome','MyRepublic','Biznet','Other'].map(o=>'<option>'+o+'</option>').join('')+'</select></div>'
+    +'<div class="fg2"><label>Tool</label><input id="nm-tool" placeholder="AnyViewer..."></div>'
+    +'<div class="fg2"><label>'+(ko?'입사일':'Since')+'</label><input id="nm-since" placeholder="Jan 2026"></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="addMember()">'+(ko?'저장':'Save')+'</button><button onclick="S.showAddMember=false;render()">'+(ko?'취소':'Cancel')+'</button></div></div>':'';
+  return '<div class="ph">👤 '+(ko?'직원 목록':'Staff Directory')+'</div>'
+    +'<div class="mets" style="grid-template-columns:repeat(2,1fr)">'
+    +'<div class="met"><div class="mv cg">'+S.team.length+'</div><div class="ml">'+(ko?'전체':'Total')+'</div></div>'
+    +'<div class="met"><div class="mv" style="color:var(--pu)">'+S.team.filter(m=>['ceo','manager'].includes(m.role)).length+'</div><div class="ml">Management</div></div>'
+    +'</div>'
+    +'<div class="shr"><div class="sh">'+(ko?'직원 목록':'All members')+'</div>'+(can('users')?'<button class="btn-add" onclick="S.showAddMember=!S.showAddMember;render()">+ '+(ko?'직원 추가':'Add member')+'</button>':'')+'</div>'
+    +addF
+    +'<div class="tw"><table><thead><tr><th>'+(ko?'이름':'Name')+'</th><th>ISP</th><th>Tool</th><th>'+(ko?'입사일':'Since')+'</th><th></th></tr></thead>'
+    +'<tbody>'+(rows||'<tr><td colspan="5" class="nodata">'+(ko?'없음':'No members')+'</td></tr>')+'</tbody></table></div>';
 }
 
-// ─── RECRUITMENT PAGE (2 tabs: Applicant Tracker + Job Posting) ───────────
 function pgRecruitment(){
   const ko=S.lang==='ko';
   const tab=S.recruitTab||'tracker';
+  function cpuPass(cpu){if(!cpu)return null;const c=cpu.toLowerCase();const im=c.match(/i[3579][\s\-]?(\d{4,5})/);if(im){return parseInt(im[1].toString().slice(0,-3))>=8;}const rm=c.match(/ryzen\s*[357]\s*(\d{4})/);if(rm){return parseInt(rm[1].toString()[0])>=3;}return null;}
+  function ramPass(r){if(!r)return null;const n=parseInt(r);return isNaN(n)?null:n>=8;}
+  function spdPass(s){if(!s)return null;const n=parseInt(s);return isNaN(n)?null:n>=70;}
+  function getStatus(r){if(!r.cpu&&!r.ram&&!r.speed)return'pending';const checks=[cpuPass(r.cpu),ramPass(r.ram),spdPass(r.speed),r.static_ip===true?true:r.static_ip===false?false:null,r.lan_cable===true?true:r.lan_cable===false?false:null];const def=checks.filter(c=>c!==null);if(def.some(c=>c===false))return'fail';if(def.length>0&&def.every(c=>c===true))return'pass';return'pending';}
 
-  // ── Hardware validator ──
-  function cpuPass(cpu){
-    if(!cpu)return null;
-    const c=cpu.toLowerCase();
-    const im=c.match(/i[3579][\s-]?(\d{4,5})/);
-    if(im){const gen=parseInt(im[1].toString().slice(0,-3));return gen>=8;}
-    const rm=c.match(/ryzen\s*[357]\s*(\d{4})/);
-    if(rm){const ser=parseInt(rm[1].toString().slice(0,1));return ser>=3;}
-    return null;
-  }
-  function ramPass(ram){if(!ram)return null;const n=parseInt(ram);return isNaN(n)?null:n>=8;}
-  function speedPass(spd){if(!spd)return null;const n=parseInt(spd);return isNaN(n)?null:n>=70;}
-  function getStatus(r){
-    if(!r.cpu&&!r.ram&&!r.speed)return'pending';
-    const checks=[cpuPass(r.cpu),ramPass(r.ram),speedPass(r.speed),r.static_ip?true:(r.static_ip===false?false:null),r.lan_cable?true:(r.lan_cable===false?false:null)];
-    const definite=checks.filter(c=>c!==null);
-    if(definite.some(c=>c===false))return'fail';
-    if(definite.length>0&&definite.every(c=>c===true))return'pass';
-    return'pending';
-  }
+  const reqs=['Windows 10/11','i5 8th gen+ / Ryzen 5 3000+','Min 8GB RAM','Min 70 Mbps','Public Static IP','LAN Cable'];
+  const reqChips=reqs.map(r=>'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--gr-bg);color:var(--gr);border:1px solid #c4dfcc">✓ '+r+'</span>').join('');
 
-  // ── Tab: Applicant Tracker ──
-  const trackerTab=`
-    <div class="mets" style="grid-template-columns:repeat(4,1fr)">
-      <div class="met"><div class="mv cb">${S.recruits.length}</div><div class="ml">${ko?'전체':'Total'}</div></div>
-      <div class="met"><div class="mv cg">${S.recruits.filter(r=>getStatus(r)==='pass').length}</div><div class="ml">${ko?'통과':'Pass'}</div></div>
-      <div class="met"><div class="mv ca">${S.recruits.filter(r=>getStatus(r)==='pending').length}</div><div class="ml">${ko?'검토 중':'Pending'}</div></div>
-      <div class="met"><div class="mv cr">${S.recruits.filter(r=>getStatus(r)==='fail').length}</div><div class="ml">${ko?'탈락':'Fail'}</div></div>
-    </div>
+  const addForm=S.showAddRecruit?'<div class="fbox"><div class="fbox-t">'+(ko?'새 지원자':'New applicant')+'</div>'
+    +'<div class="fgrid">'
+    +'<div class="fg2"><label>Name</label><input id="nr-n" placeholder="Name"></div>'
+    +'<div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Instagram..."></div>'
+    +'<div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div>'
+    +'<div class="fg2"><label>CPU</label><input id="nr-cpu" placeholder="i5-10400 / Ryzen 5 3600"></div>'
+    +'<div class="fg2"><label>RAM (GB)</label><input id="nr-ram" placeholder="8"></div>'
+    +'<div class="fg2"><label>Speed (Mbps)</label><input id="nr-spd" placeholder="100"></div>'
+    +'<div class="fg2"><label>OS</label><input id="nr-os" placeholder="Windows 11"></div>'
+    +'<div class="fg2"><label>Static IP</label><select id="nr-sip"><option value="">Unknown</option><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>'
+    +'<div class="fg2"><label>LAN Cable</label><select id="nr-lan"><option value="">Unknown</option><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="addRecruitFull()">'+(ko?'저장':'Save')+'</button><button onclick="S.showAddRecruit=false;render()">'+(ko?'취소':'Cancel')+'</button></div></div>':'';
 
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
-      ${['Windows 10/11','i5 8th gen+ / Ryzen 5 3000+','Min 8GB RAM','Min 70 Mbps','Public Static IP','LAN Cable'].map(r=>`<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--gr-bg);color:var(--gr);border:1px solid #c4dfcc">✓ ${r}</span>`).join('')}
-    </div>
+  const rows=S.recruits.length?S.recruits.map(r=>{
+    const st=getStatus(r);
+    const stC=st==='pass'?'var(--gr)':st==='fail'?'var(--re)':'var(--ye)';
+    const stBg=st==='pass'?'var(--gr-bg)':st==='fail'?'var(--re-bg)':'var(--ye-bg)';
+    const stL=st==='pass'?'✓ Pass':st==='fail'?'✗ Fail':'… Pending';
+    const cpuOk=cpuPass(r.cpu);const ramOk=ramPass(r.ram);const spdOk=spdPass(r.speed);
+    return '<tr>'
+      +'<td><strong>'+(r.name||'')+'</strong><br><span style="font-size:11px;color:var(--tx3)">'+(r.source||'')+' · '+(r.date_applied||'')+'</span></td>'
+      +'<td style="font-size:12px;'+(cpuOk===false?'color:var(--re)':cpuOk===true?'color:var(--gr)':'')+'">'+(r.cpu||'—')+'</td>'
+      +'<td style="font-size:12px;'+(ramOk===false?'color:var(--re)':ramOk===true?'color:var(--gr)':'')+'">'+(r.ram?r.ram+'GB':'—')+'</td>'
+      +'<td style="font-size:12px;'+(spdOk===false?'color:var(--re)':spdOk===true?'color:var(--gr)':'')+'">'+(r.speed?r.speed+' Mbps':'—')+'</td>'
+      +'<td style="font-size:12px">'+(r.os||'—')+'</td>'
+      +'<td style="text-align:center">'+(r.static_ip===true?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'—')+'</td>'
+      +'<td style="text-align:center">'+(r.lan_cable===true?'<span style="color:var(--gr)">✓</span>':r.lan_cable===false?'<span style="color:var(--re)">✗</span>':'—')+'</td>'
+      +'<td><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:'+stBg+';color:'+stC+'">'+stL+'</span></td>'
+      +'<td style="font-size:11px;color:var(--tx2)">'+(r.stage||'Applied')+'</td>'
+      +'<td><button class="btn-del" onclick="delRecruit('+r.id+')">🗑</button></td>'
+      +'</tr>';
+  }).join(''):'<tr><td colspan="10" class="nodata">'+(ko?'지원자 없음':'No applicants yet')+'</td></tr>';
 
-    <div class="shr">
-      <div class="sh">${ko?'지원자 목록':'Applicants'}</div>
-      <button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ ${ko?'추가':'Add applicant'}</button>
-    </div>
+  const trackerHTML='<div class="mets">'
+    +'<div class="met"><div class="mv cb">'+S.recruits.length+'</div><div class="ml">Total</div></div>'
+    +'<div class="met"><div class="mv cg">'+S.recruits.filter(r=>getStatus(r)==='pass').length+'</div><div class="ml">Pass</div></div>'
+    +'<div class="met"><div class="mv ca">'+S.recruits.filter(r=>getStatus(r)==='pending').length+'</div><div class="ml">Pending</div></div>'
+    +'<div class="met"><div class="mv cr">'+S.recruits.filter(r=>getStatus(r)==='fail').length+'</div><div class="ml">Fail</div></div>'
+    +'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+reqChips+'</div>'
+    +'<div class="shr"><div class="sh">'+(ko?'지원자 목록':'Applicants')+'</div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ '+(ko?'추가':'Add applicant')+'</button></div>'
+    +addForm
+    +'<div class="tw"><table><thead><tr><th>Name</th><th>CPU</th><th>RAM</th><th>Speed</th><th>OS</th><th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 
-    ${S.showAddRecruit?`<div class="fbox"><div class="fbox-t">${ko?'새 지원자':'New applicant'}</div>
-      <div class="fgrid">
-        <div class="fg2"><label>${ko?'이름':'Name'}</label><input id="nr-n" placeholder="Name"></div>
-        <div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Instagram..."></div>
-        <div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div>
-        <div class="fg2"><label>CPU</label><input id="nr-cpu" placeholder="i5-10400 / Ryzen 5 3600"></div>
-        <div class="fg2"><label>RAM (GB)</label><input id="nr-ram" placeholder="8"></div>
-        <div class="fg2"><label>Speed (Mbps)</label><input id="nr-spd" placeholder="100"></div>
-        <div class="fg2"><label>OS</label><input id="nr-os" placeholder="Windows 11"></div>
-        <div class="fg2"><label>Static IP</label><select id="nr-sip"><option value="">Unknown</option><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>
-        <div class="fg2"><label>LAN Cable</label><select id="nr-lan"><option value="">Unknown</option><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn-add" onclick="addRecruitFull()">${ko?'저장':'Save'}</button>
-        <button onclick="S.showAddRecruit=false;render()">${ko?'취소':'Cancel'}</button>
-      </div>
-    </div>`:''}
+  const jobTxt='Operator Wanted — Lucky 7 (Lineage Classic)\n\nWe are looking for dedicated operators to join our character progression service.\n\n📋 Requirements:\n• PC: Windows 10/11\n• CPU: Intel i5 8th gen+ or AMD Ryzen 5 3000+\n• RAM: Minimum 8GB\n• Internet: Minimum 70 Mbps\n• Public Static IP (mandatory)\n• LAN cable (mandatory — no WiFi)\n\n💰 Payment: Weekly, based on performance\n⏰ Hours: Flexible shifts available\n📍 Remote position\n\nHow to apply:\n1. Screenshot your PC specs (Task Manager → Performance)\n2. Screenshot your speed test (fast.com)\n3. Confirm you have a public static IP and LAN cable\n4. DM us with your specs\n\nOnly applicants who meet ALL hardware requirements will be contacted.';
+  const jobHTML='<div style="max-width:600px">'
+    +'<div style="background:var(--bg-sb);border:1px solid var(--br);border-radius:var(--r2);padding:20px;margin-bottom:16px">'
+    +'<div class="sh" style="margin-bottom:12px">Job Post Preview</div>'
+    +'<pre id="job-post-txt" style="white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.7;color:var(--tx)">'+jobTxt+'</pre>'
+    +'</div>'
+    +'<button class="btn-add" id="copy-job-btn" onclick="copyJobPost()">📋 '+(ko?'클립보드에 복사':'Copy to clipboard')+'</button>'
+    +'<div style="margin-top:12px;padding:10px 14px;background:var(--ac-bg);border-radius:var(--r);font-size:12px;color:var(--ac)">💡 '+(ko?'이 채용공고를 Discord, Instagram에 붙여넣기하세요':'Paste this into Discord or Instagram to recruit')+'</div>'
+    +'</div>';
 
-    <div class="tw"><table>
-      <thead><tr>
-        <th>${ko?'이름':'Name'}</th><th>CPU</th><th>RAM</th><th>Speed</th><th>OS</th>
-        <th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th>
-      </tr></thead>
-      <tbody>${S.recruits.length?S.recruits.map(r=>{
-        const st=getStatus(r);
-        const stClr=st==='pass'?'var(--gr)':st==='fail'?'var(--re)':'var(--ye)';
-        const stBg=st==='pass'?'var(--gr-bg)':st==='fail'?'var(--re-bg)':'var(--ye-bg)';
-        const stLabel=st==='pass'?'✓ Pass':st==='fail'?'✗ Fail':'… Pending';
-        const cpuOk=cpuPass(r.cpu);const ramOk=ramPass(r.ram);const spdOk=speedPass(r.speed);
-        return`<tr>
-          <td><strong>${(r.name||'').replace(/&/g,'&amp;')}</strong><br><span style="font-size:11px;color:var(--text3)">${r.source||''} · ${r.date_applied||''}</span></td>
-          <td style="font-size:12px;${cpuOk===false?'color:var(--re)':cpuOk===true?'color:var(--gr)':''}">${r.cpu||'—'}</td>
-          <td style="font-size:12px;${ramOk===false?'color:var(--re)':ramOk===true?'color:var(--gr)':''}">${r.ram?r.ram+'GB':'—'}</td>
-          <td style="font-size:12px;${spdOk===false?'color:var(--re)':spdOk===true?'color:var(--gr)':''}">${r.speed?r.speed+' Mbps':'—'}</td>
-          <td style="font-size:12px">${r.os||'—'}</td>
-          <td style="text-align:center">${r.static_ip?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'—'}</td>
-          <td style="text-align:center">${r.lan_cable?'<span style="color:var(--gr)">✓</span>':r.lan_cable===false?'<span style="color:var(--re)">✗</span>':'—'}</td>
-          <td><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${stBg};color:${stClr}">${stLabel}</span></td>
-          <td><span style="font-size:11px;color:var(--text2)">${r.stage||'Applied'}</span></td>
-          <td><button class="btn-del" onclick="delRecruit(${r.id})">🗑</button></td>
-        </tr>`;
-      }).join(''):`<tr><td colspan="10" class="nodata">${ko?'지원자 없음':'No applicants yet'}</td></tr>`}
-      </tbody>
-    </table></div>`;
+  const tabStyle=(active)=>active?'padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;background:var(--tx);color:var(--bg)':'padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;background:transparent;color:var(--tx2)';
+  return '<div class="ph">🎯 '+(ko?'채용':'Recruitment')+'</div>'
+    +'<div style="display:inline-flex;border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:20px">'
+    +'<button style="'+tabStyle(tab==='tracker')+'" onclick="S.recruitTab='tracker';render()">'+(ko?'지원자 트래커':'Applicant Tracker')+'</button>'
+    +'<button style="'+tabStyle(tab==='jobpost')+';border-left:1px solid var(--br)" onclick="S.recruitTab='jobpost';render()">'+(ko?'채용 공고':'Job Posting')+'</button>'
+    +'</div>'
+    +(tab==='tracker'?trackerHTML:jobHTML);
+}
 
-  // ── Tab: Job Posting ──
-  const jobPost=`Operator Wanted — Lucky 7 (Lineage Classic)
-
-We are looking for dedicated operators to join our Lineage Classic character progression service.
-
-📋 Requirements:
-• PC: Windows 10/11
-• CPU: Intel i5 8th gen+ or AMD Ryzen 5 3000+
-• RAM: Minimum 8GB
-• Internet: Minimum 70 Mbps
-• Public Static IP (mandatory)
-• LAN cable (mandatory — no WiFi)
-
-💰 Payment: Weekly, based on performance
-⏰ Hours: Flexible shifts available
-📍 Remote position
-
-How to apply:
-1. Screenshot your PC specs (Task Manager → Performance)
-2. Screenshot your internet speed test (fast.com or speedtest.net)
-3. Confirm you have a public static IP and LAN cable
-4. DM us with your specs
-
-Only applicants who meet ALL hardware requirements will be contacted.`;
-
-  const jobTab=`
-    <div style="max-width:600px">
-      <div style="background:var(--bg-sb);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:16px">
-        <div class="sh" style="margin-bottom:12px">Job Post Preview</div>
-        <pre id="job-post-text" style="white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.7;color:var(--text)">${jobPost}</pre>
-      </div>
-      <button class="btn-add" onclick="copyJobPost()"id="copy-job-btn">📋 ${ko?'클립보드에 복사':'Copy to clipboard'}</button>
-      <div style="margin-top:16px;padding:12px;background:var(--acc-bg);border-radius:var(--r);font-size:12px;color:var(--acc)">
-        💡 ${ko?'이 채용공고를 Discord, Instagram, Facebook에 붙여넣기하세요':'Paste this into Discord, Instagram, or Facebook to recruit'}
-      </div>
-    </div>`;
-
-  return`<div class="ph">🎯 ${ko?'채용':'Recruitment'}</div>
-<div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;width:fit-content">
-  <button style="padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;${tab==='tracker'?'background:var(--text);color:var(--bg)':'background:transparent;color:var(--text2)'}" onclick="S.recruitTab='tracker';render()">${ko?'지원자 트래커':'Applicant Tracker'}</button>
-  <button style="padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;border-left:1px solid var(--border);${tab==='jobpost'?'background:var(--text);color:var(--bg)':'background:transparent;color:var(--text2)'}" onclick="S.recruitTab='jobpost';render()">${ko?'채용 공고':'Job Posting'}</button>
-</div>
-${tab==='tracker'?trackerTab:jobTab}`;
+async function addRecruitFull(){
+  const n=document.getElementById('nr-n').value.trim();if(!n)return;
+  const sip=document.getElementById('nr-sip').value;
+  const lan=document.getElementById('nr-lan').value;
+  const obj={name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied',cpu:document.getElementById('nr-cpu').value,ram:document.getElementById('nr-ram').value,speed:document.getElementById('nr-spd').value,os:document.getElementById('nr-os').value,static_ip:sip===''?null:sip==='yes',lan_cable:lan===''?null:lan==='yes'};
+  const {data,error}=await sb.from('recruits').insert(obj).select().single();
+  if(error){alert('Save failed: '+error.message);return;}
+  if(data)S.recruits.push(data);S.showAddRecruit=false;render();
+}
+function copyJobPost(){
+  const txt=document.getElementById('job-post-txt').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{const b=document.getElementById('copy-job-btn');b.textContent='✅ Copied!';setTimeout(()=>{b.textContent='📋 Copy to clipboard';},2000);});
 }
 
 
