@@ -511,7 +511,12 @@ function render(){
   return out;
 })();
   const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,team:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
-  document.getElementById('main').innerHTML=`<div class="page-content">${(pages[S.page]||pgDash)()}</div>`;
+  try{
+    document.getElementById('main').innerHTML=`<div class="page-content">${(pages[S.page]||pgDash)()}</div>`;
+  }catch(e){
+    console.error('Page render error:',e);
+    document.getElementById('main').innerHTML=`<div class="page-content"><div style="padding:40px;color:red">Error: ${e.message}</div></div>`;
+  }
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
