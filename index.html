@@ -210,7 +210,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.3 · Build: 20260519-10</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.4 · Build: 20260519-11</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -634,7 +634,7 @@ function pgRecruitment(){
     const st=getStatus(r);
     const stC=st==='pass'?'var(--gr)':st==='fail'?'var(--re)':'var(--ye)';
     const stBg=st==='pass'?'var(--gr-bg)':st==='fail'?'var(--re-bg)':'var(--ye-bg)';
-    const stL=st==='pass'?'✓ Pass':st==='fail'?'✗ Fail':'… Pending';
+    const stL=st==='pass'?'✓ Pass':st==='fail'?'✗ Fail':'• Pending';
     const cpuOk=cpuPass(r.cpu);const gpuOk=gpuPass(r.gpu);const ramOk=ramPass(r.ram);const spdOk=spdPass(r.speed);
     return '<tr>'
       +'<td><strong>'+(r.name||'')+'</strong><br><span style="font-size:11px;color:var(--tx3)">'+(r.source||'')+' · '+(r.date_applied||'')+'</span></td>'
@@ -645,7 +645,7 @@ function pgRecruitment(){
       +'<td style="font-size:12px">'+(r.os||'—')+'</td>'
       +'<td style="text-align:center">'+(r.static_ip===true?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'—')+'</td>'
       +'<td style="text-align:center">'+(r.lan_cable===true?'<span style="color:var(--gr)">✓</span>':r.lan_cable===false?'<span style="color:var(--re)">✗</span>':'—')+'</td>'
-      +'<td><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:'+stBg+';color:'+stC+'">'+stL+'</span></td>'
+      +'<td><span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:'+stBg+';color:'+stC+';white-space:nowrap;display:inline-block">'+stL+'</span></td>'
       +'<td style="font-size:11px;color:var(--tx2)">'+(r.stage||'Applied')+'</td>'
       +'<td><button class="btn-del" onclick="delRecruit('+r.id+')">🗑</button></td>'
       +'</tr>';
