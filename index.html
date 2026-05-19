@@ -1,4 +1,35 @@
-<!DOCTYPE html>
+<
+async function addRecruitFull(){
+  const n=document.getElementById('nr-n').value.trim();
+  if(!n)return;
+  const sipVal=document.getElementById('nr-sip').value;
+  const lanVal=document.getElementById('nr-lan').value;
+  const obj={
+    name:n,
+    source:document.getElementById('nr-s').value,
+    date_applied:document.getElementById('nr-d').value,
+    stage:'Applied',
+    cpu:document.getElementById('nr-cpu').value,
+    ram:document.getElementById('nr-ram').value,
+    speed:document.getElementById('nr-spd').value,
+    os:document.getElementById('nr-os').value,
+    static_ip:sipVal===''?null:sipVal==='yes',
+    lan_cable:lanVal===''?null:lanVal==='yes'
+  };
+  const {data,error}=await sb.from('recruits').insert(obj).select().single();
+  if(error){alert('Save failed: '+error.message);return;}
+  if(data)S.recruits.push(data);
+  S.showAddRecruit=false;render();
+}
+function copyJobPost(){
+  const txt=document.getElementById('job-post-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('copy-job-btn');
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>{btn.textContent='📋 Copy to clipboard';},2000);
+  });
+}
+!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -384,7 +415,7 @@ async function loadAll(){
 function toggleTheme(){const d=document.documentElement;const dark=d.getAttribute('data-theme')==='dark';d.setAttribute('data-theme',dark?'light':'dark');document.getElementById('theme-icon').textContent=dark?'🌙':'☀️';document.getElementById('theme-lbl').textContent=dark?'Dark mode':'Light mode';localStorage.setItem('l7t',dark?'light':'dark');}
 function initTheme(){const s=localStorage.getItem('l7t')||'light';document.documentElement.setAttribute('data-theme',s);const d=s==='dark';const i=document.getElementById('theme-icon');const l=document.getElementById('theme-lbl');if(i)i.textContent=d?'☀️':'🌙';if(l)l.textContent=d?'Light mode':'Dark mode';}
 function setLang(l){S.lang=l;document.getElementById('btn-en').classList.toggle('on',l==='en');document.getElementById('btn-ko').classList.toggle('on',l==='ko');render();}
-function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
+function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.recruitTab='tracker';S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
 const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
 
 function render(){
@@ -482,7 +513,7 @@ function pgStaffDir(){
       <div class="fg2"><label>${ko?'원격 도구':'Tool'}</label><input id="nm-tool" placeholder="AnyViewer..."></div>
       <div class="fg2"><label>${ko?'입사일':'Since'}</label><input id="nm-since" placeholder="Jan 2026"></div>
     </div>
-    <div style="display:flex;gap:8px"><button class="btn-add" onclick="addMember()">${ko?'저장':'Save'}</button><button onclick="S.showAddMember=false;render()">${ko?'취소':'Cancel'}</button></div>
+    <div style="display:flex;gap:8px"><button class="btn-add" onclick="addMember()">${ko?'저장':'Save'}</button><button onclick="S.showAddMember=false;S.recruitTab='tracker';render()">${ko?'취소':'Cancel'}</button></div>
   </div>`:'';
   return`<div class="ph">👤 ${ko?'직원 목록':'Staff Directory'}</div>
 <div class="mets">
@@ -494,44 +525,138 @@ ${addForm}
 <div class="tw"><table><thead><tr><th>${ko?'이름':'Name'}</th><th>ISP</th><th>${ko?'도구':'Tool'}</th><th>${ko?'입사일':'Since'}</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="5" class="nodata">${ko?'데이터 없음':'No members'}</td></tr>`}</tbody></table></div>`;
 }
 
-// ─── RECRUITMENT PAGE ─────────────────────────────────────────────────────
+// ─── RECRUITMENT PAGE (2 tabs: Applicant Tracker + Job Posting) ───────────
 function pgRecruitment(){
   const ko=S.lang==='ko';
-  const stageKeys=['Applied','Interview','Trial','Hired'];
-  const stageLabels=ko?['지원','면접','수습','채용']:stageKeys;
-  const stageDot={Applied:'var(--acc)',Interview:'var(--ye)',Trial:'var(--pu)',Hired:'var(--gr)'};
-  const addForm=S.showAddRecruit?`<div class="fbox"><div class="fbox-t">${ko?'새 지원자':'New applicant'}</div>
-    <div class="fgrid">
-      <div class="fg2"><label>${ko?'이름':'Name'}</label><input id="nr-n" placeholder="Name"></div>
-      <div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Instagram..."></div>
-      <div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div>
+  const tab=S.recruitTab||'tracker';
+
+  // ── Hardware validator ──
+  function cpuPass(cpu){
+    if(!cpu)return null;
+    const c=cpu.toLowerCase();
+    const im=c.match(/i[3579][\s-]?(\d{4,5})/);
+    if(im){const gen=parseInt(im[1].toString().slice(0,-3));return gen>=8;}
+    const rm=c.match(/ryzen\s*[357]\s*(\d{4})/);
+    if(rm){const ser=parseInt(rm[1].toString().slice(0,1));return ser>=3;}
+    return null;
+  }
+  function ramPass(ram){if(!ram)return null;const n=parseInt(ram);return isNaN(n)?null:n>=8;}
+  function speedPass(spd){if(!spd)return null;const n=parseInt(spd);return isNaN(n)?null:n>=70;}
+  function getStatus(r){
+    if(!r.cpu&&!r.ram&&!r.speed)return'pending';
+    const checks=[cpuPass(r.cpu),ramPass(r.ram),speedPass(r.speed),r.static_ip?true:(r.static_ip===false?false:null),r.lan_cable?true:(r.lan_cable===false?false:null)];
+    const definite=checks.filter(c=>c!==null);
+    if(definite.some(c=>c===false))return'fail';
+    if(definite.length>0&&definite.every(c=>c===true))return'pass';
+    return'pending';
+  }
+
+  // ── Tab: Applicant Tracker ──
+  const trackerTab=`
+    <div class="mets" style="grid-template-columns:repeat(4,1fr)">
+      <div class="met"><div class="mv cb">${S.recruits.length}</div><div class="ml">${ko?'전체':'Total'}</div></div>
+      <div class="met"><div class="mv cg">${S.recruits.filter(r=>getStatus(r)==='pass').length}</div><div class="ml">${ko?'통과':'Pass'}</div></div>
+      <div class="met"><div class="mv ca">${S.recruits.filter(r=>getStatus(r)==='pending').length}</div><div class="ml">${ko?'검토 중':'Pending'}</div></div>
+      <div class="met"><div class="mv cr">${S.recruits.filter(r=>getStatus(r)==='fail').length}</div><div class="ml">${ko?'탈락':'Fail'}</div></div>
     </div>
-    <div style="display:flex;gap:8px"><button class="btn-add" onclick="addRecruit()">${ko?'저장':'Save'}</button><button onclick="S.showAddRecruit=false;render()">${ko?'취소':'Cancel'}</button></div>
-  </div>`:'';
-  const cols=stageKeys.map((sk,si)=>`<div class="pc-col">
-    <div class="pc-col-h">
-      <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${stageDot[sk]};display:inline-block"></span>${stageLabels[si]}</span>
-      <span class="pc-cnt">${S.recruits.filter(r=>r.stage===sk).length}</span>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+      ${['Windows 10/11','i5 8th gen+ / Ryzen 5 3000+','Min 8GB RAM','Min 70 Mbps','Public Static IP','LAN Cable'].map(r=>`<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--gr-bg);color:var(--gr);border:1px solid #c4dfcc">✓ ${r}</span>`).join('')}
     </div>
-    ${S.recruits.filter(r=>r.stage===sk).map(r=>`<div class="pc-card">
-      <div class="pc-name">${(r.name||'').replace(/&/g,'&amp;')}</div>
-      <div class="pc-meta">${r.source||''} · ${r.date_applied||''}</div>
-      <div style="display:flex;gap:4px">
-        ${si<3?`<button class="btn-sm" onclick="moveRecruit(${r.id},'${stageKeys[si+1]}')">→ ${stageLabels[si+1]}</button>`:''}
-        <button class="btn-sm btn-del" onclick="delRecruit(${r.id})">✕</button>
+
+    <div class="shr">
+      <div class="sh">${ko?'지원자 목록':'Applicants'}</div>
+      <button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ ${ko?'추가':'Add applicant'}</button>
+    </div>
+
+    ${S.showAddRecruit?`<div class="fbox"><div class="fbox-t">${ko?'새 지원자':'New applicant'}</div>
+      <div class="fgrid">
+        <div class="fg2"><label>${ko?'이름':'Name'}</label><input id="nr-n" placeholder="Name"></div>
+        <div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Instagram..."></div>
+        <div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div>
+        <div class="fg2"><label>CPU</label><input id="nr-cpu" placeholder="i5-10400 / Ryzen 5 3600"></div>
+        <div class="fg2"><label>RAM (GB)</label><input id="nr-ram" placeholder="8"></div>
+        <div class="fg2"><label>Speed (Mbps)</label><input id="nr-spd" placeholder="100"></div>
+        <div class="fg2"><label>OS</label><input id="nr-os" placeholder="Windows 11"></div>
+        <div class="fg2"><label>Static IP</label><select id="nr-sip"><option value="">Unknown</option><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>
+        <div class="fg2"><label>LAN Cable</label><select id="nr-lan"><option value="">Unknown</option><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>
       </div>
-    </div>`).join('')||`<div class="nodata" style="padding:10px 0">${ko?'없음':'Empty'}</div>`}
-  </div>`).join('');
-  return`<div class="ph">🎯 ${ko?'채용 파이프라인':'Recruitment Pipeline'}</div>
-<div class="mets">
-  <div class="met"><div class="mv cb">${S.recruits.length}</div><div class="ml">${ko?'전체':'Total'}</div></div>
-  <div class="met"><div class="mv ca">${S.recruits.filter(r=>r.stage==='Interview').length}</div><div class="ml">Interview</div></div>
-  <div class="met"><div class="mv" style="color:var(--pu)">${S.recruits.filter(r=>r.stage==='Trial').length}</div><div class="ml">Trial</div></div>
-  <div class="met"><div class="mv cg">${S.recruits.filter(r=>r.stage==='Hired').length}</div><div class="ml">Hired</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-add" onclick="addRecruitFull()">${ko?'저장':'Save'}</button>
+        <button onclick="S.showAddRecruit=false;render()">${ko?'취소':'Cancel'}</button>
+      </div>
+    </div>`:''}
+
+    <div class="tw"><table>
+      <thead><tr>
+        <th>${ko?'이름':'Name'}</th><th>CPU</th><th>RAM</th><th>Speed</th><th>OS</th>
+        <th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th>
+      </tr></thead>
+      <tbody>${S.recruits.length?S.recruits.map(r=>{
+        const st=getStatus(r);
+        const stClr=st==='pass'?'var(--gr)':st==='fail'?'var(--re)':'var(--ye)';
+        const stBg=st==='pass'?'var(--gr-bg)':st==='fail'?'var(--re-bg)':'var(--ye-bg)';
+        const stLabel=st==='pass'?'✓ Pass':st==='fail'?'✗ Fail':'… Pending';
+        const cpuOk=cpuPass(r.cpu);const ramOk=ramPass(r.ram);const spdOk=speedPass(r.speed);
+        return`<tr>
+          <td><strong>${(r.name||'').replace(/&/g,'&amp;')}</strong><br><span style="font-size:11px;color:var(--text3)">${r.source||''} · ${r.date_applied||''}</span></td>
+          <td style="font-size:12px;${cpuOk===false?'color:var(--re)':cpuOk===true?'color:var(--gr)':''}">${r.cpu||'—'}</td>
+          <td style="font-size:12px;${ramOk===false?'color:var(--re)':ramOk===true?'color:var(--gr)':''}">${r.ram?r.ram+'GB':'—'}</td>
+          <td style="font-size:12px;${spdOk===false?'color:var(--re)':spdOk===true?'color:var(--gr)':''}">${r.speed?r.speed+' Mbps':'—'}</td>
+          <td style="font-size:12px">${r.os||'—'}</td>
+          <td style="text-align:center">${r.static_ip?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'—'}</td>
+          <td style="text-align:center">${r.lan_cable?'<span style="color:var(--gr)">✓</span>':r.lan_cable===false?'<span style="color:var(--re)">✗</span>':'—'}</td>
+          <td><span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:${stBg};color:${stClr}">${stLabel}</span></td>
+          <td><span style="font-size:11px;color:var(--text2)">${r.stage||'Applied'}</span></td>
+          <td><button class="btn-del" onclick="delRecruit(${r.id})">🗑</button></td>
+        </tr>`;
+      }).join(''):`<tr><td colspan="10" class="nodata">${ko?'지원자 없음':'No applicants yet'}</td></tr>`}
+      </tbody>
+    </table></div>`;
+
+  // ── Tab: Job Posting ──
+  const jobPost=`Operator Wanted — Lucky 7 (Lineage Classic)
+
+We are looking for dedicated operators to join our Lineage Classic character progression service.
+
+📋 Requirements:
+• PC: Windows 10/11
+• CPU: Intel i5 8th gen+ or AMD Ryzen 5 3000+
+• RAM: Minimum 8GB
+• Internet: Minimum 70 Mbps
+• Public Static IP (mandatory)
+• LAN cable (mandatory — no WiFi)
+
+💰 Payment: Weekly, based on performance
+⏰ Hours: Flexible shifts available
+📍 Remote position
+
+How to apply:
+1. Screenshot your PC specs (Task Manager → Performance)
+2. Screenshot your internet speed test (fast.com or speedtest.net)
+3. Confirm you have a public static IP and LAN cable
+4. DM us with your specs
+
+Only applicants who meet ALL hardware requirements will be contacted.`;
+
+  const jobTab=`
+    <div style="max-width:600px">
+      <div style="background:var(--bg-sb);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:16px">
+        <div class="sh" style="margin-bottom:12px">Job Post Preview</div>
+        <pre id="job-post-text" style="white-space:pre-wrap;font-family:inherit;font-size:13px;line-height:1.7;color:var(--text)">${jobPost}</pre>
+      </div>
+      <button class="btn-add" onclick="copyJobPost()"id="copy-job-btn">📋 ${ko?'클립보드에 복사':'Copy to clipboard'}</button>
+      <div style="margin-top:16px;padding:12px;background:var(--acc-bg);border-radius:var(--r);font-size:12px;color:var(--acc)">
+        💡 ${ko?'이 채용공고를 Discord, Instagram, Facebook에 붙여넣기하세요':'Paste this into Discord, Instagram, or Facebook to recruit'}
+      </div>
+    </div>`;
+
+  return`<div class="ph">🎯 ${ko?'채용':'Recruitment'}</div>
+<div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;width:fit-content">
+  <button style="padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;${tab==='tracker'?'background:var(--text);color:var(--bg)':'background:transparent;color:var(--text2)'}" onclick="S.recruitTab='tracker';render()">${ko?'지원자 트래커':'Applicant Tracker'}</button>
+  <button style="padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;border-left:1px solid var(--border);${tab==='jobpost'?'background:var(--text);color:var(--bg)':'background:transparent;color:var(--text2)'}" onclick="S.recruitTab='jobpost';render()">${ko?'채용 공고':'Job Posting'}</button>
 </div>
-<div class="shr"><div></div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ ${ko?'지원자 추가':'Add applicant'}</button></div>
-${addForm}
-<div class="pipe" style="margin-top:8px">${cols}</div>`;
+${tab==='tracker'?trackerTab:jobTab}`;
 }
 
 
