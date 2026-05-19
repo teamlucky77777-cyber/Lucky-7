@@ -75,7 +75,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .sb-staff{background:var(--bg-active);color:var(--text2)}
 .sb-player{background:var(--red-bg);color:var(--red)}
 .sb-divider{height:1px;background:var(--border);margin:6px 12px}
-.sb-section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:8px 16px 4px}
+.sb-section-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:12px 16px 4px;margin-top:4px}
 .sb-nav{flex:1;padding:0 6px}
 .ni{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:14px;margin:1px 0;transition:.1s;user-select:none}
 .ni:hover{background:var(--bg-hover);color:var(--text)}
@@ -322,10 +322,10 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','recruitment'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','recruitment'],
   settlement: ['dash','clients'],
-  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit'],
+  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit','recruitment'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit'],
   player:     ['player']
 };
@@ -335,16 +335,17 @@ const ROLE_LABELS = { ceo:'CEO', manager:'Manager', settlement:'Settlement', hr:
 const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', staff:'🖥', player:'🎮' };
 
 const NAV_ITEMS = [
-  { key:'dashboard', label:'Dashboard', labelKo:'대시보드', emoji:'🏠', perm:'dash' },
-  { key:'pcs', label:'Korea PCs', labelKo:'한국 PC', emoji:'🖥️', perm:'pcs_view' },
-  { key:'tasks', label:'Tasks', labelKo:'업무', emoji:'✅', perm:'tasks_view' },
-  { key:'clients', label:'Clients', labelKo:'클라이언트', emoji:'💼', perm:'clients' },
-  { key:'team', label:'Team', labelKo:'팀', emoji:'👥', perm:'team' },
-  { key:'reports', label:'Reports', labelKo:'보고서', emoji:'📋', perm:'reports' },
-  { key:'myreports', label:'My Reports', labelKo:'내 보고서', emoji:'📝', perm:'reports_submit' },
-  { key:'invite', label:'Invite Codes', labelKo:'초대 코드', emoji:'🔑', perm:'invite' },
-  { key:'users', label:'User Roles', labelKo:'사용자 역할', emoji:'🛡️', perm:'users' },
-  { key:'player', label:'My Order', labelKo:'내 주문', emoji:'🎮', perm:'player' },
+  { key:'dashboard', label:'Dashboard', labelKo:'대시보드', emoji:'🏠', perm:'dash', section:null },
+  { key:'pcs', label:'Korea PCs', labelKo:'한국 PC', emoji:'🖥️', perm:'pcs_view', section:'Operations' },
+  { key:'tasks', label:'Tasks', labelKo:'업무', emoji:'✅', perm:'tasks_view', section:null },
+  { key:'clients', label:'Clients', labelKo:'클라이언트', emoji:'💼', perm:'clients', section:null },
+  { key:'team', label:'Staff Directory', labelKo:'직원 목록', emoji:'👤', perm:'team', section:'People' },
+  { key:'recruitment', label:'Recruitment', labelKo:'채용', emoji:'🎯', perm:'recruitment', section:null },
+  { key:'reports', label:'Reports', labelKo:'보고서', emoji:'📋', perm:'reports', section:'Management' },
+  { key:'myreports', label:'My Reports', labelKo:'내 보고서', emoji:'📝', perm:'reports_submit', section:'Management' },
+  { key:'invite', label:'Invite Codes', labelKo:'초대 코드', emoji:'🔑', perm:'invite', section:null },
+  { key:'users', label:'User Roles', labelKo:'사용자 역할', emoji:'🛡️', perm:'users', section:null },
+  { key:'player', label:'My Order', labelKo:'내 주문', emoji:'🎮', perm:'player', section:null },
 ];
 
 // ── STATE ─────────────────────────────────────────────────────────────────
@@ -495,8 +496,21 @@ const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
 
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
-  document.getElementById('nav-links').innerHTML=visNav.map(n=>`<div class="ni${S.page===n.key?' on':''}" onclick="goPage('${n.key}')"><span class="ni-emoji">${n.emoji}</span><span>${lbl(n)}</span></div>`).join('');
-  const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,team:pgTeam,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
+  document.getElementById('nav-links').innerHTML=(()=>{
+  let out='';let lastSection=undefined;
+  visNav.forEach(n=>{
+    if(n.section!==lastSection&&n.section!==null){
+      out+=`<div class="sb-section-label">${n.section}</div>`;
+      lastSection=n.section;
+    } else if(n.section===null&&lastSection!==undefined&&lastSection!==null){
+      out+=`<div style="height:4px"></div>`;
+      lastSection=null;
+    }
+    out+=`<div class="ni${S.page===n.key?' on':''}" onclick="goPage('${n.key}')"><span class="ni-emoji">${n.emoji}</span><span>${lbl(n)}</span></div>`;
+  });
+  return out;
+})();
+  const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,team:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
   document.getElementById('main').innerHTML=`<div class="page-content">${(pages[S.page]||pgDash)()}</div>`;
 }
 
