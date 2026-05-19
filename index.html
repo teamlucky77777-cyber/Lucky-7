@@ -210,7 +210,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.2 · Build: 20260519-9</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.3 · Build: 20260519-10</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -227,8 +227,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','checklist','checklist_team'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','checklist','checklist_team'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
   settlement: ['dash'],
   hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit','checklist'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist'],
@@ -278,7 +278,7 @@ const TOOL_OPT=['AnyViewer','Tailscale+Veyon','Rimo+VPN','MeshCentral','Other'];
 
 let S = {
   page:'dashboard', lang:'en', user:null, profile:null,
-  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[],
+  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[], recruitReqs:{min_intel_gen:8,min_ryzen_gen:3,min_ram:8,min_speed:70,require_static_ip:true,require_lan_cable:true,gpu_label:'GTX 1050 Ti+ / RX 560+',os_label:'Windows 10/11'}, showEditReqs:false,
   editMember:null, showAddMember:false, showAddRecruit:false,
   showAddTask:false, showAddClient:false, showAddReport:false, showAddCode:false,
   viewReport:null, taskFilter:'All', signupRole:'player'
@@ -399,6 +399,11 @@ async function loadAll(){
   const [t,tk,pc,cl,rec,rep,codes]=await Promise.all(loads);
   S.team=t.data||[];S.tasks=tk.data||[];S.pcs=pc.data||[];
   S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];
+  // Load recruit requirements settings
+  try{
+    const {data:settings}=await sb.from('app_settings').select('value').eq('key','recruit_requirements').maybeSingle();
+    if(settings?.value) S.recruitReqs={...S.recruitReqs,...settings.value};
+  }catch(e){console.warn('Could not load recruit requirements:',e);}
   // Load checklists
   if(can('checklist')){
     const today=new Date().toISOString().slice(0,10);
@@ -547,9 +552,9 @@ function pgStaffDir(){
 function pgRecruitment(){
   const ko=S.lang==='ko';
   const tab=S.recruitTab||'tracker';
-  function cpuPass(cpu){if(!cpu)return null;const c=cpu.toLowerCase();const im=c.match(/i[3579][\s\-]?(\d{4,5})/);if(im){return parseInt(im[1].toString().slice(0,-3))>=8;}const rm=c.match(/ryzen\s*[357]\s*(\d{4})/);if(rm){return parseInt(rm[1].toString()[0])>=3;}return null;}
-  function ramPass(r){if(!r)return null;const n=parseInt(r);return isNaN(n)?null:n>=8;}
-  function spdPass(s){if(!s)return null;const n=parseInt(s);return isNaN(n)?null:n>=70;}
+  function cpuPass(cpu){if(!cpu)return null;const c=cpu.toLowerCase();const ig=S.recruitReqs?.min_intel_gen||8;const rg=S.recruitReqs?.min_ryzen_gen||3;const im=c.match(/i[3579][\s\-]?(\d{4,5})/);if(im){return parseInt(im[1].toString().slice(0,-3))>=ig;}const rm=c.match(/ryzen\s*[357]\s*(\d{4})/);if(rm){return parseInt(rm[1].toString()[0])>=rg;}return null;}
+  function ramPass(r){if(!r)return null;const n=parseInt(r);const min=S.recruitReqs?.min_ram||8;return isNaN(n)?null:n>=min;}
+  function spdPass(s){if(!s)return null;const n=parseInt(s);const min=S.recruitReqs?.min_speed||70;return isNaN(n)?null:n>=min;}
   function gpuPass(gpu){
     if(!gpu)return null;
     const g=gpu.toLowerCase().replace(/\s+/g,' ');
@@ -585,9 +590,29 @@ function pgRecruitment(){
     if(/vega\s*(56|64)/.test(g)) return true;
     return null;
   }
-  function getStatus(r){if(!r.cpu&&!r.gpu&&!r.ram&&!r.speed)return'pending';const checks=[cpuPass(r.cpu),gpuPass(r.gpu),ramPass(r.ram),spdPass(r.speed),r.static_ip===true?true:r.static_ip===false?false:null,r.lan_cable===true?true:r.lan_cable===false?false:null];const def=checks.filter(c=>c!==null);if(def.some(c=>c===false))return'fail';if(def.length>0&&def.every(c=>c===true))return'pass';return'pending';}
+  function getStatus(r){if(!r.cpu&&!r.gpu&&!r.ram&&!r.speed)return'pending';const reqIp=S.recruitReqs?.require_static_ip!==false;const reqLan=S.recruitReqs?.require_lan_cable!==false;const checks=[cpuPass(r.cpu),gpuPass(r.gpu),ramPass(r.ram),spdPass(r.speed),reqIp?(r.static_ip===true?true:r.static_ip===false?false:null):null,reqLan?(r.lan_cable===true?true:r.lan_cable===false?false:null):null];const def=checks.filter(c=>c!==null);if(def.some(c=>c===false))return'fail';if(def.length>0&&def.every(c=>c===true))return'pass';return'pending';}
 
-  const reqs=['Windows 10/11','i5 8th gen+ / Ryzen 5 3000+','GPU: GTX 1050 Ti+ / RX 560+','Min 8GB RAM','Min 70 Mbps','Public Static IP','LAN Cable'];
+  const R=S.recruitReqs;
+  const intelLbl=R.min_intel_gen===8?'i5 8th gen+':'i5 '+R.min_intel_gen+'th gen+';
+  const ryzenLbl=R.min_ryzen_gen===3?'Ryzen 5 3000+':'Ryzen 5 '+R.min_ryzen_gen+'000+';
+  const reqs=[R.os_label||'Windows 10/11', intelLbl+' / '+ryzenLbl, 'GPU: '+(R.gpu_label||'GTX 1050 Ti+ / RX 560+'), 'Min '+R.min_ram+'GB RAM', 'Min '+R.min_speed+' Mbps'];
+  if(R.require_static_ip!==false) reqs.push('Public Static IP');
+  if(R.require_lan_cable!==false) reqs.push('LAN Cable');
+  const reqsEditForm = !can('recruit_settings')?'':('<div class="fbox" style="margin-bottom:16px">'
+    +'<div class="fbox-t">'+(ko?'채용 요구사항 편집':'Edit recruitment requirements')+'</div>'
+    +'<div class="fgrid">'
+    +'<div class="fg2"><label>OS label</label><input id="rq-os" value="'+esc(R.os_label||'Windows 10/11')+'"></div>'
+    +'<div class="fg2"><label>Min Intel gen</label><input id="rq-intel" type="number" value="'+R.min_intel_gen+'"></div>'
+    +'<div class="fg2"><label>Min Ryzen gen</label><input id="rq-ryzen" type="number" value="'+R.min_ryzen_gen+'"></div>'
+    +'<div class="fg2"><label>GPU label</label><input id="rq-gpu" value="'+esc(R.gpu_label||'')+'"></div>'
+    +'<div class="fg2"><label>Min RAM (GB)</label><input id="rq-ram" type="number" value="'+R.min_ram+'"></div>'
+    +'<div class="fg2"><label>Min Speed (Mbps)</label><input id="rq-spd" type="number" value="'+R.min_speed+'"></div>'
+    +'<div class="fg2"><label>Static IP required?</label><select id="rq-ip"><option value="yes"'+(R.require_static_ip!==false?' selected':'')+'>Yes</option><option value="no"'+(R.require_static_ip===false?' selected':'')+'>No</option></select></div>'
+    +'<div class="fg2"><label>LAN cable required?</label><select id="rq-lan"><option value="yes"'+(R.require_lan_cable!==false?' selected':'')+'>Yes</option><option value="no"'+(R.require_lan_cable===false?' selected':'')+'>No</option></select></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-add" onclick="saveRequirements()">'+(ko?'저장':'Save')+'</button><button onclick="S.showEditReqs=false;render()">'+(ko?'취소':'Cancel')+'</button></div>'
+    +'<div style="margin-top:10px;font-size:11px;color:var(--tx3);line-height:1.5">'+(ko?'⚙️ 변경 후 모든 지원자가 새 기준으로 다시 평가됩니다.':'⚙️ Changes apply to all applicants — they will be re-evaluated with the new criteria.')+'</div>'
+    +'</div>');
   const reqChips=reqs.map(r=>'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--gr-bg);color:var(--gr);border:1px solid #c4dfcc">✓ '+r+'</span>').join('');
 
   const addForm=S.showAddRecruit?'<div class="fbox"><div class="fbox-t">'+(ko?'새 지원자':'New applicant')+'</div>'
@@ -632,12 +657,17 @@ function pgRecruitment(){
     +'<div class="met"><div class="mv ca">'+S.recruits.filter(r=>getStatus(r)==='pending').length+'</div><div class="ml">Pending</div></div>'
     +'<div class="met"><div class="mv cr">'+S.recruits.filter(r=>getStatus(r)==='fail').length+'</div><div class="ml">Fail</div></div>'
     +'</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+reqChips+'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center">'+reqChips+(can('recruit_settings')?'<button class="btn-sm" style="margin-left:auto" onclick="S.showEditReqs=!S.showEditReqs;render()">⚙️ '+(ko?'요구사항 편집':'Edit requirements')+'</button>':'')+'</div>'+(S.showEditReqs&&can('recruit_settings')?reqsEditForm:'')
     +'<div class="shr"><div class="sh">'+(ko?'지원자 목록':'Applicants')+'</div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ '+(ko?'추가':'Add applicant')+'</button></div>'
     +addForm
     +'<div class="tw"><table><thead><tr><th>Name</th><th>CPU</th><th>GPU</th><th>RAM</th><th>Speed</th><th>OS</th><th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 
-  const jobTxt='Operator Wanted — Lucky 7 (Lineage Classic)\n\nWe are looking for dedicated operators to join our character progression service.\n\n📋 Requirements:\n• PC: Windows 10/11\n• CPU: Intel i5 8th gen+ or AMD Ryzen 5 3000+\n• GPU: NVIDIA GTX 1050 Ti+ or AMD Radeon RX 560+\n• RAM: Minimum 8GB\n• Internet: Minimum 70 Mbps\n• Public Static IP (mandatory)\n• LAN cable (mandatory — no WiFi)\n\n💰 Payment: Weekly, based on performance\n⏰ Hours: Flexible shifts available\n📍 Remote position\n\nHow to apply:\n1. Screenshot your PC specs (Task Manager → Performance)\n2. Screenshot your speed test (fast.com)\n3. Confirm you have a public static IP and LAN cable\n4. DM us with your specs\n\nOnly applicants who meet ALL hardware requirements will be contacted.';
+  const _ig=R.min_intel_gen,_rg=R.min_ryzen_gen;
+  const _intelTxt=_ig===8?'8th gen+':_ig+'th gen+';
+  const _ryzenTxt=_rg===3?'3000+ series':_rg+'000+ series';
+  const _ipLine=R.require_static_ip!==false?'• Public Static IP (mandatory)\\n':'';
+  const _lanLine=R.require_lan_cable!==false?'• LAN cable (mandatory — no WiFi)\\n':'';
+  const jobTxt='Operator Wanted — Lucky 7 (Lineage Classic)\\n\\nWe are looking for dedicated operators to join our character progression service.\\n\\n📋 Requirements:\\n• PC: '+(R.os_label||'Windows 10/11')+'\\n• CPU: Intel i5 '+_intelTxt+' or AMD Ryzen 5 '+_ryzenTxt+'\\n• GPU: '+(R.gpu_label||'GTX 1050 Ti+ / RX 560+')+'\\n• RAM: Minimum '+R.min_ram+'GB\\n• Internet: Minimum '+R.min_speed+' Mbps\\n'+_ipLine+_lanLine+'\\n💰 Payment: Weekly, based on performance\\n⏰ Hours: Flexible shifts available\\n📍 Remote position\\n\\nHow to apply:\\n1. Screenshot your PC specs (Task Manager → Performance)\\n2. Screenshot your speed test (fast.com)\\n3. Confirm you have a public static IP and LAN cable\\n4. DM us with your specs\\n\\nOnly applicants who meet ALL hardware requirements will be contacted.';
   const jobHTML='<div style="max-width:600px">'
     +'<div style="background:var(--bg-sb);border:1px solid var(--br);border-radius:var(--r2);padding:20px;margin-bottom:16px">'
     +'<div class="sh" style="margin-bottom:12px">Job Post Preview</div>'
@@ -669,6 +699,26 @@ async function addRecruitFull(){
   if(data){S.recruits.push(data);toast('Applicant added ✓');}
   S.showAddRecruit=false;render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[addRecruitFull]',e);}
+}
+async function saveRequirements(){
+  try{
+    const newReqs={
+      os_label:document.getElementById('rq-os').value.trim()||'Windows 10/11',
+      min_intel_gen:parseInt(document.getElementById('rq-intel').value)||8,
+      min_ryzen_gen:parseInt(document.getElementById('rq-ryzen').value)||3,
+      gpu_label:document.getElementById('rq-gpu').value.trim()||'GTX 1050 Ti+ / RX 560+',
+      min_ram:parseInt(document.getElementById('rq-ram').value)||8,
+      min_speed:parseInt(document.getElementById('rq-spd').value)||70,
+      require_static_ip:document.getElementById('rq-ip').value==='yes',
+      require_lan_cable:document.getElementById('rq-lan').value==='yes'
+    };
+    const {error}=await sb.from('app_settings').upsert({key:'recruit_requirements',value:newReqs,updated_at:new Date().toISOString(),updated_by:S.user?.id},{onConflict:'key'});
+    if(error){toast(error.message,'err');console.error(error);return;}
+    S.recruitReqs=newReqs;
+    S.showEditReqs=false;
+    toast('Requirements updated ✓');
+    render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[saveRequirements]',e);}
 }
 function copyJobPost(){
   const txt=document.getElementById('job-post-txt').textContent;
