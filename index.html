@@ -321,6 +321,16 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
+// ─── HELPERS ─────────────────────────────────────────────────────────────
+function t(){return TX[S.lang];}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ac(n){return ACOLS[(n||'?').charCodeAt(0)%ACOLS.length];}
+function sc(s){return({Active:'bs',Online:'bs',Done:'bs',Completed:'bs',Hired:'bs','In Progress':'bi',Interview:'bi',Trial:'bw',Warning:'bw',Applied:'bw',Inactive:'bx',Todo:'bx',Offline:'bd',Paused:'bd'}[s]||'bx');}
+function bdg(s){return`<span class="bdg ${sc(s)}">${s}</span>`;}
+function pb(p){const c=p==='P1'?'pbp1':p==='P2'?'pbp2':'pbp3';return`<span class="pb ${c}">${p}</span>`;}
+function av(n,i,sz){sz=sz||30;const c=ac(n);return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.36)}px;background:${c}22;border:1.5px solid ${c};color:${c}">${(i||n.slice(0,2)).toUpperCase()}</div>`;}
+function lbl(item){return S.lang==='ko'&&item.labelKo?item.labelKo:item.label;}
+
 const PERMS = {
   ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','recruitment'],
   manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','recruitment'],
@@ -329,7 +339,7 @@ const PERMS = {
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit'],
   player:     ['player']
 };
-const can = (f) => (PERMS[S.profile?.role||'player']||[]).includes(f);
+function can(f){ return(PERMS[S.profile?.role||'player']||[]).includes(f);}
 
 const ROLE_LABELS = { ceo:'CEO', manager:'Manager', settlement:'Settlement', hr:'HR', staff:'Staff', player:'Player' };
 const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', staff:'🖥', player:'🎮' };
@@ -360,12 +370,12 @@ let S = {
   viewReport:null, taskFilter:'All', signupRole:'player'
 };
 
-const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const ac=n=>(['#185FA5','#0F6E56','#854F0B','#791F1F','#534AB7','#993556','#444441'])[(n||'?').charCodeAt(0)%7];
-const sc=s=>({Active:'bs',Online:'bs',Done:'bs',Completed:'bs',Hired:'bs','In Progress':'bi',Interview:'bi',Trial:'bw',Warning:'bw',Applied:'bw',Inactive:'bx',Todo:'bx',Offline:'bd',Paused:'bd'}[s]||'bx');
-const bdg=s=>`<span class="bdg ${sc(s)}">${s}</span>`;
-const pb=p=>`<span class="pb pb${p.toLowerCase()}">${p}</span>`;
-const av=(n,i,sz=30)=>{const c=ac(n);return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.36)}px;background:${c}22;border:1.5px solid ${c};color:${c}">${(i||n.slice(0,2)).toUpperCase()}</div>`;};
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function sc(s){return({Active:'bs',Online:'bs',Done:'bs',Completed:'bs',Hired:'bs','In Progress':'bi',Interview:'bi',Trial:'bw',Warning:'bw',Applied:'bw',Inactive:'bx',Todo:'bx',Offline:'bd',Paused:'bd'}[s]||'bx');
+
+
+return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.36)}px;background:${c}22;border:1.5px solid ${c};color:${c}">${(i||n.slice(0,2)).toUpperCase()}</div>`;};
 
 // ── AUTH ──────────────────────────────────────────────────────────────────
 let signupRole = 'player';
@@ -492,7 +502,7 @@ function initTheme(){
 }
 function setLang(l){S.lang=l;document.getElementById('btn-en').classList.toggle('on',l==='en');document.getElementById('btn-ko').classList.toggle('on',l==='ko');render();}
 function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
-const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
+
 
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
