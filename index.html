@@ -450,7 +450,7 @@ function pgStaffDir(){
       +'<td>'+(m.isp||'—')+'</td>'
       +'<td style="font-size:12px;color:var(--tx2)">'+(m.tool||'—')+'</td>'
       +'<td>'+(m.since||'—')+'</td>'
-      +'<td style="text-align:right">'+(can('users')?'<button class="btn-sm'+(S.editMember===m.id?' btn-add':'')+'" onclick="toggleEdit(''+m.id+'')">'+(ko?'편집':'Edit')+'</button>':'')+'</td>'
+      +'<td style="text-align:right">'+(can('users')?'<button class="btn-sm'+(S.editMember===m.id?' btn-add':'')+'" onclick="toggleEdit('+m.id+')">'+(ko?'편집':'Edit')+'</button>':'')+'</td>'
       +'</tr>'
       +(S.editMember===m.id?'<tr class="erow"><td colspan="5"><div class="erow-in">'
         +'<div class="fgrid">'
@@ -460,7 +460,7 @@ function pgStaffDir(){
         +'<div class="fg2"><label>Tool</label><input id="e-tool" value="'+((m.tool||'').replace(/"/g,'&quot;'))+'"></div>'
         +'<div class="fg2"><label>'+(ko?'입사일':'Since')+'</label><input id="e-since" value="'+((m.since||'').replace(/"/g,'&quot;'))+'"></div>'
         +'</div>'
-        +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember(''+m.id+'')">'+(ko?'저장':'Save')+'</button><button onclick="cancelEdit()">'+(ko?'취소':'Cancel')+'</button></div>'
+        +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember('+m.id+')">'+(ko?'저장':'Save')+'</button><button onclick="cancelEdit()">'+(ko?'취소':'Cancel')+'</button></div>'
         +'</div></td></tr>':'');
   }).join('');
   const addF=S.showAddMember&&can('users')?'<div class="fbox"><div class="fbox-t">'+(ko?'새 직원 추가':'New staff member')+'</div>'
@@ -554,8 +554,8 @@ function pgRecruitment(){
   const tabStyle=(active)=>active?'padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;background:var(--tx);color:var(--bg)':'padding:7px 20px;font-size:13px;font-weight:500;border:none;border-radius:0;background:transparent;color:var(--tx2)';
   return '<div class="ph">🎯 '+(ko?'채용':'Recruitment')+'</div>'
     +'<div style="display:inline-flex;border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:20px">'
-    +'<button style="'+tabStyle(tab==='tracker')+'" onclick="S.recruitTab='tracker';render()">'+(ko?'지원자 트래커':'Applicant Tracker')+'</button>'
-    +'<button style="'+tabStyle(tab==='jobpost')+';border-left:1px solid var(--br)" onclick="S.recruitTab='jobpost';render()">'+(ko?'채용 공고':'Job Posting')+'</button>'
+    +'<button style="'+tabStyle(tab==='tracker')+'" onclick="S.recruitTab=\'tracker\';render()">'+(ko?'지원자 트래커':'Applicant Tracker')+'</button>'
+    +'<button style="'+tabStyle(tab==='jobpost')+';border-left:1px solid var(--br)" onclick="S.recruitTab=\'jobpost\';render()">'+(ko?'채용 공고':'Job Posting')+'</button>'
     +'</div>'
     +(tab==='tracker'?trackerHTML:jobHTML);
 }
