@@ -141,7 +141,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 .setup-box h3{color:var(--ye);margin-bottom:8px}.setup-box code{background:var(--bg);border:1px solid var(--br);padding:2px 6px;border-radius:var(--r);font-size:12px;display:block;margin:4px 0;word-break:break-all}
 
 #toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast-msg{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,.4);pointer-events:all;animation:slideIn .2s ease}
+.toast-msg{padding:14px 20px;border-radius:8px;font-size:14px;font-weight:500;max-width:420px;box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:all;animation:slideIn .2s ease;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .toast-ok{background:#0f7b6c;color:#fff}.toast-err{background:#c0392b;color:#fff}
 @keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
 </style>
@@ -207,6 +207,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v0.4 · Build: 20260519</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -582,7 +583,8 @@ function pgRecruitment(){
 }
 
 async function addRecruitFull(){
-  const n=document.getElementById('nr-n').value.trim();if(!n)return;
+  try{
+    const n=document.getElementById('nr-n').value.trim();if(!n)return;
   const sip=document.getElementById('nr-sip').value;
   const lan=document.getElementById('nr-lan').value;
   const base={name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'};
@@ -592,6 +594,7 @@ async function addRecruitFull(){
   if(error){toast(error.message,'err');console.error(error);return;}
   if(data){S.recruits.push(data);toast('Applicant added ✓');}
   S.showAddRecruit=false;render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[addRecruitFull]',e);}
 }
 function copyJobPost(){
   const txt=document.getElementById('job-post-txt').textContent;
@@ -660,49 +663,102 @@ ${o.progress_note?`<div class="player-card"><div class="player-card-title">Progr
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────
-async function cyclePC(id){const ord=['Online','Warning','Offline'];const p=S.pcs.find(x=>x.id===id);const ns=ord[(ord.indexOf(p.status)+1)%3];await sb.from('korea_pcs').update({status:ns}).eq('id',id);S.pcs=S.pcs.map(x=>x.id===id?{...x,status:ns}:x);render();}
+async function cyclePC(id){
+  try{
+    const ord=['Online','Warning','Offline'];const p=S.pcs.find(x=>x.id===id);const ns=ord[(ord.indexOf(p.status)+1)%3];await sb.from('korea_pcs').update({status:ns}).eq('id',id);S.pcs=S.pcs.map(x=>x.id===id?{...x,status:ns}:x);render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[cyclePC]',e);}
+}
 function editNote(id){document.getElementById(`ne-${id}`).style.display='';}
-async function saveNote(id){const v=document.getElementById(`ni-${id}`).value;await sb.from('korea_pcs').update({note:v}).eq('id',id);S.pcs=S.pcs.map(p=>p.id===id?{...p,note:v}:p);render();}
-async function toggleTask(id){const x=S.tasks.find(t=>t.id===id);const ord=['Todo','In Progress','Done'];const ns=ord[(ord.indexOf(x.status)+1)%3];await sb.from('tasks').update({status:ns}).eq('id',id);S.tasks=S.tasks.map(t=>t.id===id?{...t,status:ns}:t);render();}
-async function delTask(id){if(!confirm('Delete?'))return;const {error}=await sb.from('tasks').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.tasks=S.tasks.filter(t=>t.id!==id);toast('Deleted');render();}
+async function saveNote(id){
+  try{
+    const v=document.getElementById(`ni-${id}`).value;await sb.from('korea_pcs').update({note:v}).eq('id',id);S.pcs=S.pcs.map(p=>p.id===id?{...p,note:v}:p);render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[saveNote]',e);}
+}
+async function toggleTask(id){
+  try{
+    const x=S.tasks.find(t=>t.id===id);const ord=['Todo','In Progress','Done'];const ns=ord[(ord.indexOf(x.status)+1)%3];await sb.from('tasks').update({status:ns}).eq('id',id);S.tasks=S.tasks.map(t=>t.id===id?{...t,status:ns}:t);render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[toggleTask]',e);}
+}
+async function delTask(id){
+  try{
+    if(!confirm('Delete?'))return;const {error}=await sb.from('tasks').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.tasks=S.tasks.filter(t=>t.id!==id);toast('Deleted');render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[delTask]',e);}
+}
 async function addTask(){
-  const ti=document.getElementById('nt-t').value.trim();if(!ti)return;
+  try{
+    const ti=document.getElementById('nt-t').value.trim();if(!ti)return;
   const {data,error}=await sb.from('tasks').insert({title:ti,title_ko:document.getElementById('nt-k').value,owner:document.getElementById('nt-o').value,priority:document.getElementById('nt-p').value,status:'Todo',category:document.getElementById('nt-c').value}).select().single();
   if(error){toast(error.message,'err');console.error(error);return;}
   if(data){S.tasks.push(data);toast('Task saved ✓');}
   S.showAddTask=false;render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[addTask]',e);}
 }
-async function toggleClient(id){const ord=['Active','Paused','Completed'];const c=S.clients.find(x=>x.id===id);const ns=ord[(ord.indexOf(c.status)+1)%3];await sb.from('clients').update({status:ns}).eq('id',id);S.clients=S.clients.map(x=>x.id===id?{...x,status:ns}:x);render();}
-async function delClient(id){if(!confirm('Delete?'))return;const {error}=await sb.from('clients').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.clients=S.clients.filter(c=>c.id!==id);toast('Deleted');render();}
+async function toggleClient(id){
+  try{
+    const ord=['Active','Paused','Completed'];const c=S.clients.find(x=>x.id===id);const ns=ord[(ord.indexOf(c.status)+1)%3];await sb.from('clients').update({status:ns}).eq('id',id);S.clients=S.clients.map(x=>x.id===id?{...x,status:ns}:x);render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[toggleClient]',e);}
+}
+async function delClient(id){
+  try{
+    if(!confirm('Delete?'))return;const {error}=await sb.from('clients').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.clients=S.clients.filter(c=>c.id!==id);toast('Deleted');render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[delClient]',e);}
+}
 async function addClient(){
-  const n=document.getElementById('nc-n').value.trim();if(!n)return;
+  try{
+    const n=document.getElementById('nc-n').value.trim();if(!n)return;
   const {data,error}=await sb.from('clients').insert({name:n,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();
   if(error){toast(error.message,'err');console.error(error);return;}
   if(data){S.clients.push(data);toast('Client saved ✓');}
   S.showAddClient=false;render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[addClient]',e);}
 }
 async function addMember(){
-  const name=document.getElementById('nm-name').value.trim();
-  if(!name)return;
-  const obj={id:crypto.randomUUID(),name,initials:document.getElementById('nm-ini').value,role:document.getElementById('nm-role').value.toLowerCase()||'staff',isp:document.getElementById('nm-isp').value,tool:document.getElementById('nm-tool').value,since:document.getElementById('nm-since').value};
-  const {data,error}=await sb.from('user_profiles').insert(obj).select().single();
-  if(error){toast(error.message,'err');console.error(error);return;}
-  if(data){S.team.push(data);toast('Member added ✓');}S.showAddMember=false;render();
+  try{
+    const name=document.getElementById('nm-name').value.trim();
+    if(!name){toast('Name is required','err');return;}
+    const obj={id:crypto.randomUUID(),name,initials:document.getElementById('nm-ini').value,role:document.getElementById('nm-role').value.toLowerCase()||'staff',isp:document.getElementById('nm-isp').value,tool:document.getElementById('nm-tool').value,since:document.getElementById('nm-since').value};
+    const {data,error}=await sb.from('user_profiles').insert(obj).select().single();
+    if(error){
+      if(error.message.includes('foreign key')){
+        toast('Cannot add members directly — your database requires users to sign up via invite codes first. Go to Invite Codes, generate one, and share it with them.','err');
+      } else {
+        toast(error.message,'err');
+      }
+      console.error(error);return;
+    }
+    if(data){S.team.push(data);toast('Member added ✓');}
+    S.showAddMember=false;render();
+  }catch(e){toast('Error: '+e.message,'err');console.error(e);}
 }
 async function delMember(id){
-  if(!confirm('Remove this staff member?'))return;
+  try{
+    if(!confirm('Remove this staff member?'))return;
   const {error}=await sb.from('user_profiles').delete().eq('id',id);
   if(error){toast('Delete failed: '+error.message,'err');console.error(error);return;}
   S.team=S.team.filter(m=>m.id!==id);render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[delMember]',e);}
 }
 function toggleEdit(id){S.editMember=S.editMember===id?null:id;render();}
 function cancelEdit(){S.editMember=null;render();}
-async function saveMember(id){const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};const {error}=await sb.from('user_profiles').update(upd).eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;toast('Saved ✓');render();}
-async function moveRecruit(id,stage){await sb.from('recruits').update({stage}).eq('id',id);S.recruits=S.recruits.map(r=>r.id===id?{...r,stage}:r);render();}
-async function delRecruit(id){if(!confirm('Delete?'))return;const {error}=await sb.from('recruits').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.recruits=S.recruits.filter(r=>r.id!==id);toast('Deleted');render();}
+async function saveMember(id){
+  try{
+    const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};const {error}=await sb.from('user_profiles').update(upd).eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;toast('Saved ✓');render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[saveMember]',e);}
+}
+async function moveRecruit(id,stage){
+  try{
+    await sb.from('recruits').update({stage}).eq('id',id);S.recruits=S.recruits.map(r=>r.id===id?{...r,stage}:r);render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[moveRecruit]',e);}
+}
+async function delRecruit(id){
+  try{
+    if(!confirm('Delete?'))return;const {error}=await sb.from('recruits').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.recruits=S.recruits.filter(r=>r.id!==id);toast('Deleted');render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[delRecruit]',e);}
+}
 async function addRecruit(){const n=document.getElementById('nr-n').value.trim();if(!n)return;const {data,error}=await sb.from('recruits').insert({name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'}).select().single();if(data){S.recruits.push(data);toast('Applicant added ✓');}S.showAddRecruit=false;render();}
 async function addReport(){
-  const wk=document.getElementById('rp-wk').value.trim();if(!wk)return;
+  try{
+    const wk=document.getElementById('rp-wk').value.trim();if(!wk)return;
   const snap={staff:S.team.length,done:S.tasks.filter(x=>x.status==='Done').length,clients:S.clients.filter(c=>c.status==='Active').length};
   const base={week_label:wk,summary:document.getElementById('rp-sum').value,done_items:document.getElementById('rp-don').value,stuck_items:document.getElementById('rp-stk').value,next_week:document.getElementById('rp-nxt').value,snap};
   let {data,error}=await sb.from('reports').insert({...base,submitted_by:S.profile?.name}).select().single();
@@ -710,11 +766,17 @@ async function addReport(){
   if(error){toast(error.message,'err');console.error(error);return;}
   if(data){S.reports.unshift(data);S.viewReport=data.id;toast('Report saved ✓');}
   S.showAddReport=false;render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[addReport]',e);}
 }
-async function delReport(id){if(!confirm('Delete?'))return;const {error}=await sb.from('reports').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.reports=S.reports.filter(r=>r.id!==id);S.viewReport=null;toast('Deleted');render();}
+async function delReport(id){
+  try{
+    if(!confirm('Delete?'))return;const {error}=await sb.from('reports').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.reports=S.reports.filter(r=>r.id!==id);S.viewReport=null;toast('Deleted');render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[delReport]',e);}
+}
 function genCode(role){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code='';for(let i=0;i<8;i++)code+=chars[Math.floor(Math.random()*chars.length)];return`${role.toUpperCase()}-${code}`;}
 async function addCode(){
-  const role=document.getElementById('nc-role').value;
+  try{
+    const role=document.getElementById('nc-role').value;
   const label=document.getElementById('nc-label').value;
   const custom=document.getElementById('nc-code').value.trim();
   const code=custom||genCode(role);
@@ -722,17 +784,31 @@ async function addCode(){
   if(error){toast(error.message,'err');console.error(error);return;}
   if(data){S.codes.push(data);toast('Code generated ✓');}
   S.showAddCode=false;render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[addCode]',e);}
 }
-async function delCode(id){if(!confirm('Delete this code?'))return;const {error}=await sb.from('invite_codes').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.codes=S.codes.filter(c=>c.id!==id);toast('Code deleted');render();}
-async function changeRole(id,role){if(!confirm(`Change this user's role to ${ROLE_LABELS[role]}?`))return;await sb.from('user_profiles').update({role}).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,role}:m);render();}
+async function delCode(id){
+  try{
+    if(!confirm('Delete this code?'))return;const {error}=await sb.from('invite_codes').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.codes=S.codes.filter(c=>c.id!==id);toast('Code deleted');render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[delCode]',e);}
+}
+async function changeRole(id,role){
+  try{
+    if(!confirm(`Change this user's role to ${ROLE_LABELS[role]}?`))return;await sb.from('user_profiles').update({role}).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,role}:m);render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[changeRole]',e);}
+}
 
-function toast(msg,type='ok',dur=3500){
+function toast(msg,type='ok',dur){
   const t=document.getElementById('toast');
   const el=document.createElement('div');
   el.className='toast-msg toast-'+type;
-  el.textContent=msg;
+  el.innerHTML='<span>'+msg+'</span><span style="margin-left:12px;cursor:pointer;opacity:.7;font-size:16px">×</span>';
+  el.style.cursor='pointer';
+  el.onclick=()=>el.remove();
   t.appendChild(el);
-  setTimeout(()=>el.remove(),dur);
+  // Errors persist until clicked; success auto-dismiss in 4s
+  const ms = dur || (type==='err' ? 0 : 4000);
+  if(ms>0) setTimeout(()=>el.remove(),ms);
+  console.log('[TOAST '+type.toUpperCase()+']',msg);
 }
 
 init();
