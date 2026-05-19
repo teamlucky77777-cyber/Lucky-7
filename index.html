@@ -210,7 +210,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v0.9 · Build: 20260519-6</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.0 · Build: 20260519-7</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -227,12 +227,12 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','checklist','checklist_team'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite','checklist','checklist_team'],
   settlement: ['dash'],
-  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit'],
-  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit'],
-  player:     ['player']
+  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit','checklist'],
+  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist'],
+  player:     ['player','checklist']
 };
 const can = (f) => (PERMS[S.profile?.role||'player']||[]).includes(f);
 
@@ -241,6 +241,7 @@ const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', s
 
 const NAV_ITEMS=[
   {key:'dashboard',label:'Dashboard',labelKo:'대시보드',e:'🏠',perm:'dash',sec:null},
+  {key:'checklist',label:'Daily Checklist',labelKo:'일일 체크리스트',e:'📋',perm:'checklist',sec:null},
   {key:'pcs',label:'Korea PCs',labelKo:'한국 PC',e:'🖥️',perm:'pcs_view',sec:'Operations'},
   {key:'tasks',label:'Tasks',labelKo:'업무',e:'✅',perm:'tasks_view',sec:null},
   {key:'clients',label:'Clients',labelKo:'클라이언트',e:'💼',perm:'clients',sec:null},
@@ -255,11 +256,29 @@ const NAV_ITEMS=[
 
 // ── STATE ─────────────────────────────────────────────────────────────────
 const ISP_OPT=['IndiHome','MyRepublic','Biznet','Other'];
+const CHECKLIST=[
+  {sec:'before',id:'b1',label:'Port forwarding verified and connected'},
+  {sec:'before',id:'b2',label:'LAN cable connected and confirmed'},
+  {sec:'before',id:'b3',label:'Public static IP verified active (check via whatismyip.com)'},
+  {sec:'before',id:'b4',label:'PC running properly and Rimo ready'},
+  {sec:'before',id:'b5',label:'Clocked in via /clock bot in Discord (managed by Mr. MT)'},
+  {sec:'before',id:'b6',label:'Account assignments received from supervisor in DM thread'},
+  {sec:'during',id:'d1',label:'Logged into all assigned accounts'},
+  {sec:'during',id:'d2',label:'Following daily task instructions per account'},
+  {sec:'during',id:'d3',label:'Discord open with notifications on'},
+  {sec:'during',id:'d4',label:'Live stream ON in Discord voice channel'},
+  {sec:'during',id:'d5',label:'Daily board updated in own #daily-board thread (every 2 hours)'},
+  {sec:'during',id:'d6',label:'Break posted in #permission + stream OFF + returned on time after 1 hour'},
+  {sec:'end',id:'e1',label:'All characters parked in safe zone or town'},
+  {sec:'end',id:'e2',label:'Shift report submitted in Discord DM thread'},
+  {sec:'end',id:'e3',label:'Clocked out via /clock bot in Discord'},
+  {sec:'end',id:'e4',label:'Accounts left online — supervisor takes over from here'}
+];
 const TOOL_OPT=['AnyViewer','Tailscale+Veyon','Rimo+VPN','MeshCentral','Other'];
 
 let S = {
   page:'dashboard', lang:'en', user:null, profile:null,
-  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[],
+  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[],
   editMember:null, showAddMember:false, showAddRecruit:false,
   showAddTask:false, showAddClient:false, showAddReport:false, showAddCode:false,
   viewReport:null, taskFilter:'All', signupRole:'player'
@@ -365,7 +384,12 @@ async function loadAll(){
   const role=S.profile?.role||'player';
   if(role==='player'){
     const {data}=await sb.from('clients').select('*').eq('player_email',S.user.email);
-    S.playerOrder=data?.[0]||null; return;
+    S.playerOrder=data?.[0]||null;
+    // Load player's own checklist too
+    const today=new Date().toISOString().slice(0,10);
+    const {data:mine}=await sb.from('daily_checklists').select('*').eq('user_id',S.user.id).eq('shift_date',today).maybeSingle();
+    S.myChecklist=mine||null;
+    return;
   }
   const loads=[sb.from('user_profiles').select('*'),sb.from('tasks').select('*').order('created_at'),sb.from('korea_pcs').select('*').order('num')];
   if(can('clients')) loads.push(sb.from('clients').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
@@ -375,6 +399,16 @@ async function loadAll(){
   const [t,tk,pc,cl,rec,rep,codes]=await Promise.all(loads);
   S.team=t.data||[];S.tasks=tk.data||[];S.pcs=pc.data||[];
   S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];
+  // Load checklists
+  if(can('checklist')){
+    const today=new Date().toISOString().slice(0,10);
+    const {data:mine}=await sb.from('daily_checklists').select('*').eq('user_id',S.user.id).eq('shift_date',today).maybeSingle();
+    S.myChecklist=mine||null;
+    if(can('checklist_team')){
+      const {data:team}=await sb.from('daily_checklists').select('*').eq('shift_date',today);
+      S.teamChecklists=team||[];
+    }
+  }
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
@@ -387,7 +421,7 @@ const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
   (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
-  const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
+  const pages={dashboard:pgDash,checklist:pgChecklist,pcs:pgPCs,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
   try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';}
 }
 
@@ -645,6 +679,105 @@ function pgUsers(){
 }
 
 
+
+
+// ── DAILY CHECKLIST ───────────────────────────────────────────────────────
+function pgChecklist(){
+  const items=S.myChecklist?.items||{};
+  const total=CHECKLIST.length;
+  const done=Object.values(items).filter(v=>v===true).length;
+  const pct=total>0?Math.round((done/total)*100):0;
+  const ko=S.lang==='ko';
+  
+  const sections=[
+    {key:'before',label:ko?'시프트 시작 전':'Before Shift Starts',color:'#185FA5',bg:'#e8f3ff'},
+    {key:'during',label:ko?'시프트 중':'During Shift',color:'#854F0B',bg:'#fdf3d0'},
+    {key:'end',label:ko?'시프트 종료':'End of Shift',color:'#0f7b6c',bg:'#edf3ec'}
+  ];
+  
+  let sectionsHtml='';
+  for(const s of sections){
+    const itemsInSec=CHECKLIST.filter(c=>c.sec===s.key);
+    const secDone=itemsInSec.filter(c=>items[c.id]).length;
+    sectionsHtml+='<div style="margin-bottom:14px;background:var(--bg-c);border:1px solid var(--br);border-radius:var(--r2);overflow:hidden">'
+      +'<div style="background:'+s.bg+';color:'+s.color+';padding:10px 16px;font-weight:600;font-size:13px;display:flex;justify-content:space-between;align-items:center">'
+      +'<span>'+s.label+'</span><span style="font-size:11px;opacity:.8">'+secDone+'/'+itemsInSec.length+'</span>'
+      +'</div>';
+    for(const c of itemsInSec){
+      const checked=items[c.id]===true;
+      sectionsHtml+='<div class="trow'+(checked?' done':'')+'" onclick="toggleCheck(\''+c.id+'\')" style="cursor:pointer">'
+        +'<div class="tcheck'+(checked?' on':'')+'">'+(checked?'✓':'')+'</div>'
+        +'<span class="ttxt'+(checked?' s':'')+'">'+esc(c.label)+'</span>'
+        +'</div>';
+    }
+    sectionsHtml+='</div>';
+  }
+  
+  // Team status (managers only)
+  let teamHtml='';
+  if(can('checklist_team')){
+    const teamMembers=S.team.filter(m=>m.role!=='ceo'||m.id===S.profile.id?true:false);
+    const allTeam=S.team.filter(m=>['manager','hr','staff','player'].includes(m.role)||m.id===S.profile.id);
+    const rows=allTeam.map(m=>{
+      const c=S.teamChecklists.find(x=>x.user_id===m.id);
+      const cItems=c?.items||{};
+      const cDone=Object.values(cItems).filter(v=>v===true).length;
+      const statusBg=cDone===total?'var(--gr-bg)':cDone===0?'var(--bg-a)':'var(--ye-bg)';
+      const statusClr=cDone===total?'var(--gr)':cDone===0?'var(--tx3)':'var(--ye)';
+      const lbl=cDone===total?'✓ Done':cDone===0?'Not started':'In progress';
+      return '<tr><td><div style="display:flex;align-items:center;gap:8px">'
+        +av(m.name,m.initials,26)
+        +'<div><strong>'+esc(m.name)+'</strong><div style="font-size:10px;color:var(--tx3)">'+(ROLE_ICONS[m.role]||'')+' '+(ROLE_LABELS[m.role]||m.role)+'</div></div>'
+        +'</div></td>'
+        +'<td style="font-size:13px;font-weight:600">'+cDone+'/'+total+'</td>'
+        +'<td><span style="font-size:11px;padding:3px 10px;border-radius:20px;background:'+statusBg+';color:'+statusClr+'">'+lbl+'</span></td>'
+        +'</tr>';
+    }).join('');
+    const teamDone=S.teamChecklists.filter(c=>Object.values(c.items||{}).filter(v=>v===true).length===total).length;
+    teamHtml='<div class="sh">'+(ko?'팀 현황':'Team Status Today')+'</div>'
+      +'<div class="tw" style="margin-bottom:24px"><table>'
+      +'<thead><tr><th>'+(ko?'이름':'Member')+'</th><th>'+(ko?'진행':'Progress')+'</th><th>'+(ko?'상태':'Status')+'</th></tr></thead>'
+      +'<tbody>'+(rows||'<tr><td colspan="3" class="nodata">'+(ko?'팀원 없음':'No team members')+'</td></tr>')+'</tbody></table></div>';
+  }
+  
+  return '<div class="ph">📋 '+(ko?'일일 체크리스트':'Daily Checklist')+'</div>'
+    +'<div class="psub">'+new Date().toLocaleDateString(ko?'ko-KR':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+'</div>'
+    +'<div class="mets">'
+    +'<div class="met"><div class="mv '+(done===total?'cg':'ca')+'">'+done+'/'+total+'</div><div class="ml">'+(ko?'내 진행':'My Progress')+'</div></div>'
+    +'<div class="met"><div class="mv cb">'+pct+'%</div><div class="ml">'+(ko?'완료율':'Completion')+'</div></div>'
+    +(can('checklist_team')?
+      '<div class="met"><div class="mv cg">'+S.teamChecklists.filter(c=>Object.values(c.items||{}).filter(v=>v===true).length===total).length+'</div><div class="ml">'+(ko?'완료한 팀원':'Team Done')+'</div></div>'
+      +'<div class="met"><div class="mv ca">'+S.teamChecklists.filter(c=>{const d=Object.values(c.items||{}).filter(v=>v===true).length;return d>0&&d<total;}).length+'</div><div class="ml">'+(ko?'진행 중':'In Progress')+'</div></div>'
+      :'')
+    +'</div>'
+    +teamHtml
+    +'<div class="sh">'+(ko?'내 체크리스트':'My Checklist')+'</div>'
+    +sectionsHtml;
+}
+
+async function toggleCheck(itemId){
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    if(!S.myChecklist){
+      const items={[itemId]:true};
+      const {data,error}=await sb.from('daily_checklists').insert({user_id:S.user.id,user_name:S.profile.name,shift_date:today,items}).select().single();
+      if(error){toast(error.message,'err');console.error(error);return;}
+      S.myChecklist=data;
+      // Also push into teamChecklists if manager
+      if(can('checklist_team')) S.teamChecklists.push(data);
+    } else {
+      const items={...(S.myChecklist.items||{})};
+      items[itemId]=!items[itemId];
+      const {error}=await sb.from('daily_checklists').update({items,updated_at:new Date().toISOString()}).eq('id',S.myChecklist.id);
+      if(error){toast(error.message,'err');console.error(error);return;}
+      S.myChecklist.items=items;
+      // Sync with teamChecklists
+      const idx=S.teamChecklists.findIndex(c=>c.id===S.myChecklist.id);
+      if(idx>=0) S.teamChecklists[idx]={...S.myChecklist};
+    }
+    render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[toggleCheck]',e);}
+}
 
 // ── PLAYER PORTAL ─────────────────────────────────────────────────────────
 function pgPlayer(){
