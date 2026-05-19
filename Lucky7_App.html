@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🍀 Lucky 7</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
+
+/* AUTH SCREEN */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a2332,#1D9E75)}
+.auth-box{background:#fff;border-radius:16px;padding:36px;width:400px}
+.auth-logo{text-align:center;font-size:48px;margin-bottom:8px}
+.auth-title{text-align:center;font-size:22px;font-weight:700;margin-bottom:4px}
+.auth-sub{text-align:center;font-size:12px;color:#aaa;margin-bottom:24px}
+.auth-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid #e5e9f0;border-radius:8px;overflow:hidden}
+.auth-tab{flex:1;padding:8px;font-size:12px;font-weight:500;border:none;background:#f8f9fb;cursor:pointer;color:#888;font-family:inherit}
+.auth-tab.on{background:#1D9E75;color:#fff}
+.auth-err{background:#ffebee;color:#b71c1c;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:12px}
+.auth-ok{background:#e8f5e9;color:#1b5e20;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:12px}
+.fg{margin-bottom:10px}
+.fg label{display:block;font-size:11px;color:#555;margin-bottom:3px;font-weight:500}
+.fg input,.fg select{width:100%;padding:8px 10px;border:1px solid #dde1e7;border-radius:6px;font-size:12px;font-family:inherit;color:#1a1a2e;outline:none}
+.fg input:focus,.fg select:focus{border-color:#1D9E75}
+.role-pick{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.role-opt{padding:8px;border:1.5px solid #e5e9f0;border-radius:8px;cursor:pointer;text-align:center;font-size:12px;transition:.1s;background:#fff}
+.role-opt:hover{border-color:#1D9E75;background:#f0faf5}
+.role-opt.on{border-color:#1D9E75;background:#e8f5e9;color:#1b5e20;font-weight:500}
+.role-opt .ro-icon{font-size:20px;display:block;margin-bottom:3px}
+.invite-field{display:none}
+.invite-field.show{display:block}
+
+/* APP */
+#app-screen{display:none}
+#app{display:flex;min-height:100vh}
+#sb{width:205px;background:#1a2332;color:#fff;display:flex;flex-direction:column;min-height:100vh;flex-shrink:0}
+.sb-top{padding:16px 14px 12px;border-bottom:1px solid #2a3545}
+.sb-brand{font-size:15px;font-weight:700}
+.sb-user{font-size:11px;color:#7a8fa6;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:5px}
+.sb-ceo{background:#854F0B;color:#ffd580}
+.sb-manager{background:#1D9E75;color:#fff}
+.sb-settlement{background:#185FA5;color:#b5d4f4}
+.sb-hr{background:#534AB7;color:#cecbf6}
+.sb-staff{background:#2a3545;color:#7a8fa6}
+.sb-player{background:#791F1F;color:#f09595}
+.sb-nav{flex:1;padding:8px 0}
+.ni{display:flex;align-items:center;gap:9px;padding:10px 14px;cursor:pointer;color:#7a8fa6;border-left:3px solid transparent;font-size:13px;transition:.1s}
+.ni:hover{background:#243040;color:#fff}
+.ni.on{background:#1D9E75;color:#fff;border-left-color:#a8f0d6}
+.sb-bot{padding:12px 14px;border-top:1px solid #2a3545}
+.lbtn{flex:1;padding:6px;font-size:11px;border-radius:6px;border:1px solid #2a3545;background:transparent;color:#7a8fa6;cursor:pointer;font-family:inherit}
+.lbtn.on{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.signout{width:100%;margin-top:8px;padding:7px;font-size:11px;border-radius:6px;border:1px solid #2a3545;background:transparent;color:#7a8fa6;cursor:pointer;font-family:inherit}
+.signout:hover{background:#2a3545;color:#fff}
+
+/* MAIN */
+#main{flex:1;padding:24px;overflow:auto}
+.ph{font-size:18px;font-weight:700;margin-bottom:4px}
+.psub{font-size:12px;color:#aaa;margin-bottom:20px}
+.sh{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:10px}
+.shr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+
+/* METRICS */
+.mets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.met{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #e5e9f0}
+.mv{font-size:26px;font-weight:700;line-height:1.1}
+.ml{font-size:11px;color:#888;margin-top:3px}
+.cg{color:#1D9E75}.cb{color:#185FA5}.ca{color:#BA7517}.cr{color:#A32D2D}
+
+/* BADGES */
+.bdg{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px}
+.bs{background:#e8f5e9;color:#1b5e20}.bi{background:#e3f2fd;color:#0d47a1}
+.bw{background:#fff3e0;color:#e65100}.bx{background:#f5f5f5;color:#555}.bd{background:#ffebee;color:#b71c1c}
+.pb{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.pbp1{background:#ffebee;color:#b71c1c}.pbp2{background:#fff3e0;color:#e65100}.pbp3{background:#e3f2fd;color:#0d47a1}
+
+/* CARDS & TABLES */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-bottom:24px}
+.tcard{background:#fff;border:1px solid #e5e9f0;border-radius:12px;padding:14px}
+.tc-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.tc-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-bottom:1px solid #f5f5f5}
+.tc-row:last-child{border:none}
+.tw{background:#fff;border-radius:12px;border:1px solid #e5e9f0;overflow:hidden;margin-bottom:20px}
+table{width:100%;border-collapse:collapse}
+thead{background:#f8f9fb}
+th{padding:8px 12px;font-size:11px;color:#888;font-weight:500;text-align:left;border-bottom:1px solid #e5e9f0;white-space:nowrap}
+td{padding:9px 12px;font-size:12px;border-bottom:1px solid #f5f7fa;color:#1a1a2e;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
+.erow>td{padding:0!important;border-bottom:1px solid #e5e9f0!important}
+.erow-in{background:#e8f4ff;padding:14px 16px;border-left:3px solid #1565c0}
+
+/* BUTTONS */
+button{font-family:inherit;font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #dde1e7;background:#fff;color:#1a1a2e;cursor:pointer}
+button:hover{background:#f5f5f5}
+.btn-add{background:#1D9E75;color:#fff;border-color:#1D9E75}
+.btn-add:hover{background:#0F6E56}
+.btn-del{background:none;border:none;color:#c62828;cursor:pointer;padding:4px;font-size:13px}
+.btn-sm{font-size:11px;padding:4px 9px;border-radius:6px}
+.btn-full{width:100%;margin-top:14px}
+
+/* FORM BOX */
+.fbox{background:#e8f4ff;border:1px solid #90caf9;border-radius:10px;padding:16px;margin-bottom:16px;border-left:3px solid #1565c0}
+.fbox-t{font-weight:700;font-size:13px;color:#1565c0;margin-bottom:12px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:12px}
+.fg2 label{display:block;font-size:11px;color:#555;margin-bottom:3px}
+.fg2 input,.fg2 select,.fg2 textarea{width:100%;padding:7px 10px;border:1px solid #dde1e7;border-radius:6px;font-size:12px;font-family:inherit;color:#1a1a2e;outline:none;background:#fff}
+.fg2 input:focus,.fg2 select:focus{border-color:#1D9E75}
+.fg2 textarea{resize:vertical}
+
+/* PC GRID */
+.pcgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.pcc{border-radius:8px;padding:10px 4px;text-align:center}
+.pcc.clickable{cursor:pointer;transition:.1s}.pcc.clickable:hover{transform:scale(1.04)}
+.pcc-on{background:#e8f5e9;border:1px solid #a5d6a7}
+.pcc-on .pcc-n{color:#1b5e20}.pcc-on .pcc-s{color:#2e7d32}
+.pcc-warn{background:#fff3e0;border:1px solid #ffb74d}
+.pcc-warn .pcc-n,.pcc-warn .pcc-s{color:#e65100}
+.pcc-off{background:#ffebee;border:1px solid #ef9a9a}
+.pcc-off .pcc-n,.pcc-off .pcc-s{color:#b71c1c}
+.pcc-n{font-size:12px;font-weight:700}.pcc-s{font-size:10px;opacity:.8;margin-top:1px}
+
+/* TASKS */
+.tlist{background:#fff;border-radius:12px;border:1px solid #e5e9f0;overflow:hidden;margin-bottom:16px}
+.trow{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f5f7fa}
+.trow:last-child{border:none}
+.trow.done{opacity:.55;background:#fafbfc}
+.tcheck{width:18px;height:18px;border-radius:4px;border:2px solid #ccc;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px}
+.tcheck.on{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.ttxt{flex:1;font-size:12px}
+.ttxt.s{text-decoration:line-through;color:#aaa}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid #dde1e7;background:#fff;cursor:pointer;color:#666}
+.pill.on{background:#1D9E75;color:#fff;border-color:#1D9E75}
+
+/* PIPELINE */
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pc-col{background:#f8f9fb;border-radius:10px;padding:12px}
+.pc-col-h{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.pc-cnt{font-size:11px;background:#fff;border:1px solid #e0e0e0;border-radius:20px;padding:2px 7px;color:#666}
+.pc-card{background:#fff;border:1px solid #e5e9f0;border-radius:8px;padding:9px 10px;margin-bottom:6px}
+.pc-name{font-weight:700;font-size:12px;margin-bottom:2px}
+.pc-meta{font-size:11px;color:#aaa;margin-bottom:6px}
+
+/* REPORTS */
+.rlayout{display:grid;grid-template-columns:190px 1fr;gap:16px}
+.ritem{padding:10px 12px;border-radius:8px;cursor:pointer;background:#f8f9fb;border:1px solid #e5e9f0;margin-bottom:6px}
+.ritem.on{background:#e3f2fd;border-color:#90caf9}
+.rview{background:#fff;border:1px solid #e5e9f0;border-radius:12px;padding:20px}
+.rsnap{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.rsc{background:#f8f9fb;border-radius:8px;padding:10px;text-align:center}
+.rsv{font-size:22px;font-weight:700}.rsl{font-size:11px;color:#888}
+.rsec{margin-bottom:14px}
+.rsec-t{font-size:12px;font-weight:700;border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:6px}
+.rsec-b{font-size:12px;color:#444;line-height:1.7;white-space:pre-wrap}
+.rempty{display:flex;align-items:center;justify-content:center;height:180px;font-size:13px;color:#aaa;border:1px dashed #dde1e7;border-radius:12px}
+
+/* INVITE CODES */
+.code-card{background:#fff;border:1px solid #e5e9f0;border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.code-role{display:inline-block;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;width:100px;text-align:center}
+.code-val{flex:1;font-family:monospace;font-size:13px;font-weight:600;color:#1a1a2e;background:#f8f9fb;padding:6px 10px;border-radius:6px;border:1px solid #e5e9f0;letter-spacing:.5px}
+.code-used{text-decoration:line-through;color:#aaa}
+.code-status{font-size:11px;color:#aaa}
+
+/* PLAYER PORTAL */
+.player-wrap{max-width:540px;margin:0 auto}
+.player-hero{background:linear-gradient(135deg,#1a2332,#1D9E75);border-radius:16px;padding:28px 24px;color:#fff;margin-bottom:20px;text-align:center}
+.player-char{font-size:28px;font-weight:700;margin-bottom:4px}
+.player-server{font-size:13px;opacity:.8;margin-bottom:16px}
+.player-status-big{display:inline-block;font-size:13px;font-weight:600;padding:6px 18px;border-radius:20px;background:rgba(255,255,255,.2)}
+.player-card{background:#fff;border:1px solid #e5e9f0;border-radius:12px;padding:18px 20px;margin-bottom:12px}
+.player-card-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:12px}
+.player-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.player-row:last-child{border:none}
+.player-key{color:#888}
+.player-val{font-weight:600}
+.player-note{background:#f0faf5;border:1px solid #a5d6a7;border-radius:8px;padding:12px 14px;font-size:12px;color:#1b5e20;line-height:1.6}
+.player-none{text-align:center;padding:60px 20px;color:#aaa}
+.player-none .player-icon{font-size:48px;margin-bottom:12px}
+
+/* MISC */
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.nodata{padding:20px;text-align:center;font-size:12px;color:#aaa}
+.tip{font-size:11px;color:#aaa;margin-bottom:16px}
+.info-tag{font-size:11px;background:#e3f2fd;color:#0d47a1;padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH SCREEN ═══ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">🍀</div>
+    <div class="auth-title">Lucky 7</div>
+    <div class="auth-sub" id="auth-sub">Sign in to your account</div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" onclick="showTab('in')">Sign In</button>
+      <button class="auth-tab" onclick="showTab('up')">Create Account</button>
+    </div>
+    <div id="auth-msg" style="display:none"></div>
+
+    <!-- SIGN IN -->
+    <div id="tab-in">
+      <div class="fg"><label>Email</label><input type="email" id="si-email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')signIn()"></div>
+      <div class="fg"><label>Password</label><input type="password" id="si-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')signIn()"></div>
+      <button class="btn-add btn-full" id="si-btn" onclick="signIn()">Sign In</button>
+    </div>
+
+    <!-- SIGN UP -->
+    <div id="tab-up" style="display:none">
+      <div class="fg"><label>Full name</label><input id="su-name" placeholder="Your name"></div>
+      <div class="fg"><label>Email</label><input type="email" id="su-email" placeholder="your@email.com"></div>
+      <div class="fg"><label>Password</label><input type="password" id="su-pass" placeholder="Min 6 characters"></div>
+      <div class="fg">
+        <label>I am a...</label>
+        <div class="role-pick">
+          <div class="role-opt on" onclick="pickRole('player')" id="ropt-player">
+            <span class="ro-icon">🎮</span>Player
+          </div>
+          <div class="role-opt" onclick="pickRole('staff')" id="ropt-staff">
+            <span class="ro-icon">🖥</span>Staff / Team
+          </div>
+        </div>
+      </div>
+      <div class="invite-field fg" id="invite-field">
+        <label>Invite code <span style="color:#aaa;font-weight:400">(given by your manager)</span></label>
+        <input id="su-code" placeholder="e.g. MGR-LUCKY7-BALEN" style="font-family:monospace;letter-spacing:.5px">
+      </div>
+      <button class="btn-add btn-full" id="su-btn" onclick="signUp()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP SCREEN ═══ -->
+<div id="app-screen">
+  <div id="app">
+    <nav id="sb">
+      <div class="sb-top">
+        <div class="sb-brand">🍀 Lucky 7</div>
+        <div class="sb-user" id="sb-name">...</div>
+        <div id="sb-badge"></div>
+      </div>
+      <div class="sb-nav" id="nav-links"></div>
+      <div class="sb-bot">
+        <div style="display:flex;gap:4px;margin-bottom:8px">
+          <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
+          <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
+        </div>
+        <button class="signout" onclick="signOut()">← Sign out</button>
+      </div>
+    </nav>
+    <main id="main"><div style="padding:40px;text-align:center;color:#aaa">Loading...</div></main>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://wluwntzsllynpcwecwdp.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsdXdudHpzbGx5bnBjd2Vjd2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTQ1NzQsImV4cCI6MjA5NDczMDU3NH0.jIZlpmZuMCJjhBHQbpDMSQzL0v81aVoaDPJkpL2zTiM';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── PERMISSIONS ──────────────────────────────────────────────────────────
+const PERMS = {
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','team','reports','users','invite'],
+  settlement: ['dash','clients'],
+  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team'],
+  staff:      ['dash','pcs_view','tasks_view','tasks_done'],
+  player:     ['player']
+};
+const can = (f) => (PERMS[S.profile?.role||'player']||[]).includes(f);
+
+const ROLE_LABELS = { ceo:'CEO', manager:'Manager', settlement:'Settlement', hr:'HR', staff:'Staff', player:'Player' };
+const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', staff:'🖥', player:'🎮' };
+
+const NAV_ITEMS = [
+  { key:'dashboard', label:'Dashboard', labelKo:'대시보드', icon:'ti-home', perm:'dash' },
+  { key:'pcs', label:'Korea PCs', labelKo:'한국 PC', icon:'ti-device-desktop', perm:'pcs_view' },
+  { key:'tasks', label:'Tasks', labelKo:'업무', icon:'ti-checkbox', perm:'tasks_view' },
+  { key:'clients', label:'Clients', labelKo:'클라이언트', icon:'ti-briefcase', perm:'clients' },
+  { key:'team', label:'Team', labelKo:'팀', icon:'ti-users', perm:'team' },
+  { key:'reports', label:'Reports', labelKo:'보고서', icon:'ti-file-description', perm:'reports' },
+  { key:'invite', label:'Invite Codes', labelKo:'초대 코드', icon:'ti-key', perm:'invite' },
+  { key:'users', label:'User Roles', labelKo:'사용자 역할', icon:'ti-shield', perm:'users' },
+  { key:'player', label:'My Order', labelKo:'내 주문', icon:'ti-sword', perm:'player' },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+const ISP_OPT=['IndiHome','MyRepublic','Biznet','Other'];
+const TOOL_OPT=['AnyViewer','Tailscale+Veyon','Rimo+VPN','MeshCentral','Other'];
+
+let S = {
+  page:'dashboard', lang:'en', user:null, profile:null,
+  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[],
+  editMember:null, showAddMember:false, showAddRecruit:false,
+  showAddTask:false, showAddClient:false, showAddReport:false, showAddCode:false,
+  viewReport:null, taskFilter:'All', signupRole:'player'
+};
+
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ac=n=>(['#185FA5','#0F6E56','#854F0B','#791F1F','#534AB7','#993556','#444441'])[(n||'?').charCodeAt(0)%7];
+const sc=s=>({Active:'bs',Online:'bs',Done:'bs',Completed:'bs',Hired:'bs','In Progress':'bi',Interview:'bi',Trial:'bw',Warning:'bw',Applied:'bw',Inactive:'bx',Todo:'bx',Offline:'bd',Paused:'bd'}[s]||'bx');
+const bdg=s=>`<span class="bdg ${sc(s)}">${s}</span>`;
+const pb=p=>`<span class="pb pb${p.toLowerCase()}">${p}</span>`;
+const av=(n,i,sz=30)=>{const c=ac(n);return`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.36)}px;background:${c}22;border:1.5px solid ${c};color:${c}">${(i||n.slice(0,2)).toUpperCase()}</div>`;};
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+let signupRole = 'player';
+
+function showTab(tab){
+  document.getElementById('tab-in').style.display=tab==='in'?'block':'none';
+  document.getElementById('tab-up').style.display=tab==='up'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('on',['in','up'][i]===tab));
+  document.getElementById('auth-msg').style.display='none';
+  document.getElementById('auth-sub').textContent=tab==='in'?'Sign in to your account':'Create your account';
+}
+
+function pickRole(r){
+  signupRole=r;
+  document.querySelectorAll('.role-opt').forEach(el=>el.classList.remove('on'));
+  document.getElementById(`ropt-${r}`).classList.add('on');
+  const inv=document.getElementById('invite-field');
+  inv.classList.toggle('show',r!=='player');
+}
+
+function showMsg(msg,type='err'){
+  const el=document.getElementById('auth-msg');
+  el.className=type==='ok'?'auth-ok':'auth-err';
+  el.textContent=msg;el.style.display='block';
+}
+
+async function signIn(){
+  const email=document.getElementById('si-email').value.trim();
+  const pass=document.getElementById('si-pass').value;
+  if(!email||!pass){showMsg('Please enter email and password.');return;}
+  document.getElementById('si-btn').textContent='Signing in...';
+  document.getElementById('si-btn').disabled=true;
+  const {error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){showMsg(error.message);document.getElementById('si-btn').textContent='Sign In';document.getElementById('si-btn').disabled=false;}
+}
+
+async function signUp(){
+  const name=document.getElementById('su-name').value.trim();
+  const email=document.getElementById('su-email').value.trim();
+  const pass=document.getElementById('su-pass').value;
+  const code=document.getElementById('su-code').value.trim();
+  if(!name||!email||!pass){showMsg('Please fill in all fields.');return;}
+  if(pass.length<6){showMsg('Password must be at least 6 characters.');return;}
+  if(signupRole!=='player'&&!code){showMsg('Please enter your invite code.');return;}
+  document.getElementById('su-btn').textContent='Creating account...';
+  document.getElementById('su-btn').disabled=true;
+  const {error}=await sb.auth.signUp({email,password:pass,options:{data:{name}}});
+  if(error){showMsg(error.message);document.getElementById('su-btn').textContent='Create Account';document.getElementById('su-btn').disabled=false;return;}
+  if(signupRole!=='player'&&code){
+    await new Promise(r=>setTimeout(r,1500));
+    const {data:result}=await sb.rpc('redeem_invite_code',{p_code:code});
+    if(result==='invalid'){showMsg('Account created but invite code was invalid. Your role is set to Player for now — contact your manager.',null);return;}
+  }
+  showMsg('Account created! Check your email to confirm, then sign in.','ok');
+  document.getElementById('su-btn').textContent='Create Account';
+  document.getElementById('su-btn').disabled=false;
+}
+
+async function signOut(){await sb.auth.signOut();location.reload();}
+
+// ── APP INIT ──────────────────────────────────────────────────────────────
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await onLogin(session.user);
+  else showAuth();
+  sb.auth.onAuthStateChange(async(_,sess)=>{if(sess)await onLogin(sess.user);else showAuth();});
+}
+
+function showAuth(){document.getElementById('auth-screen').style.display='flex';document.getElementById('app-screen').style.display='none';}
+
+async function onLogin(user){
+  S.user=user;
+  const {data:p}=await sb.from('user_profiles').select('*').eq('id',user.id).single();
+  S.profile=p||{name:user.email,initials:'??',role:'player'};
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('sb-name').textContent=S.profile.name;
+  document.getElementById('sb-badge').innerHTML=`<span class="sb-badge sb-${S.profile.role}">${ROLE_ICONS[S.profile.role]||''} ${ROLE_LABELS[S.profile.role]||S.profile.role}</span>`;
+  S.page = S.profile.role==='player' ? 'player' : 'dashboard';
+  await loadAll();
+  render();
+}
+
+async function loadAll(){
+  const role=S.profile?.role||'player';
+  if(role==='player'){
+    const {data}=await sb.from('clients').select('*').eq('player_email',S.user.email);
+    S.playerOrder=data?.[0]||null; return;
+  }
+  const loads=[sb.from('user_profiles').select('*'),sb.from('tasks').select('*').order('created_at'),sb.from('korea_pcs').select('*').order('num')];
+  if(can('clients')) loads.push(sb.from('clients').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
+  if(can('recruitment')) loads.push(sb.from('recruits').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
+  if(can('reports')) loads.push(sb.from('reports').select('*').order('created_at',{ascending:false})); else loads.push(Promise.resolve({data:[]}));
+  if(can('invite')) loads.push(sb.from('invite_codes').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
+  const [t,tk,pc,cl,rec,rep,codes]=await Promise.all(loads);
+  S.team=t.data||[];S.tasks=tk.data||[];S.pcs=pc.data||[];
+  S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function setLang(l){S.lang=l;document.getElementById('btn-en').classList.toggle('on',l==='en');document.getElementById('btn-ko').classList.toggle('on',l==='ko');render();}
+function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
+const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
+
+function render(){
+  const visNav=NAV_ITEMS.filter(n=>can(n.perm));
+  document.getElementById('nav-links').innerHTML=visNav.map(n=>`<div class="ni${S.page===n.key?' on':''}" onclick="goPage('${n.key}')"><i class="ti ${n.icon}" style="font-size:15px" aria-hidden="true"></i>${lbl(n)}</div>`).join('');
+  const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,team:pgTeam,reports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
+  document.getElementById('main').innerHTML=(pages[S.page]||pgDash)();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────
+function pgDash(){
+  const pri=S.tasks.filter(x=>x.status!=='Done').sort((a,b)=>['P1','P2','P3'].indexOf(a.priority)-['P1','P2','P3'].indexOf(b.priority)).slice(0,6);
+  return`<div class="ph">${S.lang==='ko'?'안녕하세요':'Welcome back'}, ${S.profile.name}</div>
+<div class="psub">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+<div class="mets">
+  <div class="met"><div class="mv cg">${S.team.filter(m=>m.status==='Active'||!m.status).length}</div><div class="ml">${S.lang==='ko'?'활성 직원':'Team members'}</div></div>
+  <div class="met"><div class="mv cb">${S.pcs.filter(p=>p.status==='Online').length}</div><div class="ml">${S.lang==='ko'?'온라인 PC':'PCs online'}</div></div>
+  <div class="met"><div class="mv ca">${S.tasks.filter(x=>x.status!=='Done').length}</div><div class="ml">${S.lang==='ko'?'진행 업무':'Open tasks'}</div></div>
+  <div class="met"><div class="mv cg">${S.clients.filter(c=>c.status==='Active').length}</div><div class="ml">${S.lang==='ko'?'활성 고객':'Active clients'}</div></div>
+</div>
+<div class="sh">${S.lang==='ko'?'팀 현황':'Team status'}</div>
+<div class="tgrid">${S.team.map(m=>`<div class="tcard"><div class="tc-head">${av(m.name,m.initials)}<div><div style="font-weight:700;font-size:13px">${esc(m.name)}</div><div style="font-size:11px;color:#aaa">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||esc(m.role)}</div></div></div><div class="tc-row"><span style="color:#888">${S.lang==='ko'?'도구':'Tool'}</span><span style="font-size:11px;font-weight:500">${esc(m.tool||'—')}</span></div></div>`).join('')}</div>
+<div class="sh">${S.lang==='ko'?'이번 주 우선 업무':'Priority tasks'}</div>
+<div class="tlist">${pri.length?pri.map(x=>`<div class="trow">${pb(x.priority)}<span class="ttxt">${esc(S.lang==='ko'&&x.title_ko?x.title_ko:x.title)}</span><span style="font-size:11px;color:#aaa">${esc(x.owner)}</span>&nbsp;${bdg(x.status)}</div>`).join(''):`<div class="nodata">🎉 All tasks done!</div>`}</div>`;
+}
+
+// ── KOREA PCs ─────────────────────────────────────────────────────────────
+function pgPCs(){
+  const cm={Online:'pcc-on',Warning:'pcc-warn',Offline:'pcc-off'};
+  const st=S.lang==='ko'?{Online:'온라인',Warning:'주의',Offline:'오프라인'}:{Online:'Online',Warning:'Warning',Offline:'Offline'};
+  const grid=S.pcs.map(p=>`<div class="pcc ${cm[p.status]}${can('pcs_edit')?' clickable':''}" ${can('pcs_edit')?`onclick="cyclePC(${p.id})"`:''} ><div class="pcc-n">PC ${p.num}</div><div class="pcc-s">${st[p.status]}</div></div>`).join('');
+  const issues=S.pcs.filter(p=>p.status!=='Online');
+  const iRows=issues.map(p=>`<tr><td>${bdg(p.status)}</td><td><strong>PC ${p.num}</strong></td><td>${p.note?`<span style="color:#555">${esc(p.note)}</span>`:`<span style="color:#aaa">No note</span>`}</td><td>${can('pcs_edit')?`<button class="btn-sm" onclick="editNote(${p.id})">✏</button>`:''}</td></tr><tr id="ne-${p.id}" style="display:none"><td colspan="4" style="padding:0!important"><div style="background:#e8f4ff;padding:10px 14px;border-left:3px solid #1565c0;display:flex;gap:8px"><input id="ni-${p.id}" value="${esc(p.note)}" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:inherit"><button class="btn-add btn-sm" onclick="saveNote(${p.id})">${S.lang==='ko'?'저장':'Save'}</button><button class="btn-sm" onclick="document.getElementById('ne-${p.id}').style.display='none'">${S.lang==='ko'?'취소':'Cancel'}</button></div></td></tr>`).join('');
+  return`<div class="ph">${S.lang==='ko'?'한국 PC 현황':'Korea PCs'}</div>
+<div class="mets"><div class="met"><div class="mv cg">${S.pcs.filter(p=>p.status==='Online').length}</div><div class="ml">${st.Online}</div></div><div class="met"><div class="mv ca">${S.pcs.filter(p=>p.status==='Warning').length}</div><div class="ml">${st.Warning}</div></div><div class="met"><div class="mv cr">${S.pcs.filter(p=>p.status==='Offline').length}</div><div class="ml">${st.Offline}</div></div><div class="met"><div class="mv cb">25</div><div class="ml">Total</div></div></div>
+<div class="sh">PC grid</div><div class="pcgrid">${grid}</div>
+${can('pcs_edit')?`<div class="tip">${S.lang==='ko'?'PC 클릭 → 온라인 → 주의 → 오프라인':'Click any PC to cycle: Online → Warning → Offline'}</div>`:`<div class="info-tag">👁 ${S.lang==='ko'?'보기 전용':'View only'}</div>`}
+${issues.length?`<div class="sh">Issues</div><div class="tw"><table><tbody>${iRows}</tbody></table></div>`:''}`;
+}
+
+// ── TASKS ─────────────────────────────────────────────────────────────────
+function pgTasks(){
+  const owners=['All',...new Set(S.team.map(m=>m.name))];
+  const filtered=S.taskFilter==='All'?S.tasks:S.tasks.filter(x=>x.owner===S.taskFilter);
+  const sorted=[...filtered].sort((a,b)=>{if(a.status!=='Done'&&b.status==='Done')return -1;if(a.status==='Done'&&b.status!=='Done')return 1;return['P1','P2','P3'].indexOf(a.priority)-['P1','P2','P3'].indexOf(b.priority);});
+  const addForm=can('tasks_edit')&&S.showAddTask?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 업무 추가':'Add task'}</div><div class="fgrid"><div class="fg2"><label>Task (EN)</label><input id="nt-t" placeholder="Task..."></div><div class="fg2"><label>업무 (KO)</label><input id="nt-k" placeholder="업무..."></div><div class="fg2"><label>Owner</label><select id="nt-o">${S.team.map(m=>`<option>${esc(m.name)}</option>`).join('')}</select></div><div class="fg2"><label>Priority</label><select id="nt-p"><option>P1</option><option>P2</option><option>P3</option></select></div><div class="fg2"><label>Category</label><input id="nt-c" placeholder="Tech..."></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addTask()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddTask=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
+  const rows=sorted.map(x=>`<div class="trow${x.status==='Done'?' done':''}"><div class="tcheck${x.status==='Done'?' on':''}" onclick="toggleTask(${x.id})">${x.status==='Done'?'✓':''}</div>${pb(x.priority)}<span class="ttxt${x.status==='Done'?' s':''}">${esc(S.lang==='ko'&&x.title_ko?x.title_ko:x.title)}</span><span style="font-size:11px;color:#aaa">${esc(x.owner)}</span>&nbsp;<span style="font-size:11px;color:#aaa">${esc(x.category)}</span>&nbsp;${bdg(x.status)}${can('tasks_edit')?`<button class="btn-del" onclick="delTask(${x.id})">🗑</button>`:''}</div>`).join('');
+  return`<div class="ph">${S.lang==='ko'?'업무':'Tasks'}</div>
+<div class="mets"><div class="met"><div class="mv cr">${S.tasks.filter(x=>x.priority==='P1'&&x.status!=='Done').length}</div><div class="ml">P1</div></div><div class="met"><div class="mv ca">${S.tasks.filter(x=>x.priority==='P2'&&x.status!=='Done').length}</div><div class="ml">P2</div></div><div class="met"><div class="mv cb">${S.tasks.filter(x=>x.priority==='P3'&&x.status!=='Done').length}</div><div class="ml">P3</div></div><div class="met"><div class="mv cg">${S.tasks.filter(x=>x.status==='Done').length}</div><div class="ml">${S.lang==='ko'?'완료':'Done'}</div></div></div>
+<div class="shr"><div class="pills">${owners.map(o=>`<span class="pill${S.taskFilter===o?' on':''}" onclick="S.taskFilter='${esc(o)}';render()">${esc(o)}</span>`).join('')}</div>${can('tasks_edit')?`<button class="btn-add" onclick="S.showAddTask=!S.showAddTask;render()">+ ${S.lang==='ko'?'업무 추가':'Add task'}</button>`:''}</div>
+${addForm}<div class="tlist">${rows||`<div class="nodata">${S.lang==='ko'?'데이터 없음':'No data'}</div>`}</div>`;
+}
+
+// ── CLIENTS ───────────────────────────────────────────────────────────────
+function pgClients(){
+  const rev=S.clients.filter(c=>c.status==='Active').reduce((s,c)=>s+(+c.price||0),0);
+  const addForm=S.showAddClient?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 고객 추가':'New client'}</div><div class="fgrid">${[['nc-n','Client name'],['nc-ch','Character'],['nc-sv','Server'],['nc-sc','Service'],['nc-st','Start'],['nc-en','End'],['nc-pr','Price (Rp)'],['nc-em','Player email (optional)']].map(([id,l])=>`<div class="fg2"><label>${l}</label><input id="${id}" placeholder="${l}"></div>`).join('')}</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addClient()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddClient=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
+  const rows=S.clients.map(c=>`<tr><td><strong>${esc(c.name)}</strong>${c.player_email?`<div style="font-size:10px;color:#1D9E75">🎮 ${esc(c.player_email)}</div>`:''}</td><td style="font-size:11px;color:#888">${esc(c.char_info)}</td><td>${esc(c.server)}</td><td>${esc(c.service)}</td><td style="font-size:11px;color:#888">${esc(c.start_date)}–${esc(c.end_date)}</td><td>${(+c.price||0).toLocaleString()}</td><td><span style="cursor:pointer" onclick="toggleClient(${c.id})">${bdg(c.status)}</span></td><td><button class="btn-del" onclick="delClient(${c.id})">🗑</button></td></tr>`).join('');
+  return`<div class="ph">${S.lang==='ko'?'클라이언트':'Clients'}</div>
+<div class="mets"><div class="met"><div class="mv cg">${S.clients.filter(c=>c.status==='Active').length}</div><div class="ml">Active</div></div><div class="met"><div class="mv cb">${S.clients.filter(c=>c.status==='Completed').length}</div><div class="ml">Completed</div></div><div class="met"><div class="mv ca">${S.clients.filter(c=>c.status==='Paused').length}</div><div class="ml">Paused</div></div><div class="met"><div class="mv cg">Rp ${rev.toLocaleString()}</div><div class="ml">Revenue</div></div></div>
+<div class="shr"><div class="sh">${S.lang==='ko'?'고객 목록':'Client list'}</div><button class="btn-add" onclick="S.showAddClient=!S.showAddClient;render()">+ ${S.lang==='ko'?'고객 추가':'Add client'}</button></div>
+${addForm}<div class="tw"><table><thead><tr><th>Client</th><th>Character</th><th>Server</th><th>Service</th><th>Period</th><th>Price (Rp)</th><th>Status</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="8" class="nodata">No clients yet</td></tr>`}</tbody></table></div>`;
+}
+
+// ── TEAM ──────────────────────────────────────────────────────────────────
+function pgTeam(){
+  const stageKeys=['Applied','Interview','Trial','Hired'];
+  const stageLabels=S.lang==='ko'?['지원','면접','수습','채용']:stageKeys;
+  const pipe=stageKeys.map((sk,si)=>`<div class="pc-col"><div class="pc-col-h">${stageLabels[si]}<span class="pc-cnt">${S.recruits.filter(r=>r.stage===sk).length}</span></div>${S.recruits.filter(r=>r.stage===sk).map(r=>`<div class="pc-card"><div class="pc-name">${esc(r.name)}</div><div class="pc-meta">${esc(r.source)} · ${esc(r.date_applied)}</div><div style="display:flex;gap:4px">${si<stageKeys.length-1?`<button class="btn-sm" onclick="moveRecruit(${r.id},'${stageKeys[si+1]}')">→ ${stageLabels[si+1]}</button>`:''}<button class="btn-sm btn-del" onclick="delRecruit(${r.id})">✕</button></div></div>`).join('')||`<div class="nodata" style="padding:10px 0">${S.lang==='ko'?'없음':'Empty'}</div>`}</div>`).join('');
+  const rows=S.team.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:7px">${av(m.name,m.initials,24)}<div><strong>${esc(m.name)}</strong><div style="font-size:10px;color:#aaa">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||m.role}</div></div></div></td><td>${esc(m.isp||'—')}</td><td style="font-size:11px;color:#888">${esc(m.tool||'—')}</td><td>${esc(m.since||'—')}</td><td style="text-align:right">${can('users')?`<button class="btn-sm${S.editMember===m.id?' btn-add':''}" onclick="toggleEdit('${m.id}')" style="font-size:11px">✏ ${S.lang==='ko'?'편집':'Edit'}</button>`:''}</td></tr>${S.editMember===m.id?`<tr class="erow"><td colspan="5"><div class="erow-in"><div class="fgrid"><div class="fg2"><label>${S.lang==='ko'?'이름':'Name'}</label><input id="e-name" value="${esc(m.name)}"></div><div class="fg2"><label>Initials</label><input id="e-ini" value="${esc(m.initials)}"></div><div class="fg2"><label>${S.lang==='ko'?'직무 설명':'Role description'}</label><input id="e-roledesc" value="${esc(m.role_description||'')}"></div><div class="fg2"><label>ISP</label><select id="e-isp">${ISP_OPT.map(o=>`<option${o===m.isp?' selected':''}>${o}</option>`).join('')}</select></div><div class="fg2"><label>Tool</label><select id="e-tool">${TOOL_OPT.map(o=>`<option${o===m.tool?' selected':''}>${o}</option>`).join('')}</select></div><div class="fg2"><label>${S.lang==='ko'?'입사일':'Since'}</label><input id="e-since" value="${esc(m.since)}"></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember('${m.id}')">${S.lang==='ko'?'저장':'Save'}</button><button onclick="cancelEdit()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div></td></tr>`:''}`).join('');
+  const addRForm=S.showAddRecruit?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 지원자':'New applicant'}</div><div class="fgrid"><div class="fg2"><label>Name</label><input id="nr-n" placeholder="Name"></div><div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Facebook"></div><div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addRecruit()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddRecruit=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
+  return`<div class="ph">${S.lang==='ko'?'팀 & 채용':'Team & Recruitment'}</div>
+<div class="mets"><div class="met"><div class="mv cg">${S.team.length}</div><div class="ml">${S.lang==='ko'?'팀원':'Members'}</div></div><div class="met"><div class="mv ca">${S.recruits.length}</div><div class="ml">${S.lang==='ko'?'채용 진행':'In pipeline'}</div></div><div class="met"><div class="mv cb">${S.recruits.filter(r=>r.stage==='Trial').length}</div><div class="ml">${S.lang==='ko'?'수습 중':'On trial'}</div></div><div class="met"><div class="mv cg">${S.recruits.filter(r=>r.stage==='Hired').length}</div><div class="ml">${S.lang==='ko'?'채용됨':'Hired'}</div></div></div>
+<div class="sh">${S.lang==='ko'?'직원 목록':'Staff directory'}</div>
+<div class="tw"><table><thead><tr><th>Name</th><th>ISP</th><th>Tool</th><th>Since</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+<div class="shr" style="margin-top:20px"><div class="sh">${S.lang==='ko'?'채용 파이프라인':'Recruitment pipeline'}</div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ ${S.lang==='ko'?'지원자 추가':'Add applicant'}</button></div>
+${addRForm}<div class="pipe">${pipe}</div>`;
+}
+
+// ── REPORTS ───────────────────────────────────────────────────────────────
+function pgReports(){
+  const viewed=S.reports.find(r=>r.id===S.viewReport);
+  const addF=S.showAddReport?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 보고서':'Create report'}</div><div class="fg2" style="margin-bottom:10px"><label>${S.lang==='ko'?'주차':'Week'}</label><input id="rp-wk" placeholder="2026 W21"></div>${[['rp-sum',S.lang==='ko'?'요약':'Summary'],['rp-don',S.lang==='ko'?'완료':'Done this week'],['rp-stk',S.lang==='ko'?'이슈':'Issues'],['rp-nxt',S.lang==='ko'?'다음 주':'Next week']].map(([id,l])=>`<div class="fg2" style="margin-bottom:10px"><label>${l}</label><textarea id="${id}" rows="3" placeholder="${l}..." style="width:100%;padding:8px 10px;border:1px solid #dde1e7;border-radius:6px;font-size:12px;font-family:inherit;outline:none;resize:vertical;background:#fff;color:#1a1a2e"></textarea></div>`).join('')}<div style="display:flex;gap:8px"><button class="btn-add" onclick="addReport()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddReport=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
+  const vH=viewed?`<div class="rview"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div><div style="font-size:16px;font-weight:700">${esc(viewed.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(viewed.created_at).toLocaleDateString()}</div></div><button class="btn-del" onclick="delReport(${viewed.id})">🗑 Delete</button></div><div class="rsnap"><div class="rsc"><div class="rsv">${viewed.snap?.staff||0}</div><div class="rsl">Staff</div></div><div class="rsc"><div class="rsv">${viewed.snap?.done||0}</div><div class="rsl">Done</div></div><div class="rsc"><div class="rsv">${viewed.snap?.clients||0}</div><div class="rsl">Clients</div></div></div>${[['summary','Summary'],['done_items','Done'],['stuck_items','Issues'],['next_week','Next week']].filter(([k])=>viewed[k]).map(([k,l])=>`<div class="rsec"><div class="rsec-t">${l}</div><div class="rsec-b">${esc(viewed[k])}</div></div>`).join('')}</div>`:S.showAddReport?'':'<div class="rempty">Select a report or create one</div>';
+  return`<div class="ph">${S.lang==='ko'?'주간 보고서':'Reports — For Geonhui'}</div>
+<div class="rlayout"><div><div class="shr"><div class="sh">Reports</div><button class="btn-add btn-sm" onclick="S.showAddReport=!S.showAddReport;S.viewReport=null;render()">+ New</button></div>${S.reports.map(r=>`<div class="ritem${S.viewReport===r.id?' on':''}" onclick="S.viewReport=${r.id};S.showAddReport=false;render()"><div style="font-size:12px;font-weight:700">${esc(r.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(r.created_at).toLocaleDateString()}</div></div>`).join('')||`<div style="font-size:12px;color:#aaa;padding:8px 0">No reports yet</div>`}</div><div>${addF||vH}</div></div>`;
+}
+
+// ── INVITE CODES ──────────────────────────────────────────────────────────
+function pgInvite(){
+  const roleBg={ceo:'#faeeda',manager:'#e8f5e9',settlement:'#e3f2fd',hr:'#eeedfe',staff:'#f5f5f5'};
+  const roleClr={ceo:'#854F0B',manager:'#1D9E75',settlement:'#185FA5',hr:'#534AB7',staff:'#555'};
+  const cards=S.codes.map(c=>`<div class="code-card"><div class="code-role" style="background:${roleBg[c.role]||'#f5f5f5'};color:${roleClr[c.role]||'#555'}">${c.role.toUpperCase()}</div><div class="code-val${c.is_used?' code-used':''}">${esc(c.code)}</div><div class="code-status">${c.is_used?'✓ Used':'Available'}</div><div style="font-size:11px;color:#aaa">${esc(c.label||'')}</div>${!c.is_used?`<button class="btn-del" onclick="delCode(${c.id})">🗑</button>`:''}</div>`).join('');
+  const addF=S.showAddCode?`<div class="fbox"><div class="fbox-t">Generate invite code</div><div class="fgrid"><div class="fg2"><label>Role</label><select id="nc-role"><option value="manager">Manager</option><option value="settlement">Settlement</option><option value="hr">HR</option><option value="staff">Staff</option><option value="ceo">CEO</option></select></div><div class="fg2"><label>Label (who it's for)</label><input id="nc-label" placeholder="e.g. For Tori"></div><div class="fg2"><label>Custom code (optional)</label><input id="nc-code" placeholder="Auto-generated if empty"></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addCode()">Generate</button><button onclick="S.showAddCode=false;render()">Cancel</button></div></div>`:'';
+  return`<div class="ph">Invite Codes</div>
+<div class="psub">Share these codes with team members when they sign up</div>
+<div class="shr"><div class="sh">${S.codes.filter(c=>!c.is_used).length} available · ${S.codes.filter(c=>c.is_used).length} used</div><button class="btn-add" onclick="S.showAddCode=!S.showAddCode;render()">+ Generate code</button></div>
+${addF}${cards||`<div class="nodata">No invite codes yet — generate one above</div>`}`;
+}
+
+// ── USER ROLES ────────────────────────────────────────────────────────────
+function pgUsers(){
+  const roleBg={ceo:'#faeeda',manager:'#e8f5e9',settlement:'#e3f2fd',hr:'#eeedfe',staff:'#f5f5f5',player:'#ffebee'};
+  const roleClr={ceo:'#854F0B',manager:'#1D9E75',settlement:'#185FA5',hr:'#534AB7',staff:'#555',player:'#b71c1c'};
+  const all_roles=['ceo','manager','settlement','hr','staff','player'];
+  const rows=S.team.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:8px">${av(m.name,m.initials,26)}<div><strong>${esc(m.name)}</strong></div></div></td><td><span class="bdg" style="background:${roleBg[m.role]||'#f5f5f5'};color:${roleClr[m.role]||'#555'}">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||m.role}</span></td><td style="white-space:nowrap">${m.id!==S.profile.id?`<select onchange="changeRole('${m.id}',this.value)" style="font-size:11px;padding:4px 8px;border:1px solid #dde1e7;border-radius:6px;font-family:inherit">${all_roles.map(r=>`<option value="${r}"${r===m.role?' selected':''}>${ROLE_LABELS[r]}</option>`).join('')}</select>`:`<span style="font-size:11px;color:#aaa">You</span>`}</td></tr>`).join('');
+  return`<div class="ph">User Roles</div><div class="psub">Change anyone's role here. Changes take effect on their next page load.</div>
+<div class="tw"><table><thead><tr><th>User</th><th>Current role</th><th>Change role</th></tr></thead><tbody>${rows}</tbody></table></div>
+<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:14px;font-size:12px;color:#1b5e20;line-height:1.7"><strong>Role summary:</strong><br>
+👑 CEO &amp; 🟢 Manager — Full access to everything<br>
+💰 Settlement — Dashboard, clients, financial<br>
+👥 HR — Dashboard, tasks, recruitment, team directory<br>
+🖥 Staff — Dashboard, Korea PCs (view), tasks (mark done)<br>
+🎮 Player — Own order portal only</div>`;
+}
+
+// ── PLAYER PORTAL ─────────────────────────────────────────────────────────
+function pgPlayer(){
+  const o=S.playerOrder;
+  if(!o) return`<div class="player-wrap"><div class="player-none"><div class="player-icon">🎮</div><div style="font-size:16px;font-weight:700;margin-bottom:8px">No order found</div><div style="font-size:13px;color:#aaa">Your account (${esc(S.user?.email)}) is not linked to any active service.<br>Contact Lucky 7 to get set up!</div></div></div>`;
+  const stClr={Active:'#1D9E75',Completed:'#185FA5',Paused:'#BA7517'};
+  return`<div class="player-wrap">
+<div class="player-hero">
+  <div class="player-char">${esc(o.char_info)}</div>
+  <div class="player-server">${esc(o.server)}</div>
+  <div class="player-status-big" style="background:${stClr[o.status]||'rgba(255,255,255,.2)'}">● ${o.status}</div>
+</div>
+<div class="player-card">
+  <div class="player-card-title">Service details</div>
+  <div class="player-row"><span class="player-key">Service</span><span class="player-val">${esc(o.service)}</span></div>
+  <div class="player-row"><span class="player-key">Period</span><span class="player-val">${esc(o.start_date)} → ${esc(o.end_date)}</span></div>
+  <div class="player-row"><span class="player-key">Price</span><span class="player-val">Rp ${(+o.price||0).toLocaleString()}</span></div>
+</div>
+${o.progress_note?`<div class="player-card"><div class="player-card-title">Progress note from team</div><div class="player-note">📝 ${esc(o.progress_note)}</div></div>`:''}
+</div>`;
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────
+async function cyclePC(id){const ord=['Online','Warning','Offline'];const p=S.pcs.find(x=>x.id===id);const ns=ord[(ord.indexOf(p.status)+1)%3];await sb.from('korea_pcs').update({status:ns}).eq('id',id);S.pcs=S.pcs.map(x=>x.id===id?{...x,status:ns}:x);render();}
+function editNote(id){document.getElementById(`ne-${id}`).style.display='';}
+async function saveNote(id){const v=document.getElementById(`ni-${id}`).value;await sb.from('korea_pcs').update({note:v}).eq('id',id);S.pcs=S.pcs.map(p=>p.id===id?{...p,note:v}:p);render();}
+async function toggleTask(id){const x=S.tasks.find(t=>t.id===id);const ns=x.status==='Done'?'Todo':'Done';await sb.from('tasks').update({status:ns}).eq('id',id);S.tasks=S.tasks.map(t=>t.id===id?{...t,status:ns}:t);render();}
+async function delTask(id){if(!confirm('Delete?'))return;await sb.from('tasks').delete().eq('id',id);S.tasks=S.tasks.filter(t=>t.id!==id);render();}
+async function addTask(){const ti=document.getElementById('nt-t').value.trim();if(!ti)return;const {data}=await sb.from('tasks').insert({title:ti,title_ko:document.getElementById('nt-k').value,owner:document.getElementById('nt-o').value,priority:document.getElementById('nt-p').value,status:'Todo',category:document.getElementById('nt-c').value}).select().single();if(data)S.tasks.push(data);S.showAddTask=false;render();}
+async function toggleClient(id){const ord=['Active','Paused','Completed'];const c=S.clients.find(x=>x.id===id);const ns=ord[(ord.indexOf(c.status)+1)%3];await sb.from('clients').update({status:ns}).eq('id',id);S.clients=S.clients.map(x=>x.id===id?{...x,status:ns}:x);render();}
+async function delClient(id){if(!confirm('Delete?'))return;await sb.from('clients').delete().eq('id',id);S.clients=S.clients.filter(c=>c.id!==id);render();}
+async function addClient(){const n=document.getElementById('nc-n').value.trim();if(!n)return;const {data}=await sb.from('clients').insert({name:n,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();if(data)S.clients.push(data);S.showAddClient=false;render();}
+function toggleEdit(id){S.editMember=S.editMember===id?null:id;render();}
+function cancelEdit(){S.editMember=null;render();}
+async function saveMember(id){const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};await sb.from('user_profiles').update(upd).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;render();}
+async function moveRecruit(id,stage){await sb.from('recruits').update({stage}).eq('id',id);S.recruits=S.recruits.map(r=>r.id===id?{...r,stage}:r);render();}
+async function delRecruit(id){if(!confirm('Delete?'))return;await sb.from('recruits').delete().eq('id',id);S.recruits=S.recruits.filter(r=>r.id!==id);render();}
+async function addRecruit(){const n=document.getElementById('nr-n').value.trim();if(!n)return;const {data}=await sb.from('recruits').insert({name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'}).select().single();if(data)S.recruits.push(data);S.showAddRecruit=false;render();}
+async function addReport(){const wk=document.getElementById('rp-wk').value.trim();if(!wk)return;const snap={staff:S.team.length,done:S.tasks.filter(x=>x.status==='Done').length,clients:S.clients.filter(c=>c.status==='Active').length};const {data}=await sb.from('reports').insert({week_label:wk,summary:document.getElementById('rp-sum').value,done_items:document.getElementById('rp-don').value,stuck_items:document.getElementById('rp-stk').value,next_week:document.getElementById('rp-nxt').value,snap}).select().single();if(data){S.reports.unshift(data);S.viewReport=data.id;}S.showAddReport=false;render();}
+async function delReport(id){if(!confirm('Delete?'))return;await sb.from('reports').delete().eq('id',id);S.reports=S.reports.filter(r=>r.id!==id);S.viewReport=null;render();}
+function genCode(role){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code='';for(let i=0;i<8;i++)code+=chars[Math.floor(Math.random()*chars.length)];return`${role.toUpperCase()}-${code}`;}
+async function addCode(){const role=document.getElementById('nc-role').value;const label=document.getElementById('nc-label').value;const custom=document.getElementById('nc-code').value.trim();const code=custom||genCode(role);const {data}=await sb.from('invite_codes').insert({code,role,label}).select().single();if(data)S.codes.push(data);S.showAddCode=false;render();}
+async function delCode(id){if(!confirm('Delete this code?'))return;await sb.from('invite_codes').delete().eq('id',id);S.codes=S.codes.filter(c=>c.id!==id);render();}
+async function changeRole(id,role){if(!confirm(`Change this user's role to ${ROLE_LABELS[role]}?`))return;await sb.from('user_profiles').update({role}).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,role}:m);render();}
+
+init();
+</script>
+</body>
+</html>
