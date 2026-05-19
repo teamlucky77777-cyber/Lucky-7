@@ -570,6 +570,92 @@ ${addForm}<div class="tw"><table><thead><tr><th>Client</th><th>Character</th><th
 }
 
 // ── TEAM ──────────────────────────────────────────────────────────────────
+
+function pgStaffDir(){
+  const tt=t();const lang=S.lang;
+  const rows=S.team.map(m=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:7px">${av(m.name,m.initials,24)}<div><strong>${esc(m.name)}</strong><div style="font-size:10px;color:var(--text3)">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||m.role}</div></div></div></td>
+      <td>${esc(m.isp||'—')}</td><td style="font-size:12px;color:var(--text2)">${esc(m.tool||'—')}</td><td>${esc(m.since||'—')}</td>
+      <td style="text-align:right">${can('users')?`<button class="btn-sm${S.editMember===m.id?' btn-add':''}" onclick="toggleEdit('${m.id}')">${tt.edit}</button>`:''}</td>
+    </tr>
+    ${S.editMember===m.id?`<tr class="erow"><td colspan="5"><div class="erow-in">
+      <div class="fgrid">
+        <div class="fg2"><label>${tt.name}</label><input id="e-name" value="${esc(m.name)}"></div>
+        <div class="fg2"><label>Initials</label><input id="e-ini" value="${esc(m.initials)}"></div>
+        <div class="fg2"><label>${tt.isp}</label><select id="e-isp">${ISP_OPT.map(o=>`<option${o===m.isp?' selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="fg2"><label>${tt.tool}</label><input id="e-tool" list="tl-opts" value="${esc(m.tool)}"><datalist id="tl-opts">${TOOL_OPT.map(o=>`<option>${o}</option>`).join('')}</datalist></div>
+        <div class="fg2"><label>${tt.since}</label><input id="e-since" value="${esc(m.since)}"></div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember('${m.id}')">${tt.save}</button><button onclick="cancelEdit()">${tt.cancel}</button></div>
+    </div></td></tr>`:''}
+  `).join('');
+  const addMForm=S.showAddMember?`<div class="fbox"><div class="fbox-t">${lang==='ko'?'새 직원 추가':'New staff member'}</div>
+    <div class="fgrid">
+      <div class="fg2"><label>${tt.name}</label><input id="nm-name" placeholder="Name"></div>
+      <div class="fg2"><label>Initials</label><input id="nm-ini" placeholder="BL"></div>
+      <div class="fg2"><label>Role</label><input id="nm-role" placeholder="Manager..."></div>
+      <div class="fg2"><label>${tt.status}</label><select id="nm-status">${ST_OPT.map(o=>`<option>${o}</option>`).join('')}</select></div>
+      <div class="fg2"><label>${tt.isp}</label><select id="nm-isp">${ISP_OPT.map(o=>`<option>${o}</option>`).join('')}</select></div>
+      <div class="fg2"><label>${tt.tool}</label><input id="nm-tool" list="tl-opts2" placeholder="AnyViewer..."><datalist id="tl-opts2">${TOOL_OPT.map(o=>`<option>${o}</option>`).join('')}</datalist></div>
+      <div class="fg2"><label>${tt.since}</label><input id="nm-since" placeholder="Jan 2026"></div>
+    </div>
+    <div style="display:flex;gap:8px"><button class="btn-add" onclick="addMember()">${tt.save}</button><button onclick="S.showAddMember=false;render()">${tt.cancel}</button></div>
+  </div>`:'';
+  return`<div class="ph">👤 ${lang==='ko'?'직원 목록':'Staff Directory'}</div>
+<div class="mets">
+  <div class="met"><div class="mv cg">${S.team.length}</div><div class="ml">${lang==='ko'?'전체 직원':'Total members'}</div></div>
+  <div class="met"><div class="mv cg">${S.team.filter(m=>m.role==='manager'||m.role==='ceo').length}</div><div class="ml">Management</div></div>
+</div>
+<div class="shr"><div class="sh">${lang==='ko'?'전체 목록':'All members'}</div>${can('users')?`<button class="btn-add" onclick="S.showAddMember=!S.showAddMember;render()">+ ${lang==='ko'?'직원 추가':'Add member'}</button>`:''}</div>
+${addMForm}
+<div class="tw"><table><thead><tr><th>${tt.name}</th><th>${tt.isp}</th><th>${tt.tool}</th><th>${tt.since}</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="5" class="nodata">${tt.noData}</td></tr>`}</tbody></table></div>`;
+}
+
+function pgRecruitment(){
+  const tt=t();const lang=S.lang;
+  const stageKeys=['Applied','Interview','Trial','Hired'];
+  const stageLabels=lang==='ko'?['지원','면접','수습','채용']:stageKeys;
+  const stageDot={Applied:'var(--blue)',Interview:'var(--yellow)',Trial:'var(--purple)',Hired:'var(--green)'};
+  const addRForm=S.showAddRecruit?`<div class="fbox"><div class="fbox-t">${lang==='ko'?'새 지원자':'New applicant'}</div>
+    <div class="fgrid">
+      <div class="fg2"><label>${tt.name}</label><input id="nr-n" placeholder="Name"></div>
+      <div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Facebook..."></div>
+      <div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div>
+    </div>
+    <div style="display:flex;gap:8px"><button class="btn-add" onclick="addRecruit()">${tt.save}</button><button onclick="S.showAddRecruit=false;render()">${tt.cancel}</button></div>
+  </div>`:'';
+  const pipe=stageKeys.map((sk,si)=>`
+    <div class="pc-col">
+      <div class="pc-col-h">
+        <span style="display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${stageDot[sk]};flex-shrink:0;display:inline-block"></span>
+          ${stageLabels[si]}
+        </span>
+        <span class="pc-cnt">${S.recruits.filter(r=>r.stage===sk).length}</span>
+      </div>
+      ${S.recruits.filter(r=>r.stage===sk).map(r=>`
+        <div class="pc-card">
+          <div class="pc-name">${esc(r.name)}</div>
+          <div class="pc-meta">${esc(r.source)} · ${esc(r.date_applied)}</div>
+          <div style="display:flex;gap:4px">
+            ${si<stageKeys.length-1?`<button class="btn-sm" onclick="moveRecruit(${r.id},'${stageKeys[si+1]}')">→ ${stageLabels[si+1]}</button>`:''}
+            <button class="btn-sm btn-del" onclick="delRecruit(${r.id})">✕</button>
+          </div>
+        </div>`).join('')||`<div class="nodata" style="padding:12px 0">${tt.noData}</div>`}
+    </div>`).join('');
+  return`<div class="ph">🎯 ${lang==='ko'?'채용 파이프라인':'Recruitment Pipeline'}</div>
+<div class="mets">
+  <div class="met"><div class="mv cb">${S.recruits.length}</div><div class="ml">${lang==='ko'?'전체':'Total'}</div></div>
+  <div class="met"><div class="mv ca">${S.recruits.filter(r=>r.stage==='Interview').length}</div><div class="ml">Interview</div></div>
+  <div class="met"><div class="mv" style="color:var(--purple)">${S.recruits.filter(r=>r.stage==='Trial').length}</div><div class="ml">Trial</div></div>
+  <div class="met"><div class="mv cg">${S.recruits.filter(r=>r.stage==='Hired').length}</div><div class="ml">Hired</div></div>
+</div>
+<div class="shr"><div></div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ ${lang==='ko'?'지원자 추가':'Add applicant'}</button></div>
+${addRForm}
+<div class="pipe" style="margin-top:12px">${pipe}</div>`;
+}
+
 function pgTeam(){
   const stageKeys=['Applied','Interview','Trial','Hired'];
   const stageLabels=S.lang==='ko'?['지원','면접','수습','채용']:stageKeys;
