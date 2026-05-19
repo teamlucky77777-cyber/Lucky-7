@@ -210,7 +210,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.4 · Build: 20260519-11</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.5 · Build: 20260519-12</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -230,7 +230,7 @@ const PERMS = {
   ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
   manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
   settlement: ['dash'],
-  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','team','reports_submit','checklist'],
+  hr:         ['dash','tasks_view','tasks_edit','tasks_done','recruitment','recruit_settings','team','reports_submit','checklist'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist'],
   player:     ['player','checklist']
 };
@@ -613,6 +613,40 @@ function pgRecruitment(){
     +'<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-add" onclick="saveRequirements()">'+(ko?'저장':'Save')+'</button><button onclick="S.showEditReqs=false;render()">'+(ko?'취소':'Cancel')+'</button></div>'
     +'<div style="margin-top:10px;font-size:11px;color:var(--tx3);line-height:1.5">'+(ko?'⚙️ 변경 후 모든 지원자가 새 기준으로 다시 평가됩니다.':'⚙️ Changes apply to all applicants — they will be re-evaluated with the new criteria.')+'</div>'
     +'</div>');
+
+  // Build Accept/Reject criteria cards
+  const _intelGen=R.min_intel_gen, _ryzenGen=R.min_ryzen_gen;
+  const _acceptList=[
+    {label:R.os_label||'Windows 10/11'},
+    {label:'Intel i5 '+_intelGen+'th gen+ OR AMD Ryzen 5 '+_ryzenGen+'000+ series'},
+    {label:'GPU: '+(R.gpu_label||'GTX 1050 Ti+ / RX 560+')},
+    {label:R.min_ram+'GB RAM minimum'},
+    {label:R.min_speed+' Mbps internet minimum'}
+  ];
+  if(R.require_static_ip!==false) _acceptList.push({label:'Public Static IP'});
+  if(R.require_lan_cable!==false) _acceptList.push({label:'LAN cable connection (no WiFi)'});
+
+  const _rejectList=[
+    {label:'Older OS (Windows 7, 8, etc.)'},
+    {label:'Intel CPU below '+_intelGen+'th gen (e.g., i5-4460, i5-7400)'},
+    {label:'AMD Ryzen below '+_ryzenGen+'000 series'},
+    {label:'Older GPUs (GTX 1030, GTX 1050 non-Ti, RX 4xx, etc.)'},
+    {label:'Less than '+R.min_ram+'GB RAM'},
+    {label:'Internet below '+R.min_speed+' Mbps'}
+  ];
+  if(R.require_static_ip!==false) _rejectList.push({label:'Dynamic IP only / No public static IP'});
+  if(R.require_lan_cable!==false) _rejectList.push({label:'WiFi only / No LAN cable'});
+
+  const criteriaHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'
+    +'<div style="background:var(--gr-bg);border:1px solid #c4dfcc;border-radius:var(--r2);padding:14px 16px">'
+      +'<div style="font-weight:600;color:var(--gr);font-size:12px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">✓ '+(ko?'채용 기준':'Accept Criteria')+'</div>'
+      +_acceptList.map(x=>'<div style="font-size:12px;color:var(--tx);margin-bottom:6px;padding-left:18px;position:relative;line-height:1.4"><span style="position:absolute;left:0;color:var(--gr);font-weight:700">✓</span>'+esc(x.label)+'</div>').join('')
+    +'</div>'
+    +'<div style="background:var(--re-bg);border:1px solid #f0c4c4;border-radius:var(--r2);padding:14px 16px">'
+      +'<div style="font-weight:600;color:var(--re);font-size:12px;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">✗ '+(ko?'자동 거절':'Auto-Reject Criteria')+'</div>'
+      +_rejectList.map(x=>'<div style="font-size:12px;color:var(--tx);margin-bottom:6px;padding-left:18px;position:relative;line-height:1.4"><span style="position:absolute;left:0;color:var(--re);font-weight:700">✗</span>'+esc(x.label)+'</div>').join('')
+    +'</div>'
+  +'</div>';
   const reqChips=reqs.map(r=>'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--gr-bg);color:var(--gr);border:1px solid #c4dfcc">✓ '+r+'</span>').join('');
 
   const addForm=S.showAddRecruit?'<div class="fbox"><div class="fbox-t">'+(ko?'새 지원자':'New applicant')+'</div>'
@@ -657,7 +691,7 @@ function pgRecruitment(){
     +'<div class="met"><div class="mv ca">'+S.recruits.filter(r=>getStatus(r)==='pending').length+'</div><div class="ml">Pending</div></div>'
     +'<div class="met"><div class="mv cr">'+S.recruits.filter(r=>getStatus(r)==='fail').length+'</div><div class="ml">Fail</div></div>'
     +'</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center">'+reqChips+(can('recruit_settings')?'<button class="btn-sm" style="margin-left:auto" onclick="S.showEditReqs=!S.showEditReqs;render()">⚙️ '+(ko?'요구사항 편집':'Edit requirements')+'</button>':'')+'</div>'+(S.showEditReqs&&can('recruit_settings')?reqsEditForm:'')
+    +criteriaHTML+(can('recruit_settings')?'<div style="margin-bottom:16px;text-align:right"><button class="btn-sm" onclick="S.showEditReqs=!S.showEditReqs;render()">⚙️ '+(ko?'기준 편집':'Edit criteria')+'</button></div>':'')+(S.showEditReqs&&can('recruit_settings')?reqsEditForm:'')
     +'<div class="shr"><div class="sh">'+(ko?'지원자 목록':'Applicants')+'</div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ '+(ko?'추가':'Add applicant')+'</button></div>'
     +addForm
     +'<div class="tw"><table><thead><tr><th>Name</th><th>CPU</th><th>GPU</th><th>RAM</th><th>Speed</th><th>OS</th><th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -665,9 +699,22 @@ function pgRecruitment(){
   const _ig=R.min_intel_gen,_rg=R.min_ryzen_gen;
   const _intelTxt=_ig===8?'8th gen+':_ig+'th gen+';
   const _ryzenTxt=_rg===3?'3000+ series':_rg+'000+ series';
-  const _ipLine=R.require_static_ip!==false?'• Public Static IP (mandatory)\\n':'';
-  const _lanLine=R.require_lan_cable!==false?'• LAN cable (mandatory — no WiFi)\\n':'';
-  const jobTxt='Operator Wanted — Lucky 7 (Lineage Classic)\\n\\nWe are looking for dedicated operators to join our character progression service.\\n\\n📋 Requirements:\\n• PC: '+(R.os_label||'Windows 10/11')+'\\n• CPU: Intel i5 '+_intelTxt+' or AMD Ryzen 5 '+_ryzenTxt+'\\n• GPU: '+(R.gpu_label||'GTX 1050 Ti+ / RX 560+')+'\\n• RAM: Minimum '+R.min_ram+'GB\\n• Internet: Minimum '+R.min_speed+' Mbps\\n'+_ipLine+_lanLine+'\\n💰 Payment: Weekly, based on performance\\n⏰ Hours: Flexible shifts available\\n📍 Remote position\\n\\nHow to apply:\\n1. Screenshot your PC specs (Task Manager → Performance)\\n2. Screenshot your speed test (fast.com)\\n3. Confirm you have a public static IP and LAN cable\\n4. DM us with your specs\\n\\nOnly applicants who meet ALL hardware requirements will be contacted.';
+  const _jobLines=[
+    'Operator Wanted — Lucky 7 (Lineage Classic)',
+    '',
+    'We are looking for dedicated operators to join our character progression service.',
+    '',
+    '📋 Requirements:',
+    '• PC: '+(R.os_label||'Windows 10/11'),
+    '• CPU: Intel i5 '+_intelTxt+' or AMD Ryzen 5 '+_ryzenTxt,
+    '• GPU: '+(R.gpu_label||'GTX 1050 Ti+ / RX 560+'),
+    '• RAM: Minimum '+R.min_ram+'GB',
+    '• Internet: Minimum '+R.min_speed+' Mbps'
+  ];
+  if(R.require_static_ip!==false) _jobLines.push('• Public Static IP (mandatory)');
+  if(R.require_lan_cable!==false) _jobLines.push('• LAN cable (mandatory — no WiFi)');
+  _jobLines.push('','💰 Payment: Weekly, based on performance','⏰ Hours: Flexible shifts available','📍 Remote position','','How to apply:','1. Screenshot your PC specs (Task Manager → Performance)','2. Screenshot your speed test (fast.com)','3. Confirm you have a public static IP and LAN cable','4. DM us with your specs','','Only applicants who meet ALL hardware requirements will be contacted.');
+  const jobTxt=_jobLines.join('\n');
   const jobHTML='<div style="max-width:600px">'
     +'<div style="background:var(--bg-sb);border:1px solid var(--br);border-radius:var(--r2);padding:20px;margin-bottom:16px">'
     +'<div class="sh" style="margin-bottom:12px">Job Post Preview</div>'
