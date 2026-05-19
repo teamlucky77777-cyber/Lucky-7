@@ -139,11 +139,17 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 .info-tag{font-size:12px;background:var(--ac-bg);color:var(--ac);padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:12px}
 .setup-box{background:var(--ye-bg);border:1px solid var(--br2);border-radius:var(--r2);padding:20px}
 .setup-box h3{color:var(--ye);margin-bottom:8px}.setup-box code{background:var(--bg);border:1px solid var(--br);padding:2px 6px;border-radius:var(--r);font-size:12px;display:block;margin:4px 0;word-break:break-all}
+
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast-msg{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,.4);pointer-events:all;animation:slideIn .2s ease}
+.toast-ok{background:#0f7b6c;color:#fff}.toast-err{background:#c0392b;color:#fff}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
 </style>
 </head>
 <body>
 
 <!-- ═══ AUTH SCREEN ═══ -->
+<div id="toast"></div>
 <div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">🍀</div>
@@ -581,8 +587,8 @@ async function addRecruitFull(){
   const lan=document.getElementById('nr-lan').value;
   const obj={name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied',cpu:document.getElementById('nr-cpu').value,ram:document.getElementById('nr-ram').value,speed:document.getElementById('nr-spd').value,os:document.getElementById('nr-os').value,static_ip:sip===''?null:sip==='yes',lan_cable:lan===''?null:lan==='yes'};
   const {data,error}=await sb.from('recruits').insert(obj).select().single();
-  if(error){alert('Save failed: '+error.message);return;}
-  if(data)S.recruits.push(data);S.showAddRecruit=false;render();
+  if(error){toast(error.message,'err');console.error(error);return;}
+  if(data){S.recruits.push(data);toast('Applicant added ✓');}S.showAddRecruit=false;render();
 }
 function copyJobPost(){
   const txt=document.getElementById('job-post-txt').textContent;
@@ -590,25 +596,12 @@ function copyJobPost(){
 }
 
 
-function pgTeam(){
-  const stageKeys=['Applied','Interview','Trial','Hired'];
-  const stageLabels=S.lang==='ko'?['지원','면접','수습','채용']:stageKeys;
-  const pipe=stageKeys.map((sk,si)=>`<div class="pc-col"><div class="pc-col-h">${stageLabels[si]}<span class="pc-cnt">${S.recruits.filter(r=>r.stage===sk).length}</span></div>${S.recruits.filter(r=>r.stage===sk).map(r=>`<div class="pc-card"><div class="pc-name">${esc(r.name)}</div><div class="pc-meta">${esc(r.source)} · ${esc(r.date_applied)}</div><div style="display:flex;gap:4px">${si<stageKeys.length-1?`<button class="btn-sm" onclick="moveRecruit(${r.id},'${stageKeys[si+1]}')">→ ${stageLabels[si+1]}</button>`:''}<button class="btn-sm btn-del" onclick="delRecruit(${r.id})">✕</button></div></div>`).join('')||`<div class="nodata" style="padding:10px 0">${S.lang==='ko'?'없음':'Empty'}</div>`}</div>`).join('');
-  const rows=S.team.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:7px">${av(m.name,m.initials,24)}<div><strong>${esc(m.name)}</strong><div style="font-size:10px;color:#aaa">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||m.role}</div></div></div></td><td>${esc(m.isp||'—')}</td><td style="font-size:11px;color:#888">${esc(m.tool||'—')}</td><td>${esc(m.since||'—')}</td><td style="text-align:right">${can('users')?`<button class="btn-sm${S.editMember===m.id?' btn-add':''}" onclick="toggleEdit('${m.id}')" style="font-size:11px">✏ ${S.lang==='ko'?'편집':'Edit'}</button>`:''}</td></tr>${S.editMember===m.id?`<tr class="erow"><td colspan="5"><div class="erow-in"><div class="fgrid"><div class="fg2"><label>${S.lang==='ko'?'이름':'Name'}</label><input id="e-name" value="${esc(m.name)}"></div><div class="fg2"><label>Initials</label><input id="e-ini" value="${esc(m.initials)}"></div><div class="fg2"><label>${S.lang==='ko'?'직무 설명':'Role description'}</label><input id="e-roledesc" value="${esc(m.role_description||'')}"></div><div class="fg2"><label>ISP</label><select id="e-isp">${ISP_OPT.map(o=>`<option${o===m.isp?' selected':''}>${o}</option>`).join('')}</select></div><div class="fg2"><label>Tool</label><input id="e-tool" list="tool-opts" value="${esc(m.tool)}" placeholder="Type or pick..."><datalist id="tool-opts">${TOOL_OPT.map(o=>`<option>${o}</option>`).join('')}</datalist></div><div class="fg2"><label>${S.lang==='ko'?'입사일':'Since'}</label><input id="e-since" value="${esc(m.since)}"></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember('${m.id}')">${S.lang==='ko'?'저장':'Save'}</button><button onclick="cancelEdit()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div></td></tr>`:''}`).join('');
-  const addRForm=S.showAddRecruit?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 지원자':'New applicant'}</div><div class="fgrid"><div class="fg2"><label>Name</label><input id="nr-n" placeholder="Name"></div><div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Facebook"></div><div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addRecruit()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddRecruit=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
-  return`<div class="ph">${S.lang==='ko'?'팀 & 채용':'Team & Recruitment'}</div>
-<div class="mets"><div class="met"><div class="mv cg">${S.team.length}</div><div class="ml">${S.lang==='ko'?'팀원':'Members'}</div></div><div class="met"><div class="mv ca">${S.recruits.length}</div><div class="ml">${S.lang==='ko'?'채용 진행':'In pipeline'}</div></div><div class="met"><div class="mv cb">${S.recruits.filter(r=>r.stage==='Trial').length}</div><div class="ml">${S.lang==='ko'?'수습 중':'On trial'}</div></div><div class="met"><div class="mv cg">${S.recruits.filter(r=>r.stage==='Hired').length}</div><div class="ml">${S.lang==='ko'?'채용됨':'Hired'}</div></div></div>
-<div class="sh">${S.lang==='ko'?'직원 목록':'Staff directory'}</div>
-<div class="tw"><table><thead><tr><th>Name</th><th>ISP</th><th>Tool</th><th>Since</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-<div class="shr" style="margin-top:20px"><div class="sh">${S.lang==='ko'?'채용 파이프라인':'Recruitment pipeline'}</div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ ${S.lang==='ko'?'지원자 추가':'Add applicant'}</button></div>
-${addRForm}<div class="pipe">${pipe}</div>`;
-}
 
 // ── REPORTS ───────────────────────────────────────────────────────────────
 function pgReports(){
   const viewed=S.reports.find(r=>r.id===S.viewReport);
   const isSubmitter=can('reports_submit')&&!can('reports');
-  const addF=S.showAddReport?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 보고서':'Create report'}</div><div class="fg2" style="margin-bottom:10px"><label>${S.lang==='ko'?'날짜':'Date'}</label><input id="rp-wk" placeholder="2026 W21"></div>${[['rp-sum',S.lang==='ko'?'요약':'Summary'],['rp-don',S.lang==='ko'?'완료':'Done today'],['rp-stk',S.lang==='ko'?'이슈':'Issues'],['rp-nxt',S.lang==='ko'?'내일 계획':'Tomorrow plan']].map(([id,l])=>`<div class="fg2" style="margin-bottom:10px"><label>${l}</label><textarea id="${id}" rows="3" placeholder="${l}..." style="width:100%;padding:8px 10px;border:1px solid #dde1e7;border-radius:6px;font-size:12px;font-family:inherit;outline:none;resize:vertical;background:#fff;color:#1a1a2e"></textarea></div>`).join('')}<div style="display:flex;gap:8px"><button class="btn-add" onclick="addReport()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddReport=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
+  const addF=S.showAddReport?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 보고서':'Create report'}</div><div class="fg2" style="margin-bottom:10px"><label>${S.lang==='ko'?'날짜':'Date'}</label><input id="rp-wk" value="${new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}" placeholder="2026 W21"></div>${[['rp-sum',S.lang==='ko'?'요약':'Summary'],['rp-don',S.lang==='ko'?'완료':'Done today'],['rp-stk',S.lang==='ko'?'이슈':'Issues'],['rp-nxt',S.lang==='ko'?'내일 계획':'Tomorrow plan']].map(([id,l])=>`<div class="fg2" style="margin-bottom:10px"><label>${l}</label><textarea id="${id}" rows="3" placeholder="${l}..." style="width:100%;padding:8px 10px;border:1px solid var(--br);border-radius:var(--r);font-size:12px;font-family:inherit;outline:none;resize:vertical;background:var(--bg-i);color:var(--tx)"></textarea></div>`).join('')}<div style="display:flex;gap:8px"><button class="btn-add" onclick="addReport()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddReport=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
   const vH=viewed?`<div class="rview"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div><div style="font-size:16px;font-weight:700">${esc(viewed.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(viewed.created_at).toLocaleDateString()}${viewed.submitted_by?` · Submitted by <strong>${esc(viewed.submitted_by)}</strong>`:''}</div></div><button class="btn-del" onclick="delReport(${viewed.id})">🗑 Delete</button></div><div class="rsnap"><div class="rsc"><div class="rsv">${viewed.snap?.staff||0}</div><div class="rsl">Staff</div></div><div class="rsc"><div class="rsv">${viewed.snap?.done||0}</div><div class="rsl">Done</div></div><div class="rsc"><div class="rsv">${viewed.snap?.clients||0}</div><div class="rsl">Clients</div></div></div>${[['summary','Summary'],['done_items','Done'],['stuck_items','Issues'],['next_week','Tomorrow plan']].filter(([k])=>viewed[k]).map(([k,l])=>`<div class="rsec"><div class="rsec-t">${l}</div><div class="rsec-b">${esc(viewed[k])}</div></div>`).join('')}</div>`:S.showAddReport?'':'<div class="rempty">Select a report or create one</div>';
   return`<div class="ph">${S.lang==='ko'?'일일 보고서':'Daily Report'}</div>
 <div class="rlayout"><div><div class="shr"><div class="sh">Reports</div><button class="btn-add btn-sm" onclick="S.showAddReport=!S.showAddReport;S.viewReport=null;render()">+ New</button></div>${S.reports.map(r=>`<div class="ritem${S.viewReport===r.id?' on':''}" onclick="S.viewReport=${r.id};S.showAddReport=false;render()"><div style="font-size:12px;font-weight:700">${esc(r.week_label)}</div><div style="font-size:11px;color:#aaa">${new Date(r.created_at).toLocaleDateString()}${r.submitted_by?` · ${esc(r.submitted_by)}`:''}</div></div>`).join('')||`<div style="font-size:12px;color:#aaa;padding:8px 0">No reports yet</div>`}</div><div>${addF||vH}</div></div>`;
@@ -669,37 +662,45 @@ function editNote(id){document.getElementById(`ne-${id}`).style.display='';}
 async function saveNote(id){const v=document.getElementById(`ni-${id}`).value;await sb.from('korea_pcs').update({note:v}).eq('id',id);S.pcs=S.pcs.map(p=>p.id===id?{...p,note:v}:p);render();}
 async function toggleTask(id){const x=S.tasks.find(t=>t.id===id);const ord=['Todo','In Progress','Done'];const ns=ord[(ord.indexOf(x.status)+1)%3];await sb.from('tasks').update({status:ns}).eq('id',id);S.tasks=S.tasks.map(t=>t.id===id?{...t,status:ns}:t);render();}
 async function delTask(id){if(!confirm('Delete?'))return;await sb.from('tasks').delete().eq('id',id);S.tasks=S.tasks.filter(t=>t.id!==id);render();}
-async function addTask(){const ti=document.getElementById('nt-t').value.trim();if(!ti)return;const {data,error}=await sb.from('tasks').insert({title:ti,title_ko:document.getElementById('nt-k').value,owner:document.getElementById('nt-o').value,priority:document.getElementById('nt-p').value,status:'Todo',category:document.getElementById('nt-c').value}).select().single();if(error){alert('Failed: '+error.message);return;}if(data)S.tasks.push(data);S.showAddTask=false;render();}
+async function addTask(){const ti=document.getElementById('nt-t').value.trim();if(!ti)return;const {data,error}=await sb.from('tasks').insert({title:ti,title_ko:document.getElementById('nt-k').value,owner:document.getElementById('nt-o').value,priority:document.getElementById('nt-p').value,status:'Todo',category:document.getElementById('nt-c').value,created_by:S.user?.id}).select().single();if(error){toast('Failed: '+error.message,'err');console.error(error);return;}if(data){S.tasks.push(data);toast('Task saved ✓');}S.showAddTask=false;render();}
 async function toggleClient(id){const ord=['Active','Paused','Completed'];const c=S.clients.find(x=>x.id===id);const ns=ord[(ord.indexOf(c.status)+1)%3];await sb.from('clients').update({status:ns}).eq('id',id);S.clients=S.clients.map(x=>x.id===id?{...x,status:ns}:x);render();}
 async function delClient(id){if(!confirm('Delete?'))return;await sb.from('clients').delete().eq('id',id);S.clients=S.clients.filter(c=>c.id!==id);render();}
-async function addClient(){const n=document.getElementById('nc-n').value.trim();if(!n)return;const {data,error}=await sb.from('clients').insert({name:n,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();if(error){alert('Failed: '+error.message);return;}if(data)S.clients.push(data);S.showAddClient=false;render();}
+async function addClient(){const n=document.getElementById('nc-n').value.trim();if(!n)return;const {data,error}=await sb.from('clients').insert({name:n,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();if(error){toast('Failed: '+error.message,'err');console.error(error);return;}if(data){S.clients.push(data);toast('Client saved ✓');}S.showAddClient=false;render();}
 async function addMember(){
   const name=document.getElementById('nm-name').value.trim();
   if(!name)return;
-  const obj={id:crypto.randomUUID(),name,initials:document.getElementById('nm-ini').value,role:document.getElementById('nm-role').value.toLowerCase()||'staff',status:document.getElementById('nm-status').value,isp:document.getElementById('nm-isp').value,tool:document.getElementById('nm-tool').value,since:document.getElementById('nm-since').value};
+  const obj={name,initials:document.getElementById('nm-ini').value,role:document.getElementById('nm-role').value.toLowerCase()||'staff',status:document.getElementById('nm-status').value,isp:document.getElementById('nm-isp').value,tool:document.getElementById('nm-tool').value,since:document.getElementById('nm-since').value};
   const {data,error}=await sb.from('user_profiles').insert(obj).select().single();
-  if(error){alert('Save failed: '+error.message);return;}
-  if(data)S.team.push(data);
-  S.showAddMember=false;render();
+  if(error){toast(error.message,'err');console.error(error);return;}
+  if(data){S.team.push(data);toast('Member added ✓');}S.showAddMember=false;render();
 }
 async function delMember(id){
   if(!confirm('Remove this staff member?'))return;
   const {error}=await sb.from('user_profiles').delete().eq('id',id);
-  if(error){alert('Delete failed: '+error.message);return;}
+  if(error){toast('Delete failed: '+error.message,'err');console.error(error);return;}
   S.team=S.team.filter(m=>m.id!==id);render();
 }
 function toggleEdit(id){S.editMember=S.editMember===id?null:id;render();}
 function cancelEdit(){S.editMember=null;render();}
-async function saveMember(id){const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};const {error}=await sb.from('user_profiles').update(upd).eq('id',id);if(error){alert('Save failed: '+error.message);return;}S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;render();}
+async function saveMember(id){const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};const {error}=await sb.from('user_profiles').update(upd).eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;toast('Saved ✓');render();}
 async function moveRecruit(id,stage){await sb.from('recruits').update({stage}).eq('id',id);S.recruits=S.recruits.map(r=>r.id===id?{...r,stage}:r);render();}
 async function delRecruit(id){if(!confirm('Delete?'))return;await sb.from('recruits').delete().eq('id',id);S.recruits=S.recruits.filter(r=>r.id!==id);render();}
-async function addRecruit(){const n=document.getElementById('nr-n').value.trim();if(!n)return;const {data,error}=await sb.from('recruits').insert({name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'}).select().single();if(data)S.recruits.push(data);S.showAddRecruit=false;render();}
-async function addReport(){const wk=document.getElementById('rp-wk').value.trim();if(!wk)return;const snap={staff:S.team.length,done:S.tasks.filter(x=>x.status==='Done').length,clients:S.clients.filter(c=>c.status==='Active').length};const {data,error}=await sb.from('reports').insert({week_label:wk,summary:document.getElementById('rp-sum').value,done_items:document.getElementById('rp-don').value,stuck_items:document.getElementById('rp-stk').value,next_week:document.getElementById('rp-nxt').value,snap}).select().single();if(error){alert('Failed: '+error.message);return;}if(data){S.reports.unshift(data);S.viewReport=data.id;}S.showAddReport=false;render();}
+async function addRecruit(){const n=document.getElementById('nr-n').value.trim();if(!n)return;const {data,error}=await sb.from('recruits').insert({name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'}).select().single();if(data){S.recruits.push(data);toast('Applicant added ✓');}S.showAddRecruit=false;render();}
+async function addReport(){const wk=document.getElementById('rp-wk').value.trim();if(!wk)return;const snap={staff:S.team.length,done:S.tasks.filter(x=>x.status==='Done').length,clients:S.clients.filter(c=>c.status==='Active').length};const {data,error}=await sb.from('reports').insert({week_label:wk,summary:document.getElementById('rp-sum').value,done_items:document.getElementById('rp-don').value,stuck_items:document.getElementById('rp-stk').value,next_week:document.getElementById('rp-nxt').value,snap,submitted_by:S.profile?.name,created_by:S.user?.id}).select().single();if(error){toast('Failed: '+error.message,'err');console.error(error);return;}if(data){S.reports.unshift(data);S.viewReport=data.id;toast('Report saved ✓');}S.showAddReport=false;render();}
 async function delReport(id){if(!confirm('Delete?'))return;await sb.from('reports').delete().eq('id',id);S.reports=S.reports.filter(r=>r.id!==id);S.viewReport=null;render();}
 function genCode(role){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let code='';for(let i=0;i<8;i++)code+=chars[Math.floor(Math.random()*chars.length)];return`${role.toUpperCase()}-${code}`;}
-async function addCode(){const role=document.getElementById('nc-role').value;const label=document.getElementById('nc-label').value;const custom=document.getElementById('nc-code').value.trim();const code=custom||genCode(role);const {data,error}=await sb.from('invite_codes').insert({code,role,label}).select().single();if(error){alert('Failed: '+error.message);return;}if(data)S.codes.push(data);S.showAddCode=false;render();}
-async function delCode(id){if(!confirm('Delete this code?'))return;await sb.from('invite_codes').delete().eq('id',id);S.codes=S.codes.filter(c=>c.id!==id);render();}
+async function addCode(){const role=document.getElementById('nc-role').value;const label=document.getElementById('nc-label').value;const custom=document.getElementById('nc-code').value.trim();const code=custom||genCode(role);const {data,error}=await sb.from('invite_codes').insert({code,role,label,created_by:S.user?.id}).select().single();if(error){toast('Failed: '+error.message,'err');console.error(error);return;}if(data){S.codes.push(data);toast('Code generated ✓');}S.showAddCode=false;render();}
+async function delCode(id){if(!confirm('Delete this code?'))return;await sb.from('invite_codes').delete().eq('id',id);S.codes=S.codes.filter(c=>c.id!==id);toast('Code deleted','ok',2000);render();}
 async function changeRole(id,role){if(!confirm(`Change this user's role to ${ROLE_LABELS[role]}?`))return;await sb.from('user_profiles').update({role}).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,role}:m);render();}
+
+function toast(msg,type='ok',dur=3500){
+  const t=document.getElementById('toast');
+  const el=document.createElement('div');
+  el.className='toast-msg toast-'+type;
+  el.textContent=msg;
+  t.appendChild(el);
+  setTimeout(()=>el.remove(),dur);
+}
 
 init();
 </script>
