@@ -210,7 +210,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.0 · Build: 20260519-7</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.2 · Build: 20260519-9</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -550,9 +550,44 @@ function pgRecruitment(){
   function cpuPass(cpu){if(!cpu)return null;const c=cpu.toLowerCase();const im=c.match(/i[3579][\s\-]?(\d{4,5})/);if(im){return parseInt(im[1].toString().slice(0,-3))>=8;}const rm=c.match(/ryzen\s*[357]\s*(\d{4})/);if(rm){return parseInt(rm[1].toString()[0])>=3;}return null;}
   function ramPass(r){if(!r)return null;const n=parseInt(r);return isNaN(n)?null:n>=8;}
   function spdPass(s){if(!s)return null;const n=parseInt(s);return isNaN(n)?null:n>=70;}
-  function getStatus(r){if(!r.cpu&&!r.ram&&!r.speed)return'pending';const checks=[cpuPass(r.cpu),ramPass(r.ram),spdPass(r.speed),r.static_ip===true?true:r.static_ip===false?false:null,r.lan_cable===true?true:r.lan_cable===false?false:null];const def=checks.filter(c=>c!==null);if(def.some(c=>c===false))return'fail';if(def.length>0&&def.every(c=>c===true))return'pass';return'pending';}
+  function gpuPass(gpu){
+    if(!gpu)return null;
+    const g=gpu.toLowerCase().replace(/\s+/g,' ');
+    // RTX any series → always pass
+    if(/rtx\s*\d{4}/.test(g)) return true;
+    // GTX 16xx series → pass
+    if(/gtx\s*16\d{2}/.test(g)) return true;
+    // GTX 10xx → only 1050 Ti or 1060+
+    const m10=g.match(/gtx\s*10(\d{2})\s*(ti)?/);
+    if(m10){
+      const num=parseInt(m10[1]);
+      const ti=!!m10[2];
+      if(num>=60) return true;
+      if(num===50&&ti) return true;
+      return false;
+    }
+    // GTX 9xx and below → fail
+    if(/gtx\s*[1-9]\d{0,2}\b/.test(g)||/gt\s*\d/.test(g)) return false;
+    // AMD RX 7xxx → all pass
+    if(/rx\s*7\d{3}/.test(g)) return true;
+    // RX 6xxx → 6500+ passes
+    const m6=g.match(/rx\s*6(\d{3})/);
+    if(m6) return parseInt(m6[1])>=500;
+    // RX 5xxx → 5500+ passes
+    const m5=g.match(/rx\s*5(\d{3})/);
+    if(m5) return parseInt(m5[1])>=500;
+    // RX 5xx → 560+ passes (covers 560, 570, 580, 590)
+    const mrx5=g.match(/rx\s*5(\d{2})\b/);
+    if(mrx5) return parseInt(mrx5[1])>=60;
+    // RX 4xx → fail (below 1050 Ti perf)
+    if(/rx\s*4\d{2}/.test(g)) return false;
+    // Vega 56 / Vega 64 → pass
+    if(/vega\s*(56|64)/.test(g)) return true;
+    return null;
+  }
+  function getStatus(r){if(!r.cpu&&!r.gpu&&!r.ram&&!r.speed)return'pending';const checks=[cpuPass(r.cpu),gpuPass(r.gpu),ramPass(r.ram),spdPass(r.speed),r.static_ip===true?true:r.static_ip===false?false:null,r.lan_cable===true?true:r.lan_cable===false?false:null];const def=checks.filter(c=>c!==null);if(def.some(c=>c===false))return'fail';if(def.length>0&&def.every(c=>c===true))return'pass';return'pending';}
 
-  const reqs=['Windows 10/11','i5 8th gen+ / Ryzen 5 3000+','Min 8GB RAM','Min 70 Mbps','Public Static IP','LAN Cable'];
+  const reqs=['Windows 10/11','i5 8th gen+ / Ryzen 5 3000+','GPU: GTX 1050 Ti+ / RX 560+','Min 8GB RAM','Min 70 Mbps','Public Static IP','LAN Cable'];
   const reqChips=reqs.map(r=>'<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--gr-bg);color:var(--gr);border:1px solid #c4dfcc">✓ '+r+'</span>').join('');
 
   const addForm=S.showAddRecruit?'<div class="fbox"><div class="fbox-t">'+(ko?'새 지원자':'New applicant')+'</div>'
@@ -561,6 +596,7 @@ function pgRecruitment(){
     +'<div class="fg2"><label>Source</label><input id="nr-s" placeholder="Discord / Instagram..."></div>'
     +'<div class="fg2"><label>Date</label><input id="nr-d" placeholder="May 20"></div>'
     +'<div class="fg2"><label>CPU</label><input id="nr-cpu" placeholder="i5-10400 / Ryzen 5 3600"></div>'
+    +'<div class="fg2"><label>GPU</label><input id="nr-gpu" placeholder="RTX 3060 / GTX 1660"></div>'
     +'<div class="fg2"><label>RAM (GB)</label><input id="nr-ram" placeholder="8"></div>'
     +'<div class="fg2"><label>Speed (Mbps)</label><input id="nr-spd" placeholder="100"></div>'
     +'<div class="fg2"><label>OS</label><input id="nr-os" placeholder="Windows 11"></div>'
@@ -574,10 +610,11 @@ function pgRecruitment(){
     const stC=st==='pass'?'var(--gr)':st==='fail'?'var(--re)':'var(--ye)';
     const stBg=st==='pass'?'var(--gr-bg)':st==='fail'?'var(--re-bg)':'var(--ye-bg)';
     const stL=st==='pass'?'✓ Pass':st==='fail'?'✗ Fail':'… Pending';
-    const cpuOk=cpuPass(r.cpu);const ramOk=ramPass(r.ram);const spdOk=spdPass(r.speed);
+    const cpuOk=cpuPass(r.cpu);const gpuOk=gpuPass(r.gpu);const ramOk=ramPass(r.ram);const spdOk=spdPass(r.speed);
     return '<tr>'
       +'<td><strong>'+(r.name||'')+'</strong><br><span style="font-size:11px;color:var(--tx3)">'+(r.source||'')+' · '+(r.date_applied||'')+'</span></td>'
       +'<td style="font-size:12px;'+(cpuOk===false?'color:var(--re)':cpuOk===true?'color:var(--gr)':'')+'">'+(r.cpu||'—')+'</td>'
+      +'<td style="font-size:12px;'+(gpuOk===false?'color:var(--re)':gpuOk===true?'color:var(--gr)':'')+'">'+(r.gpu||'—')+'</td>'
       +'<td style="font-size:12px;'+(ramOk===false?'color:var(--re)':ramOk===true?'color:var(--gr)':'')+'">'+(r.ram?r.ram+'GB':'—')+'</td>'
       +'<td style="font-size:12px;'+(spdOk===false?'color:var(--re)':spdOk===true?'color:var(--gr)':'')+'">'+(r.speed?r.speed+' Mbps':'—')+'</td>'
       +'<td style="font-size:12px">'+(r.os||'—')+'</td>'
@@ -587,7 +624,7 @@ function pgRecruitment(){
       +'<td style="font-size:11px;color:var(--tx2)">'+(r.stage||'Applied')+'</td>'
       +'<td><button class="btn-del" onclick="delRecruit('+r.id+')">🗑</button></td>'
       +'</tr>';
-  }).join(''):'<tr><td colspan="10" class="nodata">'+(ko?'지원자 없음':'No applicants yet')+'</td></tr>';
+  }).join(''):'<tr><td colspan="11" class="nodata">'+(ko?'지원자 없음':'No applicants yet')+'</td></tr>';
 
   const trackerHTML='<div class="mets">'
     +'<div class="met"><div class="mv cb">'+S.recruits.length+'</div><div class="ml">Total</div></div>'
@@ -598,9 +635,9 @@ function pgRecruitment(){
     +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+reqChips+'</div>'
     +'<div class="shr"><div class="sh">'+(ko?'지원자 목록':'Applicants')+'</div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ '+(ko?'추가':'Add applicant')+'</button></div>'
     +addForm
-    +'<div class="tw"><table><thead><tr><th>Name</th><th>CPU</th><th>RAM</th><th>Speed</th><th>OS</th><th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="tw"><table><thead><tr><th>Name</th><th>CPU</th><th>GPU</th><th>RAM</th><th>Speed</th><th>OS</th><th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 
-  const jobTxt='Operator Wanted — Lucky 7 (Lineage Classic)\n\nWe are looking for dedicated operators to join our character progression service.\n\n📋 Requirements:\n• PC: Windows 10/11\n• CPU: Intel i5 8th gen+ or AMD Ryzen 5 3000+\n• RAM: Minimum 8GB\n• Internet: Minimum 70 Mbps\n• Public Static IP (mandatory)\n• LAN cable (mandatory — no WiFi)\n\n💰 Payment: Weekly, based on performance\n⏰ Hours: Flexible shifts available\n📍 Remote position\n\nHow to apply:\n1. Screenshot your PC specs (Task Manager → Performance)\n2. Screenshot your speed test (fast.com)\n3. Confirm you have a public static IP and LAN cable\n4. DM us with your specs\n\nOnly applicants who meet ALL hardware requirements will be contacted.';
+  const jobTxt='Operator Wanted — Lucky 7 (Lineage Classic)\n\nWe are looking for dedicated operators to join our character progression service.\n\n📋 Requirements:\n• PC: Windows 10/11\n• CPU: Intel i5 8th gen+ or AMD Ryzen 5 3000+\n• GPU: NVIDIA GTX 1050 Ti+ or AMD Radeon RX 560+\n• RAM: Minimum 8GB\n• Internet: Minimum 70 Mbps\n• Public Static IP (mandatory)\n• LAN cable (mandatory — no WiFi)\n\n💰 Payment: Weekly, based on performance\n⏰ Hours: Flexible shifts available\n📍 Remote position\n\nHow to apply:\n1. Screenshot your PC specs (Task Manager → Performance)\n2. Screenshot your speed test (fast.com)\n3. Confirm you have a public static IP and LAN cable\n4. DM us with your specs\n\nOnly applicants who meet ALL hardware requirements will be contacted.';
   const jobHTML='<div style="max-width:600px">'
     +'<div style="background:var(--bg-sb);border:1px solid var(--br);border-radius:var(--r2);padding:20px;margin-bottom:16px">'
     +'<div class="sh" style="margin-bottom:12px">Job Post Preview</div>'
@@ -625,7 +662,7 @@ async function addRecruitFull(){
   const sip=document.getElementById('nr-sip').value;
   const lan=document.getElementById('nr-lan').value;
   const base={name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'};
-  const full={...base,cpu:document.getElementById('nr-cpu').value,ram:document.getElementById('nr-ram').value,speed:document.getElementById('nr-spd').value,os:document.getElementById('nr-os').value,static_ip:sip===''?null:sip==='yes',lan_cable:lan===''?null:lan==='yes'};
+  const full={...base,cpu:document.getElementById('nr-cpu').value,gpu:document.getElementById('nr-gpu').value,ram:document.getElementById('nr-ram').value,speed:document.getElementById('nr-spd').value,os:document.getElementById('nr-os').value,static_ip:sip===''?null:sip==='yes',lan_cable:lan===''?null:lan==='yes'};
   let {data,error}=await sb.from('recruits').insert(full).select().single();
   if(error){({data,error}=await sb.from('recruits').insert(base).select().single());}
   if(error){toast(error.message,'err');console.error(error);return;}
