@@ -207,7 +207,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v0.4 · Build: 20260519</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v0.5 · Build: 20260519-2</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -247,6 +247,7 @@ const NAV_ITEMS=[
   {key:'myreports',label:'My Daily Report',labelKo:'내 일일 보고서',e:'📋',perm:'reports_submit',sec:'Management'},
   {key:'invite',label:'Invite Codes',labelKo:'초대 코드',e:'🔑',perm:'invite',sec:null},
   {key:'users',label:'User Roles',labelKo:'사용자 역할',e:'🛡️',perm:'users',sec:null},
+  {key:'schema',label:'Schema Setup',labelKo:'스키마 설정',e:'🔧',perm:'invite',sec:null},
   {key:'player',label:'My Order',labelKo:'내 주문',e:'🎮',perm:'player',sec:null},
 ];
 
@@ -384,7 +385,7 @@ const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
   (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
-  const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
+  const pages={dashboard:pgDash,pcs:pgPCs,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,schema:pgSchema,player:pgPlayer};
   try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';}
 }
 
@@ -639,6 +640,72 @@ function pgUsers(){
 👥 HR — Dashboard, tasks, recruitment, team directory<br>
 🖥 Staff — Dashboard, Korea PCs (view), tasks (mark done)<br>
 🎮 Player — Own order portal only</div>`;
+}
+
+
+
+// ── SCHEMA SETUP ──────────────────────────────────────────────────────────
+const SCHEMA_SQL = [
+"-- Lucky 7 Dashboard — Schema Setup",
+"-- Run this in Supabase → SQL Editor",
+"",
+"-- Reports table (fix missing columns)",
+"ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS week_label TEXT;",
+"ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS summary TEXT;",
+"ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS done_items TEXT;",
+"ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS stuck_items TEXT;",
+"ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS next_week TEXT;",
+"ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS snap JSONB;",
+"ALTER TABLE public.reports ADD COLUMN IF NOT EXISTS submitted_by TEXT;",
+"",
+"-- Recruits table (hardware spec columns)",
+"ALTER TABLE public.recruits ADD COLUMN IF NOT EXISTS cpu TEXT;",
+"ALTER TABLE public.recruits ADD COLUMN IF NOT EXISTS ram TEXT;",
+"ALTER TABLE public.recruits ADD COLUMN IF NOT EXISTS speed TEXT;",
+"ALTER TABLE public.recruits ADD COLUMN IF NOT EXISTS os TEXT;",
+"ALTER TABLE public.recruits ADD COLUMN IF NOT EXISTS static_ip BOOLEAN;",
+"ALTER TABLE public.recruits ADD COLUMN IF NOT EXISTS lan_cable BOOLEAN;",
+"",
+"-- User profiles: remove FK constraint to allow manual member adds",
+"ALTER TABLE public.user_profiles DROP CONSTRAINT IF EXISTS user_profiles_id_fkey;",
+"",
+"-- RLS policies (run if inserts/deletes are blocked)",
+"CREATE POLICY IF NOT EXISTS auth_all_reports ON public.reports FOR ALL TO authenticated USING (true) WITH CHECK (true);",
+"CREATE POLICY IF NOT EXISTS auth_all_invite_codes ON public.invite_codes FOR ALL TO authenticated USING (true) WITH CHECK (true);",
+"CREATE POLICY IF NOT EXISTS auth_all_recruits ON public.recruits FOR ALL TO authenticated USING (true) WITH CHECK (true);",
+"CREATE POLICY IF NOT EXISTS auth_all_user_profiles ON public.user_profiles FOR ALL TO authenticated USING (true) WITH CHECK (true);"
+].join('\n');
+
+function pgSchema(){
+  return '<div class="ph">🔧 Schema Setup</div>'
+    +'<div class="psub">Run this SQL in Supabase to fix database schema errors.</div>'
+    +'<div style="background:var(--ye-bg);border:1px solid var(--ye);border-radius:var(--r2);padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--ye)">'
+    +'<strong>⚠️ Why you need this:</strong><br>'
+    +'Your Supabase tables are missing columns the dashboard expects (like <code>week_label</code> in reports, hardware fields in recruits). This SQL adds them safely using <code>IF NOT EXISTS</code> — it will not break existing data.'
+    +'</div>'
+    +'<div style="background:var(--bg-c);border:1px solid var(--br);border-radius:var(--r2);padding:16px;margin-bottom:16px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<div class="sh" style="margin:0">Setup SQL</div>'
+    +'<button class="btn-add btn-sm" onclick="copySchemaSql()">📋 Copy SQL</button>'
+    +'</div>'
+    +'<pre id="schema-sql" style="background:var(--bg-sb);border:1px solid var(--br);border-radius:var(--r);padding:14px;font-size:12px;font-family:Consolas,monospace;line-height:1.5;color:var(--tx);overflow-x:auto;max-height:500px;overflow-y:auto;white-space:pre-wrap">'+esc(SCHEMA_SQL)+'</pre>'
+    +'</div>'
+    +'<div style="font-size:12px;color:var(--tx2);line-height:1.7">'
+    +'<strong>How to apply:</strong><br>'
+    +'1. Click <strong>📋 Copy SQL</strong> above<br>'
+    +'2. Open <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--ac)">Supabase Dashboard</a> → your project<br>'
+    +'3. Click <strong>SQL Editor</strong> (left sidebar) → <strong>New Query</strong><br>'
+    +'4. Paste the SQL → click <strong>Run</strong><br>'
+    +'5. Come back here and try saving again — everything should work!'
+    +'</div>';
+}
+
+function copySchemaSql(){
+  navigator.clipboard.writeText(SCHEMA_SQL).then(()=>{
+    toast('SQL copied to clipboard ✓');
+  }).catch(e=>{
+    toast('Copy failed: '+e.message,'err');
+  });
 }
 
 // ── PLAYER PORTAL ─────────────────────────────────────────────────────────
