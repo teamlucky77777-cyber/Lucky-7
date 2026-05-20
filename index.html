@@ -211,7 +211,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.8 · Build: 20260519-15</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v1.9 · Build: 20260519-16</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -224,7 +224,30 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 const SUPABASE_URL = 'https://wluwntzsllynpcwecwdp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsdXdudHpzbGx5bnBjd2Vjd2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNTQ1NzQsImV4cCI6MjA5NDczMDU3NH0.jIZlpmZuMCJjhBHQbpDMSQzL0v81aVoaDPJkpL2zTiM';
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
+});
+
+// Keep the login session fresh — refresh token whenever the tab regains focus.
+// This prevents the "save fails until hard refresh" problem caused by an
+// expired token after the tab has been idle/backgrounded.
+let _lastSessionCheck = 0;
+async function refreshSessionIfNeeded(){
+  const now = Date.now();
+  if(now - _lastSessionCheck < 30000) return; // throttle: at most once per 30s
+  _lastSessionCheck = now;
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session){
+      // Refresh token also expired — user needs to log in again
+      if(typeof toast==='function') toast('Session expired — please log in again','err');
+    }
+  }catch(e){ console.warn('Session refresh failed:', e); }
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') refreshSessionIfNeeded();
+});
+window.addEventListener('focus', refreshSessionIfNeeded);
 
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
