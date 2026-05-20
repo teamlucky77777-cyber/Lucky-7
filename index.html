@@ -344,7 +344,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.8 · Build: 20260519-46</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.0 · Build: 20260519-48</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -391,7 +391,14 @@ const PERMS = {
   hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player']
 };
-const can = (f) => (PERMS[S.profile?.role||'staff']||[]).includes(f);
+const can = (f) => {
+  const role=S.profile?.role||'staff';
+  if(role==='ceo'||role==='manager') return (PERMS[role]||[]).includes(f);
+  const ov=S.rolePerms&&S.rolePerms[role];
+  if(ov&&Object.prototype.hasOwnProperty.call(ov,f)) return !!ov[f];
+  return (PERMS[role]||[]).includes(f);
+};
+const roleHas=(role,perm)=>{if(role==='ceo'||role==='manager')return (PERMS[role]||[]).includes(perm);const ov=S.rolePerms&&S.rolePerms[role];if(ov&&Object.prototype.hasOwnProperty.call(ov,perm))return !!ov[perm];return (PERMS[role]||[]).includes(perm);};
 
 const ROLE_LABELS = { ceo:'CEO', manager:'Manager', settlement:'Settlement', hr:'HR', staff:'Staff Player' };
 const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', staff:'🎮' };
@@ -642,6 +649,10 @@ async function loadAll(){
     const {data:setting}=await sb.from('app_settings').select('value').eq('key','recruit_requirements').maybeSingle();
     if(setting&&setting.value) S.recruitReqs={...S.recruitReqs,...setting.value};
   }catch(e){console.warn('Settings load failed:',e);}
+  try{
+    const {data:ro}=await sb.from('app_settings').select('value').eq('key','role_overrides').maybeSingle();
+    S.rolePerms=(ro&&ro.value)||{};
+  }catch(e){S.rolePerms={};console.warn('Role overrides load failed:',e);}
   if(can('player')){
     try{
       const {data:order}=await sb.from('clients').select('*').eq('player_email',S.user.email);
@@ -864,14 +875,46 @@ function pgTasks(){
 function filterTasks(q){q=(q||'').toLowerCase();document.querySelectorAll('#task-list .task-row').forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';});}
 
 function pgClients(){
-  const rev=S.clients.filter(c=>c.status==='Active').reduce((s,c)=>s+(+c.price||0),0);
-  const addForm=S.showAddClient?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 고객 추가':'New client'}</div><div class="fgrid">${[['nc-n','Client name'],['nc-ch','Character'],['nc-sv','Server'],['nc-sc','Service'],['nc-st','Start'],['nc-en','End'],['nc-pr','Price (Rp)'],['nc-em','Player email (optional)']].map(([id,l])=>`<div class="fg2"><label>${l}</label><input id="${id}" placeholder="${l}"></div>`).join('')}</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addClient()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddClient=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
-  const rows=S.clients.map(c=>`<tr><td><strong>${esc(c.name)}</strong>${c.player_email?`<div style="font-size:10px;color:#1D9E75">🎮 ${esc(c.player_email)}</div>`:''}</td><td style="font-size:11px;color:#888">${esc(c.char_info)}</td><td>${esc(c.server)}</td><td>${esc(c.service)}</td><td style="font-size:11px;color:#888">${esc(c.start_date)}–${esc(c.end_date)}</td><td>${(+c.price||0).toLocaleString()}</td><td><span style="cursor:pointer" onclick="toggleClient(${c.id})">${bdg(c.status)}</span></td><td><button class="btn-del" onclick="delClient(${c.id})">🗑</button></td></tr>`).join('');
-  return`<div class="ph">${S.lang==='ko'?'클라이언트':'Clients'}</div>
-<div class="mets"><div class="met"><div class="mv cg">${S.clients.filter(c=>c.status==='Active').length}</div><div class="ml">Active</div></div><div class="met"><div class="mv cb">${S.clients.filter(c=>c.status==='Completed').length}</div><div class="ml">Completed</div></div><div class="met"><div class="mv ca">${S.clients.filter(c=>c.status==='Paused').length}</div><div class="ml">Paused</div></div><div class="met"><div class="mv cg">Rp ${rev.toLocaleString()}</div><div class="ml">Revenue</div></div></div>
-<div class="shr"><div class="sh">${S.lang==='ko'?'고객 목록':'Client list'}</div><button class="btn-add" onclick="S.showAddClient=!S.showAddClient;render()">+ ${S.lang==='ko'?'고객 추가':'Add client'}</button></div>
-${addForm}<div class="tw"><table><thead><tr><th>Client</th><th>Character</th><th>Server</th><th>Service</th><th>Period</th><th>Price (Rp)</th><th>Status</th><th></th></tr></thead><tbody>${rows||`<tr><td colspan="8" class="nodata">No clients yet</td></tr>`}</tbody></table></div>`;
+  const ko=S.lang==='ko';
+  const cl=S.clients;
+  const active=cl.filter(c=>c.status==='Active');
+  const rev=active.reduce((s,c)=>s+(+c.price||0),0);
+  const paused=cl.filter(c=>c.status==='Paused').length;
+  const completed=cl.filter(c=>c.status==='Completed').length;
+  const fmtRp=n=>'Rp '+(+n||0).toLocaleString('id-ID');
+
+  const metric=(label,value,unit,delta,dir)=>{
+    const arrow=dir==='down'?'↓':dir==='neutral'?'·':'↑';const acls=dir==='down'?'arrow down':dir==='neutral'?'arrow neutral':'arrow';
+    return `<div class="metric"><div class="metric-label">${label}</div><div class="metric-row"><div class="metric-value">${value}</div>${unit?`<div class="metric-unit">${unit}</div>`:''}</div><div class="metric-delta"><span class="${acls}">${arrow}</span><span>${delta}</span></div></div>`;
+  };
+  const sbadge=s=>{const m={Active:['var(--gr-bg)','var(--gr)'],Paused:['var(--ye-bg)','var(--ye)'],Completed:['var(--info-bg,rgba(111,147,196,.12))','var(--info,#6f93c4)']};const[bg,c]=m[s]||['var(--bg-a)','var(--tx2)'];return `<span class="badge" style="background:${bg};color:${c};cursor:pointer">${s}</span>`;};
+
+  const fields=[['nc-n','Client name'],['nc-game',ko?'게임':'Game'],['nc-ch','Character'],['nc-sv','Server'],['nc-sc',ko?'서비스':'Service'],['nc-st',ko?'시작일':'Start date'],['nc-en',ko?'종료일':'End date'],['nc-pr',ko?'가격 (Rp)':'Price (Rp)'],['nc-em',ko?'플레이어 이메일 (선택)':'Player email (optional)']];
+  const addForm=S.showAddClient?`<div class="fbox"><div class="fbox-t">${ko?'새 고객 추가':'New client'}</div><div class="fgrid">${fields.map(([id,l])=>`<div class="fg2"><label>${l}</label><input id="${id}" placeholder="${l}"></div>`).join('')}</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addClient()">${ko?'저장':'Save'}</button><button onclick="S.showAddClient=false;render()">${ko?'취소':'Cancel'}</button></div></div>`:'';
+
+  const rows=cl.length?cl.map((c,i)=>`<tr>`
+    +`<td><div style="display:flex;align-items:center;gap:8px">${av(c.name,null,26)}<strong>${esc(c.name)}</strong></div>${c.player_email?`<div style="font-size:10px;color:var(--gr);margin-left:34px">🎮 ${esc(c.player_email)}</div>`:''}</td>`
+    +`<td style="color:var(--tx2)">${esc(c.game||'—')}</td>`
+    +`<td style="color:var(--tx2)">${esc(c.char_info||'—')}</td>`
+    +`<td style="color:var(--tx2)">${esc(c.server||'—')}</td>`
+    +`<td style="text-align:right;font-weight:500;font-variant-numeric:tabular-nums">${fmtRp(c.price)}</td>`
+    +`<td style="color:var(--tx2);font-size:12px">${esc(c.start_date||'?')} → ${esc(c.end_date||'?')}</td>`
+    +`<td><span onclick="toggleClient(${c.id})">${sbadge(c.status)}</span></td>`
+    +`<td style="text-align:right"><button class="btn-del btn-sm" onclick="delClient(${c.id})">🗑</button></td>`
+    +`</tr>`).join(''):`<tr><td colspan="8" class="empty" style="border:none">${ko?'아직 고객이 없습니다':'No clients yet'}</td></tr>`;
+
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px"><div><div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'운영':'Operations'}</div><div class="ph" style="margin-bottom:6px">${ko?'클라이언트':'Clients'}</div><div class="psub" style="margin:0">${active.length} ${ko?'활성':'active'} · ${fmtRp(rev)} ${ko?'활성 매출':'active revenue'}</div></div><button class="btn-add" onclick="S.showAddClient=!S.showAddClient;render()">+ ${ko?'고객 추가':'Add client'}</button></div>`
+    +`<div class="metric-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">`
+      +metric(ko?'활성':'Active',active.length,'/ '+cl.length,ko?'진행 중':'in service','up')
+      +metric(ko?'일시중지':'Paused',paused,'',ko?'재개 대기':'awaiting resume','neutral')
+      +metric(ko?'완료':'Completed',completed,'',ko?'종료됨':'finished','neutral')
+      +metric(ko?'매출':'Revenue',fmtRp(rev),'',ko?'활성 고객':'from active','up')
+    +`</div>`
+    +`<div class="section-head"><div class="section-title">${ko?'전체 고객':'All clients'}<span class="count">${cl.length}</span></div></div>`
+    +addForm
+    +`<div class="tw"><table><thead><tr><th>${ko?'고객':'Client'}</th><th>${ko?'게임':'Game'}</th><th>${ko?'캐릭터':'Character'}</th><th>Server</th><th style="text-align:right">${ko?'가격':'Price'}</th><th>${ko?'기간':'Period'}</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
+
 
 // ── TEAM ──────────────────────────────────────────────────────────────────
 function pgStaffDir(){
@@ -1143,7 +1186,10 @@ function pgUsers(){
 👑 CEO &amp; 🟢 Manager — Full access to everything<br>
 💰 Settlement — Dashboard, PC Command (view)<br>
 👥 HR — Dashboard, tasks, recruitment, team directory<br>
-🎮 Staff Player — Dashboard, PC Command (view), tasks (mark done), My Order, checklist</div>`;
+🎮 Staff Player — Dashboard, PC Command (view), tasks (mark done), My Order, checklist</div>
+<div class="section-head" style="margin-top:28px"><div class="section-title">${S.lang==='ko'?'역할별 페이지 접근':'Page access by role'}</div></div>
+<div class="psub" style="margin:-4px 0 14px">${S.lang==='ko'?'각 역할이 볼 수 있는 페이지를 토글하세요. CEO와 매니저는 항상 전체 접근 권한을 가집니다.':'Toggle which pages each role can see. CEO & Manager always have full access.'}</div>
+<div class="tw"><table><thead><tr><th>${S.lang==='ko'?'페이지':'Page'}</th><th style="text-align:center">Settlement</th><th style="text-align:center">HR</th><th style="text-align:center">Staff</th></tr></thead><tbody>${[['dash','Dashboard'],['pcs_view','PC Command'],['checklist','Daily Checklist'],['tasks_view','Tasks'],['clients','Clients'],['team','Staff Directory'],['recruitment','Recruitment'],['reports','Daily Report'],['invite','Invite Codes'],['users','User Roles']].map(([perm,label])=>`<tr><td>${label}</td>${['settlement','hr','staff'].map(role=>`<td style=\"text-align:center\"><input type=\"checkbox\" ${roleHas(role,perm)?'checked':''} onchange=\"setPagePerm('${role}','${perm}',this.checked)\" style=\"width:16px;height:16px;cursor:pointer;accent-color:var(--ac)\"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
 
@@ -1308,7 +1354,7 @@ async function delClient(id){
 async function addClient(){
   try{
     const n=document.getElementById('nc-n').value.trim();if(!n)return;
-  const {data,error}=await sb.from('clients').insert({name:n,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();
+  const gameEl=document.getElementById('nc-game');const {data,error}=await sb.from('clients').insert({name:n,game:gameEl?gameEl.value:null,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();
   if(error){toast(error.message,'err');console.error(error);return;}
   if(data){S.clients.push(data);toast('Client saved ✓');}
   S.showAddClient=false;render();
@@ -1397,6 +1443,18 @@ async function changeRole(id,role){
   try{
     if(!confirm(`Change this user's role to ${ROLE_LABELS[role]}?`))return;await sb.from('user_profiles').update({role}).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,role}:m);render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[changeRole]',e);}
+
+async function setPagePerm(role,perm,on){
+  if(!S.rolePerms)S.rolePerms={};
+  if(!S.rolePerms[role])S.rolePerms[role]={};
+  S.rolePerms[role][perm]=on;
+  render();
+  try{
+    const {error}=await sb.from('app_settings').upsert({key:'role_overrides',value:S.rolePerms,updated_at:new Date().toISOString(),updated_by:S.user?.id},{onConflict:'key'});
+    if(error){toast('Save failed: '+error.message,'err');console.error(error);}
+    else toast('Access updated ✓');
+  }catch(e){toast('Error: '+e.message,'err');console.error('[setPagePerm]',e);}
+}
 }
 
 function toast(msg,type='ok',dur){
