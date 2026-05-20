@@ -206,7 +206,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v2.5 · Build: 20260519-22</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v2.6 · Build: 20260519-23</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -530,7 +530,7 @@ function pgPCs(){
     const assignCell=can('pcs_edit')
       ? `<select onchange="assignPC(${p.id},this.value)" style="padding:5px 8px;border:1px solid var(--br);border-radius:var(--r);font-size:12px;background:var(--bg-i);color:var(--tx);min-width:160px"><option value="">— ${S.lang==='ko'?'미배정':'Unassigned'} —</option>${opts}</select>`
       : (p.assigned_name?`<span style="font-weight:500">👤 ${esc(p.assigned_name)}</span>`:`<span style="color:var(--tx3)">${S.lang==='ko'?'미배정':'Unassigned'}</span>`);
-    return `<tr><td><strong>PC ${p.num}</strong></td><td>${assignCell}</td><td>${bdg(p.status)}</td></tr>`;
+    return `<tr><td><strong>PC ${p.num}</strong></td><td>${assignCell}</td><td>${bdg(p.status)}</td>${can('pcs_edit')?`<td style="text-align:right"><button class="btn-del btn-sm" onclick="removePC(${p.id},${p.num})" title="Remove PC">🗑</button></td>`:''}</tr>`;
   }).join('');
   const assignedCount=S.pcs.filter(p=>p.assigned_to).length;
   const issues=S.pcs.filter(p=>p.status!=='Online');
@@ -538,10 +538,10 @@ function pgPCs(){
   const pcTab=S.pcView||'grid';
   const tabBtn=(v,lbl)=>`<button onclick="S.pcView='${v}';render()" style="padding:7px 18px;font-size:13px;font-weight:500;border:none;background:${pcTab===v?'var(--tx)':'transparent'};color:${pcTab===v?'var(--bg)':'var(--tx2)'};cursor:pointer">${lbl}</button>`;
   const tabs=`<div style="display:inline-flex;border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:18px">${tabBtn('grid',S.lang==='ko'?'📊 상태 그리드':'📊 Status Grid')}<span style="width:1px;background:var(--br)"></span>${tabBtn('assign',S.lang==='ko'?'👥 배정':'👥 Assignments')}</div>`;
-  const gridView=`<div class="sh">PC grid</div><div class="pcgrid">${grid}</div>
+  const gridView=`<div style="display:flex;justify-content:space-between;align-items:center"><div class="sh">PC grid</div>${can('pcs_edit')?`<button class="btn-add btn-sm" onclick="addPC()">+ ${S.lang==='ko'?'PC 추가':'Add PC'}</button>`:''}</div><div class="pcgrid">${grid}</div>
 ${can('pcs_edit')?`<div class="tip">${S.lang==='ko'?'PC 클릭 → 온라인 → 주의 → 오프라인':'Click any PC to cycle: Online → Warning → Offline'}</div>`:`<div class="info-tag">👁 ${S.lang==='ko'?'보기 전용':'View only'}</div>`}
 ${issues.length?`<div class="sh">Issues</div><div class="tw"><table><tbody>${iRows}</tbody></table></div>`:''}`;
-  const assignView=`<div class="sh">${S.lang==='ko'?'PC 배정':'PC Assignments'}</div><div class="tw"><table><thead><tr><th>PC</th><th>${S.lang==='ko'?'배정된 운영자':'Assigned Operator'}</th><th>${S.lang==='ko'?'상태':'Status'}</th></tr></thead><tbody>${assignRows||`<tr><td colspan="3" class="nodata">${S.lang==='ko'?'PC 없음':'No PCs'}</td></tr>`}</tbody></table></div>`;
+  const assignView=`<div class="sh">${S.lang==='ko'?'PC 배정':'PC Assignments'}</div><div class="tw"><table><thead><tr><th>PC</th><th>${S.lang==='ko'?'배정된 운영자':'Assigned Operator'}</th><th>${S.lang==='ko'?'상태':'Status'}</th>${can('pcs_edit')?'<th></th>':''}</tr></thead><tbody>${assignRows||`<tr><td colspan="4" class="nodata">${S.lang==='ko'?'PC 없음':'No PCs'}</td></tr>`}</tbody></table></div>`;
   return`<div class="ph">${S.lang==='ko'?'PC 관리':'PC Command'}</div>${tabs}
 <div class="mets"><div class="met"><div class="mv cg">${S.pcs.filter(p=>p.status==='Online').length}</div><div class="ml">${st.Online}</div></div><div class="met"><div class="mv ca">${S.pcs.filter(p=>p.status==='Warning').length}</div><div class="ml">${st.Warning}</div></div><div class="met"><div class="mv cr">${S.pcs.filter(p=>p.status==='Offline').length}</div><div class="ml">${st.Offline}</div></div><div class="met"><div class="mv cb">${S.pcs.length}</div><div class="ml">Total</div></div><div class="met"><div class="mv cb">${assignedCount}/${S.pcs.length}</div><div class="ml">${S.lang==='ko'?'배정됨':'Assigned'}</div></div></div>
 ${pcTab==='grid'?gridView:assignView}`;
@@ -967,6 +967,25 @@ ${o.progress_note?`<div class="player-card"><div class="player-card-title">Progr
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────────────────
+async function addPC(){
+  try{
+    const maxNum=S.pcs.reduce((m,p)=>Math.max(m,p.num||0),0);
+    const {data,error}=await sb.from('korea_pcs').insert({num:maxNum+1,status:'Offline'}).select().single();
+    if(error){toast(error.message,'err');console.error(error);return;}
+    if(data){S.pcs.push(data);S.pcs.sort((a,b)=>(a.num||0)-(b.num||0));toast('PC '+data.num+' added ✓');}
+    render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[addPC]',e);}
+}
+async function removePC(pcId,pcNum){
+  try{
+    if(!confirm((S.lang==='ko'?'PC ':'Remove PC ')+pcNum+(S.lang==='ko'?' 삭제?':'?')))return;
+    const {error}=await sb.from('korea_pcs').delete().eq('id',pcId);
+    if(error){toast(error.message,'err');console.error(error);return;}
+    S.pcs=S.pcs.filter(p=>p.id!==pcId);
+    toast('PC '+pcNum+' removed');
+    render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[removePC]',e);}
+}
 async function assignPC(pcId,userId){
   try{
     const member=S.team.find(m=>m.id===userId);
