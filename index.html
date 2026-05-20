@@ -323,7 +323,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.5 · Build: 20260519-43</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.6 · Build: 20260519-44</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -788,19 +788,31 @@ function pgPCs(){
     }
   }
 
+  const view=S.pcView||'grid';
+  const isMgr2=isMgr;
+  const assignTable=`<div class="tw"><table><thead><tr><th>PC</th><th>${ko?'운영자':'Operator'}</th><th>${ko?'상태':'Status'}</th></tr></thead><tbody>${S.pcs.map(p=>{
+    const sel=isMgr2?`<select onchange="assignPC(${p.id},this.value)" style="font-size:12px;padding:5px 9px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-i);color:var(--tx);min-width:160px"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${p.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select>`:(p.assigned_name?esc(p.assigned_name):`<span style="color:var(--tx3)">—</span>`);
+    const sc=p.status==='Online'?'var(--ok)':p.status==='Warning'?'var(--warn)':'var(--re)';
+    return `<tr><td><strong style="font-family:var(--font-mono,monospace)">PC-${String(p.num).padStart(2,'0')}</strong></td><td>${sel}</td><td><span style="color:${sc}">●</span> ${p.status}</td></tr>`;
+  }).join('')}</tbody></table></div>`;
+  const toggle=`<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:20px"><button onclick="S.pcView='grid';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='grid'?'var(--tx)':'transparent'};color:${view==='grid'?'var(--bg)':'var(--tx2)'}">${ko?'그리드':'Grid'}</button><span style="width:1px;background:var(--br)"></span><button onclick="S.pcView='assign';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='assign'?'var(--tx)':'transparent'};color:${view==='assign'?'var(--bg)':'var(--tx2)'}">${ko?'배정 (전체)':'Assign all'}</button></div>`;
+
   return `<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'운영':'Operations'}</div>`
     +`<div class="ph" style="margin-bottom:6px">${ko?'PC 관리':'PC Command'}</div>`
-    +`<div class="psub" style="margin-bottom:28px">${ko?`${total}대 워크스테이션 실시간 상태. 클릭하여 확인.`:`Live status across ${total} workstations. Click any PC to inspect.`}</div>`
+    +`<div class="psub" style="margin-bottom:20px">${ko?`${total}대 워크스테이션 실시간 상태. 클릭하여 확인.`:`Live status across ${total} workstations. Click any PC to inspect.`}</div>`
+    +toggle
     +`<div class="metric-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">`
       +metric(ko?'온라인':'Online',onlineN,'',uptime+'% avg uptime','up')
       +metric(ko?'주의':'Warning',warnN,'',ko?'주의 필요':'needs attention','neutral')
       +metric(ko?'오프라인':'Offline',offN,'',ko?'미할당':'unallocated','neutral')
       +metric(ko?'배정됨':'Players assigned',assignedN,'/ '+total,(total-assignedN)+(ko?' 빈 슬롯':' open slots'),'neutral')
     +`</div>`
-    +`<div class="toolbar"><div class="pill-row" style="margin-bottom:0">${pills}</div><div style="display:flex;gap:8px;align-items:center">${isMgr?`<button class="btn-add btn-sm" onclick="addPC()">+ ${ko?'PC 추가':'Add PC'}</button>`:''}<input class="input" placeholder="${ko?'PC 또는 운영자 검색…':'Search PC or player…'}" oninput="filterPCs(this.value)"><button class="btn-sm" onclick="(async()=>{await loadAll();render();})()">↻ ${ko?'새로고침':'Refresh'}</button></div></div>`
-    +`<div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:var(--ok)"></span><span>Online</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--warn)"></span><span>Warning</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span><span>Offline</span></div></div>`
-    +`<div class="pc-grid" id="pc-grid">${grid||`<div class="nodata">${ko?'PC 없음':'No PCs'}</div>`}</div>`
-    +detail;
+    +(view==='assign'
+      ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="section-title">${ko?'전체 배정':'Assign operators'}</div>${isMgr?`<button class="btn-add btn-sm" onclick="addPC()">+ ${ko?'PC 추가':'Add PC'}</button>`:''}</div>`+assignTable
+      : `<div class="toolbar"><div class="pill-row" style="margin-bottom:0">${pills}</div><div style="display:flex;gap:8px;align-items:center">${isMgr?`<button class="btn-add btn-sm" onclick="addPC()">+ ${ko?'PC 추가':'Add PC'}</button>`:''}<input class="input" placeholder="${ko?'PC 또는 운영자 검색…':'Search PC or player…'}" oninput="filterPCs(this.value)"><button class="btn-sm" onclick="(async()=>{await loadAll();render();})()">↻ ${ko?'새로고침':'Refresh'}</button></div></div>`
+        +`<div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:var(--ok)"></span><span>Online</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--warn)"></span><span>Warning</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span><span>Offline</span></div></div>`
+        +`<div class="pc-grid" id="pc-grid">${grid||`<div class="nodata">${ko?'PC 없음':'No PCs'}</div>`}</div>`
+        +detail);
 }
 
 
