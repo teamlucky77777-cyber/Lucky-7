@@ -78,11 +78,11 @@ body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(
 .page-content{max-width:900px;margin:0 auto;padding:40px 60px}
 .ph{font-size:30px;font-weight:700;margin-bottom:4px;line-height:1.2;display:flex;align-items:center;gap:10px}
 .psub{font-size:13px;color:var(--tx3);margin-bottom:28px}
-.sh{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);margin-bottom:8px}
+.sh{font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin:24px 0 12px}
 .shr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .mets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
-.met{background:var(--bg-c);border-radius:var(--r2);padding:14px 16px;border:1px solid var(--br)}
-.mv{font-size:28px;font-weight:700;line-height:1.1}.ml{font-size:12px;color:var(--tx2);margin-top:3px}
+.met{background:var(--bg-c);border-radius:10px;padding:16px 18px 14px;border:1px solid var(--br)}
+.mv{font-size:30px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.ml{font-size:11px;color:var(--tx2);margin-top:8px;text-transform:uppercase;letter-spacing:.08em;font-weight:500}
 .cg{color:var(--gr)}.cb{color:var(--ac)}.ca{color:var(--ye)}.cr{color:var(--re)}
 .bdg{display:inline-block;font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--r)}
 .bs{background:var(--gr-bg);color:var(--gr)}.bi{background:var(--ac-bg);color:var(--ac)}.bw{background:var(--ye-bg);color:var(--ye)}.bx{background:var(--bg-a);color:var(--tx2)}.bd{background:var(--re-bg);color:var(--re)}
@@ -237,7 +237,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.9 · Build: 20260519-37</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.0 · Build: 20260519-38</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -568,8 +568,9 @@ function render(){
 // ── DASHBOARD ─────────────────────────────────────────────────────────────
 function pgDash(){
   const pri=S.tasks.filter(x=>x.status!=='Done').sort((a,b)=>['P1','P2','P3'].indexOf(a.priority)-['P1','P2','P3'].indexOf(b.priority)).slice(0,6);
-  return`<div class="ph">${S.lang==='ko'?'안녕하세요':'Welcome back'}, ${S.profile.name}</div>
-<div class="psub">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+  return`<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;font-weight:500;margin-bottom:8px">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+<div class="ph" style="margin-bottom:6px">${S.lang==='ko'?'안녕하세요':'Welcome back'}, ${S.profile.name}.</div>
+<div class="psub">${S.onlineUsers.length} ${S.onlineUsers.length===1?'teammate':'teammates'} online · all systems nominal.</div>
 <div class="mets">
   <div class="met"><div class="mv cg">${S.team.filter(m=>m.status==='Active'||!m.status).length}</div><div class="ml">${S.lang==='ko'?'활성 직원':'Team members'}</div></div>
   <div class="met"><div class="mv cb">${S.pcs.filter(p=>p.status==='Online').length}</div><div class="ml">${S.lang==='ko'?'온라인 PC':'PCs online'}</div></div>
