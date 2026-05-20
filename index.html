@@ -237,7 +237,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.5 · Build: 20260519-32</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.6 · Build: 20260519-33</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -401,28 +401,44 @@ async function signUp(){
 }
 
 async function uploadAvatar(file){
-  if(!file||!S.user){return;}
+  if(!file||!S.user) return;
   if(file.size>3*1024*1024){toast('Image must be under 3MB','err');return;}
-  toast('Uploading...','ok',60000);
+  const clearToasts=()=>document.querySelectorAll('.toast-msg').forEach(t=>t.remove());
+  const loadingToast=document.createElement('div');
+  loadingToast.className='toast-msg toast-ok';
+  loadingToast.innerHTML='<span>Uploading photo...</span>';
+  document.getElementById('toast').appendChild(loadingToast);
   try{
-    const ext=file.name.split('.').pop().toLowerCase()||'jpg';
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
     const path=`${S.user.id}/avatar.${ext}`;
-    const {error:upErr}=await sb.storage.from('avatars').upload(path,file,{upsert:true,contentType:file.type});
-    if(upErr){toast(upErr.message,'err');return;}
-    const {data:{publicUrl}}=sb.storage.from('avatars').getPublicUrl(path);
-    const url=publicUrl+'?t='+Date.now();
+    // Upload to Supabase Storage — no contentType option (inferred from File object)
+    const {data:upData,error:upErr}=await sb.storage.from('avatars').upload(path,file,{upsert:true,cacheControl:'3600'});
+    if(upErr){clearToasts();toast('Upload error: '+upErr.message,'err');console.error('[avatar upload]',upErr);return;}
+    // Get public URL
+    const {data:urlData}=sb.storage.from('avatars').getPublicUrl(path);
+    const url=(urlData?.publicUrl||'')+`?t=${Date.now()}`;
+    if(!url){clearToasts();toast('Could not get image URL','err');return;}
+    // Save URL to profile
     const {error:dbErr}=await sb.from('user_profiles').update({avatar_url:url}).eq('id',S.user.id);
-    if(dbErr){toast(dbErr.message,'err');return;}
+    if(dbErr){clearToasts();toast('Saved but DB error: '+dbErr.message,'err');return;}
     S.profile.avatar_url=url;
-    // Refresh sidebar avatar
-    const avHtml=av(S.profile.name,S.profile.initials,34,url);
-    const avEl=document.getElementById('sb-avatar');
-    if(avEl) avEl.innerHTML=`<div style="position:relative;display:inline-block;cursor:pointer" onclick="document.getElementById('av-upload').click()" title="Click to change photo">${avHtml}<div style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;font-size:14px;opacity:0;transition:.2s" onmouseover="this.style.background='rgba(0,0,0,.5)';this.style.opacity='1'" onmouseout="this.style.background='rgba(0,0,0,0)';this.style.opacity='0'">📷</div></div><input type="file" id="av-upload" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadAvatar(this.files[0])">`;
-    // Close any stale toast and show success
-    document.querySelectorAll('.toast-msg').forEach(t=>t.remove());
+    clearToasts();
     toast('Photo updated ✓');
+    // Re-render sidebar avatar
+    setSidebarAvatar();
     render();
-  }catch(e){toast('Upload failed: '+e.message,'err');console.error('[uploadAvatar]',e);}
+  }catch(e){clearToasts();toast('Upload failed: '+e.message,'err');console.error('[uploadAvatar]',e);}
+}
+function setSidebarAvatar(){
+  const sz=42;
+  const avHtml=av(S.profile.name,S.profile.initials,sz,S.profile.avatar_url||null);
+  const avEl=document.getElementById('sb-avatar');
+  if(!avEl) return;
+  avEl.innerHTML=`<div style="position:relative;display:inline-block;cursor:pointer;flex-shrink:0" onclick="document.getElementById('av-upload').click()" title="Click to change photo">`
+    +avHtml
+    +`<div style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;font-size:15px;opacity:0;transition:.2s" onmouseover="this.style.background='rgba(0,0,0,.55)';this.style.opacity='1'" onmouseout="this.style.background='rgba(0,0,0,0)';this.style.opacity='0'">📷</div>`
+    +`</div>`
+    +`<input type="file" id="av-upload" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadAvatar(this.files[0])">`;
 }
 function signOut(){
   // NO await anywhere — this function must never hang.
@@ -498,130 +514,17 @@ async function onLogin(user){
   document.getElementById('app-screen').style.display='block';
   document.getElementById('sb-name').textContent=S.profile.name;
   document.getElementById('sb-badge').innerHTML=`<span class="sb-badge sb-${S.profile.role}">${ROLE_ICONS[S.profile.role]||''} ${ROLE_LABELS[S.profile.role]||S.profile.role}</span>`;
-  const avHtml2=av(S.profile.name,S.profile.initials,34,S.profile.avatar_url||null);
-  const avEl=document.getElementById('sb-avatar');
-  if(avEl){avEl.innerHTML=`<div style="position:relative;display:inline-block;cursor:pointer" onclick="document.getElementById('av-upload').click()" title="Click to change photo">${avHtml2}<div style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;font-size:14px;opacity:0;transition:.2s" onmouseover="this.style.background='rgba(0,0,0,.5)';this.style.opacity='1'" onmouseout="this.style.background='rgba(0,0,0,0)';this.style.opacity='0'">📷</div></div><input type="file" id="av-upload" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadAvatar(this.files[0])">`;}
-  S.page = 'dashboard';
+    setSidebarAvatar();
   await loadAll();
   render();initTheme();setupPresence();
   }catch(e){console.error('Login error:',e);showAuth();alert('Login error: '+e.message);}
 }
 
-async function loadAll(){
-  const loads=[sb.from('user_profiles').select('*'),sb.from('tasks').select('*').order('created_at'),sb.from('korea_pcs').select('*').order('num')];
-  if(can('clients')) loads.push(sb.from('clients').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
-  if(can('recruitment')) loads.push(sb.from('recruits').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
-  if(can('reports')) loads.push(sb.from('reports').select('*').order('created_at',{ascending:false})); else if(can('reports_submit')) loads.push(sb.from('reports').select('*').eq('created_by',S.user.id).order('created_at',{ascending:false})); else loads.push(Promise.resolve({data:[]}));
-  if(can('invite')) loads.push(sb.from('invite_codes').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
-  const [t,tk,pc,cl,rec,rep,codes]=await Promise.all(loads);
-  S.team=t.data||[];S.tasks=tk.data||[];S.pcs=pc.data||[];
-  S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];
-  // Load recruit requirements settings
-  try{
-    const {data:settings}=await sb.from('app_settings').select('value').eq('key','recruit_requirements').maybeSingle();
-    if(settings?.value) S.recruitReqs={...S.recruitReqs,...settings.value};
-  }catch(e){console.warn('Could not load recruit requirements:',e);}
-  // Load personal order for the My Order page (staff players may have an order)
-  if(can('player')){
-    try{
-      const {data:order}=await sb.from('clients').select('*').eq('player_email',S.user.email);
-      S.playerOrder=order?.[0]||null;
-    }catch(e){console.warn('Order load failed:',e);}
-  }
-  // Load checklists
-  if(can('checklist')){
-    const today=new Date().toISOString().slice(0,10);
-    const {data:mine}=await sb.from('daily_checklists').select('*').eq('user_id',S.user.id).eq('shift_date',today).maybeSingle();
-    S.myChecklist=mine||null;
-    if(can('checklist_team')){
-      const {data:team}=await sb.from('daily_checklists').select('*').eq('shift_date',today);
-      S.teamChecklists=team||[];
-    }
-  }
-}
-
-// ── RENDER ────────────────────────────────────────────────────────────────
-function toggleTheme(){const d=document.documentElement;const dk=d.getAttribute('data-theme')==='dark';d.setAttribute('data-theme',dk?'light':'dark');const i=document.getElementById('t-icon');const l=document.getElementById('t-lbl');if(i)i.textContent=dk?'🌙':'☀️';if(l)l.textContent=dk?'Dark mode':'Light mode';localStorage.setItem('l7t',dk?'light':'dark');}
-function initTheme(){const s=localStorage.getItem('l7t')||'dark';document.documentElement.setAttribute('data-theme',s);const dk=s==='dark';const i=document.getElementById('t-icon');const l=document.getElementById('t-lbl');if(i)i.textContent=dk?'☀️':'🌙';if(l)l.textContent=dk?'Light mode':'Dark mode';}
-function setLang(l){S.lang=l;document.getElementById('btn-en').classList.toggle('on',l==='en');document.getElementById('btn-ko').classList.toggle('on',l==='ko');render();}
-function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
-const lbl=(item)=>S.lang==='ko'&&item.labelKo?item.labelKo:item.label;
-
-function render(){
-  const visNav=NAV_ITEMS.filter(n=>can(n.perm));
-  (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
-  const pages={dashboard:pgDash,checklist:pgChecklist,pcs:pgPCs,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,player:pgPlayer};
-  try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';}
-}
-
-// ── DASHBOARD ─────────────────────────────────────────────────────────────
-function pgDash(){
-  const pri=S.tasks.filter(x=>x.status!=='Done').sort((a,b)=>['P1','P2','P3'].indexOf(a.priority)-['P1','P2','P3'].indexOf(b.priority)).slice(0,6);
-  return`<div class="ph">${S.lang==='ko'?'안녕하세요':'Welcome back'}, ${S.profile.name}</div>
-<div class="psub">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
-<div class="mets">
-  <div class="met"><div class="mv cg">${S.team.filter(m=>m.status==='Active'||!m.status).length}</div><div class="ml">${S.lang==='ko'?'활성 직원':'Team members'}</div></div>
-  <div class="met"><div class="mv cb">${S.pcs.filter(p=>p.status==='Online').length}</div><div class="ml">${S.lang==='ko'?'온라인 PC':'PCs online'}</div></div>
-  <div class="met"><div class="mv ca">${S.tasks.filter(x=>x.status!=='Done').length}</div><div class="ml">${S.lang==='ko'?'진행 업무':'Open tasks'}</div></div>
-  <div class="met"><div class="mv cg">${S.clients.filter(c=>c.status==='Active').length}</div><div class="ml">${S.lang==='ko'?'활성 고객':'Active clients'}</div></div>
-</div>
-<div class="sh">${S.lang==='ko'?'온라인':'Online Now'} <span style="color:var(--gr);font-size:12px;font-weight:600">● ${S.onlineUsers.length}</span></div>
-<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">${S.onlineUsers.length?S.onlineUsers.map(u=>`<div style="display:flex;align-items:center;gap:8px;background:var(--bg-c);border:1px solid var(--br);border-radius:20px;padding:5px 12px 5px 5px"><div style="position:relative">${av(u.name,u.initials,26,null)}<span style="position:absolute;bottom:0;right:0;width:9px;height:9px;background:var(--gr);border:2px solid var(--bg-c);border-radius:50%"></span></div><div><div style="font-size:12px;font-weight:600;line-height:1.1">${esc(u.name)}</div><div style="font-size:10px;color:var(--tx3)">${ROLE_LABELS[u.role]||u.role}</div></div></div>`).join(''):`<div style="color:var(--tx3);font-size:13px">${S.lang==='ko'?'온라인 사용자 없음':'No one else online right now'}</div>`}</div>
-<div class="sh">${S.lang==='ko'?'팀 현황':'Team status'}</div>
-<div class="tw" style="margin-bottom:20px">
-<table><thead><tr>
-<th>${S.lang==='ko'?'이름':'Name'}</th>
-<th>${S.lang==='ko'?'역할':'Role'}</th>
-<th>ISP</th>
-<th>${S.lang==='ko'?'도구':'Tool'}</th>
-<th>${S.lang==='ko'?'입사일':'Since'}</th>
-</tr></thead>
-<tbody>${S.team.map(m=>`<tr>
-<td><div style="display:flex;align-items:center;gap:8px"><div style="position:relative">${av(m.name,m.initials,24,m.avatar_url||null)}${isOnline(m.id)?'<span style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;background:var(--gr);border:2px solid var(--bg-c);border-radius:50%"></span>':''}</div><strong>${esc(m.name)}</strong></div></td>
-<td><span style="font-size:12px">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||esc(m.role)}</span></td>
-<td style="font-size:12px;color:var(--tx2)">${esc(m.isp||'—')}</td>
-<td style="font-size:12px;color:var(--tx2)">${esc(m.tool||'—')}</td>
-<td style="font-size:12px;color:var(--tx2)">${esc(m.since||'—')}</td>
-</tr>`).join('')}</tbody>
-</table></div>
-<div class="sh">${S.lang==='ko'?'이번 주 우선 업무':'Priority tasks'}</div>
-<div class="tlist">${pri.length?pri.map(x=>`<div class="trow">${pb(x.priority)}<span class="ttxt">${esc(S.lang==='ko'&&x.title_ko?x.title_ko:x.title)}</span><span style="font-size:11px;color:#aaa">${esc(x.owner)}</span>&nbsp;${bdg(x.status)}</div>`).join(''):`<div class="nodata">🎉 All tasks done!</div>`}</div>`;
-}
-
-// ── KOREA PCs ─────────────────────────────────────────────────────────────
-function pgPCs(){
-  const cm={Online:'pcc-on',Warning:'pcc-warn',Offline:'pcc-off'};
-  const st=S.lang==='ko'?{Online:'온라인',Warning:'주의',Offline:'오프라인'}:{Online:'Online',Warning:'Warning',Offline:'Offline'};
-  const grid=S.pcs.map(p=>`<div class="pcc ${cm[p.status]}${can('pcs_edit')?' clickable':''}" ${can('pcs_edit')?`onclick="cyclePC(${p.id})"`:''} ><div class="pcc-n">PC ${p.num}</div><div class="pcc-s">${st[p.status]}</div>${p.assigned_name?`<div class="pcc-a">👤 ${esc(p.assigned_name)}</div>`:''}</div>`).join('');
-  // Build assignments table
-  const assignableMembers=S.team.filter(m=>['manager','hr','staff'].includes(m.role));
-  const assignRows=S.pcs.map(p=>{
-    const opts=assignableMembers.map(m=>`<option value="${m.id}"${p.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('');
-    const assignCell=can('pcs_edit')
-      ? `<select onchange="assignPC(${p.id},this.value)" style="padding:5px 8px;border:1px solid var(--br);border-radius:var(--r);font-size:12px;background:var(--bg-i);color:var(--tx);min-width:160px"><option value="">— ${S.lang==='ko'?'미배정':'Unassigned'} —</option>${opts}</select>`
-      : (p.assigned_name?`<span style="font-weight:500">👤 ${esc(p.assigned_name)}</span>`:`<span style="color:var(--tx3)">${S.lang==='ko'?'미배정':'Unassigned'}</span>`);
-    return `<tr><td><strong>PC ${p.num}</strong></td><td>${assignCell}</td><td>${bdg(p.status)}</td>${can('pcs_edit')?`<td style="text-align:right"><button class="btn-del btn-sm" onclick="removePC(${p.id},${p.num})" title="Remove PC">🗑</button></td>`:''}</tr>`;
-  }).join('');
-  const assignedCount=S.pcs.filter(p=>p.assigned_to).length;
-  const issues=S.pcs.filter(p=>p.status!=='Online');
-  const iRows=issues.map(p=>`<tr><td>${bdg(p.status)}</td><td><strong>PC ${p.num}</strong></td><td>${p.note?`<span style="color:#555">${esc(p.note)}</span>`:`<span style="color:#aaa">No note</span>`}</td><td>${can('pcs_edit')?`<button class="btn-sm" onclick="editNote(${p.id})">✏</button>`:''}</td></tr><tr id="ne-${p.id}" style="display:none"><td colspan="4" style="padding:0!important"><div style="background:#e8f4ff;padding:10px 14px;border-left:3px solid #1565c0;display:flex;gap:8px"><input id="ni-${p.id}" value="${esc(p.note)}" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:inherit"><button class="btn-add btn-sm" onclick="saveNote(${p.id})">${S.lang==='ko'?'저장':'Save'}</button><button class="btn-sm" onclick="document.getElementById('ne-${p.id}').style.display='none'">${S.lang==='ko'?'취소':'Cancel'}</button></div></td></tr>`).join('');
-  const pcTab=S.pcView||'grid';
-  const tabBtn=(v,lbl)=>`<button onclick="S.pcView='${v}';render()" style="padding:7px 18px;font-size:13px;font-weight:500;border:none;background:${pcTab===v?'var(--tx)':'transparent'};color:${pcTab===v?'var(--bg)':'var(--tx2)'};cursor:pointer">${lbl}</button>`;
-  const tabs=`<div style="display:inline-flex;border:1px solid var(--br);border-radius:var(--r);overflow:hidden;margin-bottom:18px">${tabBtn('grid',S.lang==='ko'?'📊 상태 그리드':'📊 Status Grid')}<span style="width:1px;background:var(--br)"></span>${tabBtn('assign',S.lang==='ko'?'👥 배정':'👥 Assignments')}</div>`;
-  const gridView=`<div style="display:flex;justify-content:space-between;align-items:center"><div class="sh">PC grid</div>${can('pcs_edit')?`<div style="display:flex;gap:6px"><button class="btn-add btn-sm" onclick="addPC()">+ ${S.lang==='ko'?'PC 추가':'Add PC'}</button><button class="btn-del btn-sm" onclick="removeLastPC()">− ${S.lang==='ko'?'마지막 PC 삭제':'Remove last'}</button></div>`:''}</div><div class="pcgrid">${grid}</div>
-${can('pcs_edit')?`<div class="tip">${S.lang==='ko'?'PC 클릭 → 온라인 → 주의 → 오프라인':'Click any PC to cycle: Online → Warning → Offline'}</div>`:`<div class="info-tag">👁 ${S.lang==='ko'?'보기 전용':'View only'}</div>`}
-${issues.length?`<div class="sh">Issues</div><div class="tw"><table><tbody>${iRows}</tbody></table></div>`:''}`;
-  const assignView=`<div class="sh">${S.lang==='ko'?'PC 배정':'PC Assignments'}</div><div class="tw"><table><thead><tr><th>PC</th><th>${S.lang==='ko'?'배정된 운영자':'Assigned Operator'}</th><th>${S.lang==='ko'?'상태':'Status'}</th>${can('pcs_edit')?'<th></th>':''}</tr></thead><tbody>${assignRows||`<tr><td colspan="4" class="nodata">${S.lang==='ko'?'PC 없음':'No PCs'}</td></tr>`}</tbody></table></div>`;
-  return`<div class="ph">${S.lang==='ko'?'PC 관리':'PC Command'}</div>${tabs}
-<div class="mets"><div class="met"><div class="mv cg">${S.pcs.filter(p=>p.status==='Online').length}</div><div class="ml">${st.Online}</div></div><div class="met"><div class="mv ca">${S.pcs.filter(p=>p.status==='Warning').length}</div><div class="ml">${st.Warning}</div></div><div class="met"><div class="mv cr">${S.pcs.filter(p=>p.status==='Offline').length}</div><div class="ml">${st.Offline}</div></div><div class="met"><div class="mv cb">${S.pcs.length}</div><div class="ml">Total</div></div><div class="met"><div class="mv cb">${assignedCount}/${S.pcs.length}</div><div class="ml">${S.lang==='ko'?'배정됨':'Assigned'}</div></div></div>
-${pcTab==='grid'?gridView:assignView}`;
-}
-
 // ── TASKS ─────────────────────────────────────────────────────────────────
 function pgTasks(){
-  const owners=['All',...new Set(S.team.map(m=>m.name))];
-  const filtered=S.taskFilter==='All'?S.tasks:S.tasks.filter(x=>x.owner===S.taskFilter);
-  const sorted=[...filtered].sort((a,b)=>{if(a.status!=='Done'&&b.status==='Done')return -1;if(a.status==='Done'&&b.status!=='Done')return 1;return['P1','P2','P3'].indexOf(a.priority)-['P1','P2','P3'].indexOf(b.priority);});
+  const ko=S.lang==='ko';
+  const owners=['All',...new Set(S.tasks.map(t=>t.owner).filter(Boolean))];
+  const sorted=S.taskFilter&&S.taskFilter!=='All'?S.tasks.filter(t=>t.owner===S.taskFilter):S.tasks;
   const addForm=can('tasks_edit')&&S.showAddTask?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 업무 추가':'Add task'}</div><div class="fgrid"><div class="fg2"><label>Task (EN)</label><input id="nt-t" placeholder="Task..."></div><div class="fg2"><label>업무 (KO)</label><input id="nt-k" placeholder="업무..."></div><div class="fg2"><label>Owner</label><select id="nt-o">${S.team.map(m=>`<option>${esc(m.name)}</option>`).join('')}</select></div><div class="fg2"><label>Priority</label><select id="nt-p"><option>P1</option><option>P2</option><option>P3</option></select></div><div class="fg2"><label>Category</label><input id="nt-c" placeholder="Tech..."></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addTask()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddTask=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
   const rows=sorted.map(x=>`<div class="trow${x.status==='Done'?' done':''}"><div class="tcheck${x.status==='Done'?' on':x.status==='In Progress'?' ip':''}" onclick="toggleTask(${x.id})" title="Click to change status">${x.status==='Done'?'✓':x.status==='In Progress'?'…':''}</div>${pb(x.priority)}<span class="ttxt${x.status==='Done'?' s':''}">${esc(S.lang==='ko'&&x.title_ko?x.title_ko:x.title)}</span><span style="font-size:11px;color:#aaa">${esc(x.owner)}</span>&nbsp;<span style="font-size:11px;color:#aaa">${esc(x.category)}</span>&nbsp;${bdg(x.status)}${can('tasks_edit')?`<button class="btn-del" onclick="delTask(${x.id})">🗑</button>`:''}</div>`).join('');
   return`<div class="ph">${S.lang==='ko'?'업무':'Tasks'}</div>
