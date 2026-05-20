@@ -211,7 +211,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v2.1 · Build: 20260519-18</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v2.2 · Build: 20260519-19</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
@@ -302,7 +302,7 @@ const TOOL_OPT=['AnyViewer','Tailscale+Veyon','Rimo+VPN','MeshCentral','Other'];
 
 let S = {
   page:'dashboard', lang:'en', user:null, profile:null,
-  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[], recruitReqs:{min_intel_gen:8,min_ryzen_gen:3,min_ram:8,min_speed:70,require_static_ip:true,require_lan_cable:true,gpu_label:'GTX 1050 Ti+ / RX 560+',os_label:'Windows 10/11'}, showEditReqs:false, pcView:'grid',
+  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[], onlineUsers:[], recruitReqs:{min_intel_gen:8,min_ryzen_gen:3,min_ram:8,min_speed:70,require_static_ip:true,require_lan_cable:true,gpu_label:'GTX 1050 Ti+ / RX 560+',os_label:'Windows 10/11'}, showEditReqs:false, pcView:'grid',
   editMember:null, showAddMember:false, showAddRecruit:false,
   showAddTask:false, showAddClient:false, showAddReport:false, showAddCode:false,
   viewReport:null, taskFilter:'All', signupRole:'player'
@@ -391,6 +391,32 @@ function signOut(){
   location.replace(location.pathname + '?logout=' + Date.now());
 }
 
+// ── ONLINE PRESENCE ───────────────────────────────────────────────────────
+let presenceChannel = null;
+function setupPresence(){
+  if(!S.user||!S.profile) return;
+  try{
+    if(presenceChannel){ sb.removeChannel(presenceChannel); presenceChannel=null; }
+    presenceChannel = sb.channel('lucky7-online', { config:{ presence:{ key:S.user.id } } });
+    presenceChannel.on('presence', { event:'sync' }, ()=>{
+      const state = presenceChannel.presenceState();
+      const users = [];
+      Object.values(state).forEach(arr=>{ if(arr&&arr[0]) users.push(arr[0]); });
+      S.onlineUsers = users;
+      render();
+    });
+    presenceChannel.subscribe(async (status)=>{
+      if(status==='SUBSCRIBED'){
+        await presenceChannel.track({
+          user_id:S.user.id, name:S.profile.name, initials:S.profile.initials,
+          role:S.profile.role, online_at:new Date().toISOString()
+        });
+      }
+    });
+  }catch(e){ console.warn('Presence setup failed:', e); }
+}
+function isOnline(userId){ return S.onlineUsers.some(u=>u.user_id===userId); }
+
 // ── APP INIT ──────────────────────────────────────────────────────────────
 async function init(){
   const {data:{session}}=await sb.auth.getSession();
@@ -413,7 +439,7 @@ async function onLogin(user){
   document.getElementById('sb-badge').innerHTML=`<span class="sb-badge sb-${S.profile.role}">${ROLE_ICONS[S.profile.role]||''} ${ROLE_LABELS[S.profile.role]||S.profile.role}</span>`;
   S.page = S.profile.role==='player' ? 'player' : 'dashboard';
   await loadAll();
-  render();initTheme();
+  render();initTheme();setupPresence();
   }catch(e){console.error('Login error:',e);showAuth();alert('Login error: '+e.message);}
 }
 
@@ -478,6 +504,8 @@ function pgDash(){
   <div class="met"><div class="mv ca">${S.tasks.filter(x=>x.status!=='Done').length}</div><div class="ml">${S.lang==='ko'?'진행 업무':'Open tasks'}</div></div>
   <div class="met"><div class="mv cg">${S.clients.filter(c=>c.status==='Active').length}</div><div class="ml">${S.lang==='ko'?'활성 고객':'Active clients'}</div></div>
 </div>
+<div class="sh">${S.lang==='ko'?'온라인':'Online Now'} <span style="color:var(--gr);font-size:12px;font-weight:600">● ${S.onlineUsers.length}</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">${S.onlineUsers.length?S.onlineUsers.map(u=>`<div style="display:flex;align-items:center;gap:8px;background:var(--bg-c);border:1px solid var(--br);border-radius:20px;padding:5px 12px 5px 5px"><div style="position:relative">${av(u.name,u.initials,26)}<span style="position:absolute;bottom:0;right:0;width:9px;height:9px;background:var(--gr);border:2px solid var(--bg-c);border-radius:50%"></span></div><div><div style="font-size:12px;font-weight:600;line-height:1.1">${esc(u.name)}</div><div style="font-size:10px;color:var(--tx3)">${ROLE_LABELS[u.role]||u.role}</div></div></div>`).join(''):`<div style="color:var(--tx3);font-size:13px">${S.lang==='ko'?'온라인 사용자 없음':'No one else online right now'}</div>`}</div>
 <div class="sh">${S.lang==='ko'?'팀 현황':'Team status'}</div>
 <div class="tw" style="margin-bottom:20px">
 <table><thead><tr>
@@ -488,7 +516,7 @@ function pgDash(){
 <th>${S.lang==='ko'?'입사일':'Since'}</th>
 </tr></thead>
 <tbody>${S.team.map(m=>`<tr>
-<td><div style="display:flex;align-items:center;gap:8px">${av(m.name,m.initials,24)}<strong>${esc(m.name)}</strong></div></td>
+<td><div style="display:flex;align-items:center;gap:8px"><div style="position:relative">${av(m.name,m.initials,24)}${isOnline(m.id)?'<span style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;background:var(--gr);border:2px solid var(--bg-c);border-radius:50%"></span>':''}</div><strong>${esc(m.name)}</strong></div></td>
 <td><span style="font-size:12px">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||esc(m.role)}</span></td>
 <td style="font-size:12px;color:var(--tx2)">${esc(m.isp||'—')}</td>
 <td style="font-size:12px;color:var(--tx2)">${esc(m.tool||'—')}</td>
@@ -815,7 +843,7 @@ function pgUsers(){
   const roleBg={ceo:'#faeeda',manager:'#e8f5e9',settlement:'#e3f2fd',hr:'#eeedfe',staff:'#f5f5f5',player:'#ffebee'};
   const roleClr={ceo:'#854F0B',manager:'#1D9E75',settlement:'#185FA5',hr:'#534AB7',staff:'#555',player:'#b71c1c'};
   const all_roles=['ceo','manager','settlement','hr','staff','player'];
-  const rows=S.team.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:8px">${av(m.name,m.initials,26)}<div><strong>${esc(m.name)}</strong></div></div></td><td><span class="bdg" style="background:${roleBg[m.role]||'#f5f5f5'};color:${roleClr[m.role]||'#555'}">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||m.role}</span></td><td style="white-space:nowrap">${m.id!==S.profile.id?`<select onchange="changeRole('${m.id}',this.value)" style="font-size:11px;padding:4px 8px;border:1px solid #dde1e7;border-radius:6px;font-family:inherit">${all_roles.map(r=>`<option value="${r}"${r===m.role?' selected':''}>${ROLE_LABELS[r]}</option>`).join('')}</select>`:`<span style="font-size:11px;color:#aaa">You</span>`}</td></tr>`).join('');
+  const rows=S.team.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:8px"><div style="position:relative">${av(m.name,m.initials,26)}${isOnline(m.id)?'<span style="position:absolute;bottom:0;right:0;width:9px;height:9px;background:var(--gr);border:2px solid var(--bg-c);border-radius:50%"></span>':''}</div><div><strong>${esc(m.name)}</strong></div></div></td><td><span class="bdg" style="background:${roleBg[m.role]||'#f5f5f5'};color:${roleClr[m.role]||'#555'}">${ROLE_ICONS[m.role]||''} ${ROLE_LABELS[m.role]||m.role}</span></td><td style="white-space:nowrap">${m.id!==S.profile.id?`<select onchange="changeRole('${m.id}',this.value)" style="font-size:11px;padding:4px 8px;border:1px solid #dde1e7;border-radius:6px;font-family:inherit">${all_roles.map(r=>`<option value="${r}"${r===m.role?' selected':''}>${ROLE_LABELS[r]}</option>`).join('')}</select>`:`<span style="font-size:11px;color:#aaa">You</span>`}</td></tr>`).join('');
   return`<div class="ph">User Roles</div><div class="psub">Change anyone's role here. Changes take effect on their next page load.</div>
 <div class="tw"><table><thead><tr><th>User</th><th>Current role</th><th>Change role</th></tr></thead><tbody>${rows}</tbody></table></div>
 <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:14px;font-size:12px;color:#1b5e20;line-height:1.7"><strong>Role summary:</strong><br>
