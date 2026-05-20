@@ -51,9 +51,9 @@ body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(
 #app-screen{display:none}
 #app{display:flex;min-height:100vh}
 #sb{width:240px;background:var(--bg-sb);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;border-right:1px solid var(--br);flex-shrink:0}
-.sb-top{padding:10px 14px;display:flex;align-items:center;gap:8px}
-.sb-ws-name{font-size:15px;font-weight:700;color:var(--tx)}
-.sb-user-line{padding:2px 14px 6px;font-size:13px;color:var(--tx3)}
+.sb-top{padding:14px 14px 8px;display:flex;align-items:center;gap:10px}
+.sb-ws-name{font-size:14px;font-weight:700;color:var(--tx);letter-spacing:.2px}
+.sb-user-card{padding:8px 12px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--br);margin-bottom:4px}.sb-user-name{font-size:13px;font-weight:600;color:var(--tx);line-height:1.3}.sb-user-line{padding:2px 14px 6px;font-size:13px;color:var(--tx3)}
 .sb-badge-wrap{padding:0 14px 8px}
 .sb-badge-wrap span{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
 .sb-ceo{background:var(--ye-bg)!important;color:var(--ye)!important}
@@ -62,17 +62,17 @@ body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(
 .sb-hr{background:var(--pu-bg)!important;color:var(--pu)!important}
 .sb-staff{background:var(--bg-a)!important;color:var(--tx2)!important}
 .sb-player{background:var(--re-bg)!important;color:var(--re)!important}
-.sb-div{height:1px;background:var(--br);margin:4px 12px 6px}
-.sb-sec{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:14px 14px 4px}
-.sb-nav{flex:1;padding:4px 6px 8px}
-.ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);cursor:pointer;color:var(--tx2);font-size:14px;margin:2px 0;user-select:none}
+.sb-div{display:none}
+.sb-sec{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:12px 10px 4px;margin-top:2px}
+.sb-nav{flex:1;padding:4px 8px 8px;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--tx2);transition:all .15s;margin-bottom:1px}
 .ni:hover{background:var(--bg-h);color:var(--tx)}.ni.on{background:var(--bg-a);color:var(--tx);font-weight:500}
 .ni-e{width:22px;text-align:center;font-size:16px;flex-shrink:0}
 .sb-bot{padding:8px;border-top:1px solid var(--br)}
 .lang-row{display:flex;gap:4px;margin-bottom:4px}
 .lbtn{flex:1;padding:5px;font-size:11px;border-radius:var(--r);border:1px solid var(--br);background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit}
 .lbtn.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
-.t-btn,.so-btn{width:100%;padding:6px 10px;font-size:12px;border:none;background:transparent;color:var(--tx2);cursor:pointer;font-family:inherit;border-radius:var(--r);text-align:left;display:flex;align-items:center;gap:6px;margin-top:2px}
+.t-btn,.so-btn{width:100%;padding:7px 10px;font-size:12px;border:none;background:transparent;color:var(--tx3);cursor:pointer;font-family:inherit;border-radius:var(--r);text-align:left;display:flex;align-items:center;gap:8px;margin-top:4px;transition:color .15s}
 .t-btn:hover{background:var(--bg-h);color:var(--tx)}.so-btn:hover{background:var(--bg-h);color:var(--re)}
 #main{flex:1;overflow:auto;background:var(--bg)}
 .page-content{max-width:900px;margin:0 auto;padding:40px 60px}
@@ -223,19 +223,23 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 <div id="app-screen">
   <div id="app">
     <nav id="sb">
-      <div class="sb-top"><span style="font-size:18px">🍀</span><span class="sb-ws-name">Lucky 7</span></div>
-      <div class="sb-user-line" id="sb-name">Loading...</div>
-      <div class="sb-badge-wrap" id="sb-badge"></div>
-      <div class="sb-div"></div>
+      <div class="sb-top"><span style="display:inline-flex;width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#2ed573,#159c4f);align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#04160c;letter-spacing:-0.5px;flex-shrink:0">L7</span><span class="sb-ws-name">Lucky 7</span></div>
+      <div class="sb-user-card">
+        <div id="sb-avatar"></div>
+        <div>
+          <div class="sb-user-name" id="sb-name">Loading...</div>
+          <div id="sb-badge" style="margin-top:4px"></div>
+        </div>
+      </div>
       <div class="sb-nav" id="nav-links"></div>
       <div class="sb-bot">
         <div class="lang-row">
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.3 · Build: 20260519-30</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.4 · Build: 20260519-31</div>
         
-        <button class="so-btn" onclick="signOut()">← Sign out</button>
+        <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
     </nav>
     <main id="main"><div style="padding:40px;text-align:center;color:#aaa">Loading...</div></main>
@@ -287,16 +291,16 @@ const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', s
 
 const NAV_ITEMS=[
   {key:'dashboard',label:'Dashboard',labelKo:'대시보드',e:'🏠',perm:'dash',sec:null},
-  {key:'checklist',label:'Daily Checklist',labelKo:'일일 체크리스트',e:'📋',perm:'checklist',sec:null},
-  {key:'pcs',label:'PC Command',labelKo:'PC 관리',e:'🖥️',perm:'pcs_view',sec:'Operations'},
-  {key:'tasks',label:'Tasks',labelKo:'업무',e:'✅',perm:'tasks_view',sec:null},
-  {key:'clients',label:'Clients',labelKo:'클라이언트',e:'💼',perm:'clients',sec:null},
+  {key:'pcs',label:'PC Command',labelKo:'PC 관리',e:'🖥️',perm:'pcs_view',sec:null},
+  {key:'checklist',label:'Daily Checklist',labelKo:'일일 체크리스트',e:'📋',perm:'checklist',sec:'Operations'},
+  {key:'tasks',label:'Tasks',labelKo:'업무',e:'✅',perm:'tasks_view',sec:'Operations'},
+  {key:'clients',label:'Clients',labelKo:'클라이언트',e:'💼',perm:'clients',sec:'Operations'},
   {key:'staffdir',label:'Staff Directory',labelKo:'직원 목록',e:'👤',perm:'team',sec:'People'},
-  {key:'recruitment',label:'Recruitment',labelKo:'채용',e:'🎯',perm:'recruitment',sec:null},
+  {key:'recruitment',label:'Recruitment',labelKo:'채용',e:'🎯',perm:'recruitment',sec:'People'},
   {key:'reports',label:'Daily Report',labelKo:'일일 보고서',e:'📊',perm:'reports',sec:'Management'},
   {key:'myreports',label:'My Daily Report',labelKo:'내 일일 보고서',e:'📋',perm:'reports_submit',sec:'Management'},
-  {key:'invite',label:'Invite Codes',labelKo:'초대 코드',e:'🔑',perm:'invite',sec:null},
-  {key:'users',label:'User Roles',labelKo:'사용자 역할',e:'🛡️',perm:'users',sec:null},
+  {key:'invite',label:'Invite Codes',labelKo:'초대 코드',e:'🔑',perm:'invite',sec:'Management'},
+  {key:'users',label:'User Roles',labelKo:'사용자 역할',e:'🛡️',perm:'users',sec:'Management'},
   {key:'player',label:'My Order',labelKo:'내 주문',e:'🎮',perm:'player',sec:null},
 ];
 
@@ -470,6 +474,7 @@ async function onLogin(user){
   document.getElementById('app-screen').style.display='block';
   document.getElementById('sb-name').textContent=S.profile.name;
   document.getElementById('sb-badge').innerHTML=`<span class="sb-badge sb-${S.profile.role}">${ROLE_ICONS[S.profile.role]||''} ${ROLE_LABELS[S.profile.role]||S.profile.role}</span>`;
+  const avEl=document.getElementById('sb-avatar');if(avEl)avEl.innerHTML=av(S.profile.name,S.profile.initials,34);
   S.page = 'dashboard';
   await loadAll();
   render();initTheme();setupPresence();
