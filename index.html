@@ -12,20 +12,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#fff;--bg-sb:#f7f6f3;--bg-h:#efefee;--bg-a:#e9e9e7;--bg-c:#fff;--bg-i:#fff;--tx:#37352f;--tx2:#787774;--tx3:#acaba8;--br:#e9e9e7;--br2:#d3d1cb;--ac:#2383e2;--ac-bg:#e8f3ff;--gr:#0f7b6c;--gr-bg:#edf3ec;--re:#e03e3e;--re-bg:#fbe4e4;--ye:#cb912f;--ye-bg:#fdf3d0;--pu:#6940a5;--pu-bg:#f4f0fb;--r:4px;--r2:8px}
-[data-theme=dark]{--bg:#191919;--bg-sb:#1f1f1f;--bg-h:#2f2f2f;--bg-a:#373737;--bg-c:#252525;--bg-i:#252525;--tx:#cfcfce;--tx2:#9b9a97;--tx3:#555553;--br:#2f2f2f;--br2:#404040;--ac:#529cca;--ac-bg:#1c3149;--gr:#4dab9a;--gr-bg:#1b3134;--re:#e16060;--re-bg:#3a1616;--ye:#dfab01;--ye-bg:#3b2f00;--pu:#9a6dd7;--pu-bg:#2d1f45}
+[data-theme=dark]{--bg:#0e0e0e;--bg-sb:#131313;--bg-h:#1c1c1c;--bg-a:#232323;--bg-c:#161616;--bg-i:#1a1a1a;--tx:#e6e5e2;--tx2:#989792;--tx3:#5f5e5a;--br:#232322;--br2:#2f2f2d;--ac:#4d9a8a;--ac-bg:rgba(77,154,138,.12);--gr:#4d9a8a;--gr-bg:rgba(77,154,138,.12);--re:#c46a6a;--re-bg:rgba(196,106,106,.12);--ye:#c79c4b;--ye-bg:rgba(199,156,75,.12);--pu:#9a7dc4;--pu-bg:rgba(154,125,196,.12)}
 body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(--bg);color:var(--tx)}
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
 .auth-split{display:flex;width:880px;max-width:100%;min-height:540px;background:var(--bg-c);border:1px solid var(--br);border-radius:18px;overflow:hidden;box-shadow:0 12px 50px rgba(0,0,0,.55)}
-.auth-brand{flex:1;background:linear-gradient(155deg,#1c2230 0%,#161b26 48%,#0d1016 100%);position:relative;display:flex;align-items:center;padding:52px;overflow:hidden}
-.auth-brand::before{content:'';position:absolute;top:-30%;left:-25%;width:440px;height:440px;background:radial-gradient(circle,rgba(46,213,115,.10),transparent 70%);filter:blur(30px);pointer-events:none}
+.auth-brand{flex:1;background:linear-gradient(160deg,#161616 0%,#131313 50%,#0e0e0e 100%);position:relative;display:flex;align-items:center;padding:52px;overflow:hidden}
+.auth-brand::before{content:'';position:absolute;top:-30%;left:-25%;width:440px;height:440px;background:radial-gradient(circle,rgba(92,179,161,.10),transparent 70%);filter:blur(30px);pointer-events:none}
 .auth-brand::after{content:'';position:absolute;bottom:-35%;right:-25%;width:380px;height:380px;background:radial-gradient(circle,rgba(120,140,170,.08),transparent 72%);filter:blur(32px);pointer-events:none}
 .auth-brand-inner{position:relative;z-index:1}
-.auth-mono{width:66px;height:66px;border-radius:18px;background:linear-gradient(135deg,#2ed573,#159c4f);display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:800;color:#04160c;box-shadow:0 6px 26px rgba(46,213,115,.45);margin-bottom:26px;letter-spacing:-1px}
+.auth-mono{width:66px;height:66px;border-radius:18px;background:linear-gradient(135deg,#5cb3a1,#4d9a8a);display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:800;color:#04160c;box-shadow:0 6px 26px rgba(77,154,138,.40);margin-bottom:26px;letter-spacing:-1px}
 .auth-brand-name{font-size:30px;font-weight:800;letter-spacing:3px;color:#fff;margin-bottom:10px}
 .auth-brand-tag{font-size:13px;color:#8a93a3;margin-bottom:36px;font-weight:500;letter-spacing:1px;text-transform:uppercase}
 .auth-features{display:flex;flex-direction:column;gap:14px}
 .auth-feat{font-size:13px;color:rgba(255,255,255,.72);display:flex;align-items:center;gap:10px}
-.auth-feat span{color:#2ed573;font-weight:700}
+.auth-feat span{color:#5cb3a1;font-weight:700}
 .auth-form-panel{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 44px}
 .auth-form-inner{width:100%;max-width:320px}.auth-form-inner .fg{margin-bottom:18px}.auth-form-inner .btn-full{margin-top:6px}
 .auth-sub{font-size:14px;color:var(--tx2);margin-bottom:22px;font-weight:500}
@@ -223,7 +223,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 <div id="app-screen">
   <div id="app">
     <nav id="sb">
-      <div class="sb-top"><span style="display:inline-flex;width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#2ed573,#159c4f);align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#04160c;letter-spacing:-0.5px;flex-shrink:0">L7</span><span class="sb-ws-name">Lucky 7</span></div>
+      <div class="sb-top"><span style="display:inline-flex;width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#5cb3a1,#4d9a8a);align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#04160c;letter-spacing:-0.5px;flex-shrink:0">L7</span><span class="sb-ws-name">Lucky 7</span></div>
       <div class="sb-user-card">
         <div id="sb-avatar"></div>
         <div>
@@ -237,7 +237,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.8 · Build: 20260519-36</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.9 · Build: 20260519-37</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
