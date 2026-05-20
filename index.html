@@ -266,6 +266,14 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .cl-check.on{background:var(--ac);border-color:var(--ac)}
 .cl-check.on::after{content:"";width:7px;height:4px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
 .cl-label{font-size:13px;color:var(--tx);flex:1}
+
+/* ─── Tasks redesign ─── */
+.task-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--br2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.task-check.on{background:var(--ac);border-color:var(--ac)}
+.task-check.on::after{content:"";width:7px;height:4px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.task-check.ip{border-color:var(--ye);background:var(--ye-bg)}
+.task-meta{font-size:11px;color:var(--tx3)}
+.empty{padding:60px 20px;text-align:center;color:var(--tx3);border:1px dashed var(--br2);border-radius:10px;font-size:13px}
 </style>
 </head>
 <body>
@@ -336,7 +344,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.7 · Build: 20260519-45</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.8 · Build: 20260519-46</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -377,10 +385,10 @@ window.addEventListener('focus', refreshSessionIfNeeded);
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
   pending:    [],
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
   settlement: ['dash','pcs_view'],
-  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','recruitment','recruit_settings','team','reports_submit','checklist'],
+  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player']
 };
 const can = (f) => (PERMS[S.profile?.role||'staff']||[]).includes(f);
@@ -832,17 +840,29 @@ function pgPCs(){
 // ── TASKS ─────────────────────────────────────────────────────────────────
 function pgTasks(){
   const ko=S.lang==='ko';
-  const owners=['All',...new Set(S.tasks.map(t=>t.owner).filter(Boolean))];
-  const sorted=S.taskFilter&&S.taskFilter!=='All'?S.tasks.filter(t=>t.owner===S.taskFilter):S.tasks;
+  const f=S.taskFilter||'All';
+  const seeAll=can('tasks_all');
+  const mine=t=>{const o=(t.owner||'').toLowerCase().trim();const n=(S.profile.name||'').toLowerCase().trim();const fn=n.split(' ')[0];return o===n||o===fn||(fn&&o.includes(fn));};
+  const scope=seeAll?S.tasks:S.tasks.filter(mine);
+  const filtered=scope.filter(t=>{if(f==='All')return true;if(f==='Open')return t.status!=='Done';if(f==='Done')return t.status==='Done';return t.priority===f;});
+  const openN=scope.filter(t=>t.status!=='Done').length;
+  const p1N=scope.filter(t=>t.priority==='P1'&&t.status!=='Done').length;
   const addForm=can('tasks_edit')&&S.showAddTask?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 업무 추가':'Add task'}</div><div class="fgrid"><div class="fg2"><label>Task (EN)</label><input id="nt-t" placeholder="Task..."></div><div class="fg2"><label>업무 (KO)</label><input id="nt-k" placeholder="업무..."></div><div class="fg2"><label>Owner</label><select id="nt-o">${S.team.map(m=>`<option>${esc(m.name)}</option>`).join('')}</select></div><div class="fg2"><label>Priority</label><select id="nt-p"><option>P1</option><option>P2</option><option>P3</option></select></div><div class="fg2"><label>Category</label><input id="nt-c" placeholder="Tech..."></div></div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addTask()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddTask=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
-  const rows=sorted.map(x=>`<div class="trow${x.status==='Done'?' done':''}"><div class="tcheck${x.status==='Done'?' on':x.status==='In Progress'?' ip':''}" onclick="toggleTask(${x.id})" title="Click to change status">${x.status==='Done'?'✓':x.status==='In Progress'?'…':''}</div>${pb(x.priority)}<span class="ttxt${x.status==='Done'?' s':''}">${esc(S.lang==='ko'&&x.title_ko?x.title_ko:x.title)}</span><span style="font-size:11px;color:#aaa">${esc(x.owner)}</span>&nbsp;<span style="font-size:11px;color:#aaa">${esc(x.category)}</span>&nbsp;${bdg(x.status)}${can('tasks_edit')?`<button class="btn-del" onclick="delTask(${x.id})">🗑</button>`:''}</div>`).join('');
-  return`<div class="ph">${S.lang==='ko'?'업무':'Tasks'}</div>
-<div class="mets"><div class="met"><div class="mv cr">${S.tasks.filter(x=>x.priority==='P1'&&x.status!=='Done').length}</div><div class="ml">P1</div></div><div class="met"><div class="mv ca">${S.tasks.filter(x=>x.priority==='P2'&&x.status!=='Done').length}</div><div class="ml">P2</div></div><div class="met"><div class="mv cb">${S.tasks.filter(x=>x.priority==='P3'&&x.status!=='Done').length}</div><div class="ml">P3</div></div><div class="met"><div class="mv cg">${S.tasks.filter(x=>x.status==='Done').length}</div><div class="ml">${S.lang==='ko'?'완료':'Done'}</div></div></div>
-<div class="shr"><div class="pills">${owners.map(o=>`<span class="pill${S.taskFilter===o?' on':''}" onclick="S.taskFilter='${esc(o)}';render()">${esc(o)}</span>`).join('')}</div>${can('tasks_edit')?`<button class="btn-add" onclick="S.showAddTask=!S.showAddTask;render()">+ ${S.lang==='ko'?'업무 추가':'Add task'}</button>`:''}</div>
-${addForm}<div class="tlist">${rows||`<div class="nodata">${S.lang==='ko'?'데이터 없음':'No data'}</div>`}</div>`;
+  const pbadge=p=>{const bg=p==='P1'?'var(--err-bg)':p==='P2'?'var(--warn-bg)':'var(--bg-a)';const c=p==='P1'?'var(--re)':p==='P2'?'var(--ye)':'var(--tx2)';return `<span class="pbadge" style="background:${bg};color:${c}">${p}</span>`;};
+  const sbadge=s=>{const m={Done:['var(--gr-bg)','var(--gr)'],'In Progress':['var(--info-bg,rgba(111,147,196,.12))','var(--info,#6f93c4)'],Todo:['var(--bg-a)','var(--tx2)']};const[bg,c]=m[s]||m.Todo;return `<span class="badge" style="background:${bg};color:${c}"><span class="dot" style="background:${c}"></span>${s}</span>`;};
+  const pills=['All','Open','P1','P2','P3','Done'].map(x=>`<button class="pill ${f===x?'on':''}" onclick="S.taskFilter='${x}';render()">${x}</button>`).join('');
+  const rows=filtered.length?filtered.map(t=>{
+    const done=t.status==='Done';const ip=t.status==='In Progress';
+    const ck=can('tasks_done')?`onclick="toggleTask(${t.id})"`:'';
+    return `<div class="task-row"><div class="task-check ${done?'on':ip?'ip':''}" ${ck} style="cursor:${can('tasks_done')?'pointer':'default'}"></div>${pbadge(t.priority)}<div class="task-title ${done?'done':''}">${esc(ko&&t.title_ko?t.title_ko:t.title)}</div>${t.category?`<div class="task-meta">${esc(t.category)}</div>`:''}<div class="task-owner">${av(t.owner,null,22)}<span>${esc(t.owner||'—')}</span></div>${sbadge(t.status)}${can('tasks_edit')?`<button class="btn-del btn-sm" onclick="delTask(${t.id})" style="margin-left:4px">🗑</button>`:''}</div>`;
+  }).join(''):`<div class="empty">${ko?'해당 업무 없음':'No tasks match this filter'}</div>`;
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px"><div><div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'운영':'Operations'}</div><div class="ph" style="margin-bottom:6px">${ko?'업무':'Tasks'}</div><div class="psub" style="margin:0">${openN} ${ko?'진행 업무':'open tasks'} · ${p1N} P1${seeAll?'':' · '+(ko?'내 업무':'my tasks')}</div></div>${can('tasks_edit')?`<button class="btn-add" onclick="S.showAddTask=!S.showAddTask;render()">+ ${ko?'새 업무':'New task'}</button>`:''}</div>`
+    +`<div class="toolbar"><div class="pill-row" style="margin-bottom:0">${pills}</div><input class="input" placeholder="${ko?'업무 검색…':'Search tasks…'}" oninput="filterTasks(this.value)"></div>`
+    +addForm
+    +`<div class="panel" style="padding:0" id="task-list">${rows}</div>`;
 }
+function filterTasks(q){q=(q||'').toLowerCase();document.querySelectorAll('#task-list .task-row').forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';});}
 
-// ── CLIENTS ───────────────────────────────────────────────────────────────
 function pgClients(){
   const rev=S.clients.filter(c=>c.status==='Active').reduce((s,c)=>s+(+c.price||0),0);
   const addForm=S.showAddClient?`<div class="fbox"><div class="fbox-t">${S.lang==='ko'?'새 고객 추가':'New client'}</div><div class="fgrid">${[['nc-n','Client name'],['nc-ch','Character'],['nc-sv','Server'],['nc-sc','Service'],['nc-st','Start'],['nc-en','End'],['nc-pr','Price (Rp)'],['nc-em','Player email (optional)']].map(([id,l])=>`<div class="fg2"><label>${l}</label><input id="${id}" placeholder="${l}"></div>`).join('')}</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addClient()">${S.lang==='ko'?'저장':'Save'}</button><button onclick="S.showAddClient=false;render()">${S.lang==='ko'?'취소':'Cancel'}</button></div></div>`:'';
