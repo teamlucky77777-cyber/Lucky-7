@@ -344,7 +344,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.0 · Build: 20260519-48</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.1 · Build: 20260519-49</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -919,32 +919,30 @@ function pgClients(){
 // ── TEAM ──────────────────────────────────────────────────────────────────
 function pgStaffDir(){
   const ko=S.lang==='ko';
-  const C=['#185FA5','#0F6E56','#854F0B','#791F1F','#534AB7','#993556','#444441'];
-  const clr=n=>C[(n||'?').charCodeAt(0)%C.length];
+  const online=S.team.filter(m=>isOnline(m.id)).length;
+  const roleBadge=r=>{const m={ceo:['var(--ye-bg)','var(--ye)'],manager:['var(--gr-bg)','var(--gr)'],hr:['var(--pu-bg)','var(--pu)'],settlement:['var(--info-bg,rgba(111,147,196,.12))','var(--info,#6f93c4)'],staff:['var(--bg-a)','var(--tx2)']};const[bg,c]=m[r]||['var(--bg-a)','var(--tx2)'];return '<span class="badge" style="background:'+bg+';color:'+c+'"><span class="dot" style="background:'+c+'"></span>'+(ROLE_LABELS[r]||r)+'</span>';};
   const rows=S.team.map(m=>{
-    const c=clr(m.name);
+    const on=isOnline(m.id);
+    const onlineDot=on?'<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;background:var(--gr);border-radius:50%;border:2px solid var(--bg-c)"></span>':'';
+    const handle=(m.initials||m.name||'').toLowerCase().replace(/\s/g,'')+'@lucky7.ops';
     return '<tr>'
-      +'<td><div style="display:flex;align-items:center;gap:8px">'
-      +'<div class="av" style="width:28px;height:28px;font-size:11px;background:'+c+'22;border:1.5px solid '+c+';color:'+c+'">'+(m.initials||m.name.slice(0,2)).toUpperCase()+'</div>'
-      +'<div><strong>'+(m.name||'')+'</strong><div style="font-size:10px;color:var(--tx3)">'+(m.role||'')+'</div></div></div></td>'
-      +'<td>'+(m.isp||'—')+'</td>'
-      +'<td style="font-size:12px;color:var(--tx2)">'+(m.tool||'—')+'</td>'
-      +'<td>'+(m.since||'—')+'</td>'
-      +'<td style="text-align:right;white-space:nowrap">'+(can('users')?'<button class="btn-sm'+(S.editMember===m.id?' btn-add':'')+'" onclick="toggleEdit(\''+m.id+'\')">'+(ko?'편집':'Edit')+'</button>'+(m.id!==S.profile.id?' <button class="btn-del btn-sm" onclick="delMember(\''+m.id+'\')" title="Delete">🗑</button>':''):'')+'</td>'
+      +'<td><div style="display:flex;align-items:center;gap:10px"><div style="position:relative">'+av(m.name,m.initials,28,m.avatar_url||null)+onlineDot+'</div><div><div style="font-weight:500">'+esc(m.name||'')+'</div><div style="font-size:11px;color:var(--tx3)">'+esc(handle)+'</div></div></div></td>'
+      +'<td>'+roleBadge(m.role)+'</td>'
+      +'<td style="color:var(--tx2)">'+esc(m.isp||'—')+'</td>'
+      +'<td style="color:var(--tx2)">'+esc(m.tool||'—')+'</td>'
+      +'<td style="color:var(--tx2)">'+esc(m.since||'—')+'</td>'
+      +'<td>'+(on?'<span class="badge" style="background:var(--gr-bg);color:var(--gr)"><span class="dot" style="background:var(--gr)"></span>Online</span>':'<span style="color:var(--tx3);font-size:12px">—</span>')+'</td>'
+      +(can('users')?'<td style="text-align:right;white-space:nowrap"><button class="btn-sm'+(S.editMember===m.id?' btn-add':'')+'" onclick="toggleEdit(\''+m.id+'\')">'+(ko?'편집':'Edit')+'</button>'+(m.id!==S.profile.id?' <button class="btn-del btn-sm" onclick="delMember(\''+m.id+'\')" title="Delete">🗑</button>':'')+'</td>':'')
       +'</tr>'
-      +(S.editMember===m.id?'<tr class="erow"><td colspan="5"><div class="erow-in">'
-        +'<div class="fgrid">'
+      +(S.editMember===m.id?'<tr class="erow"><td colspan="7"><div class="erow-in"><div class="fgrid">'
         +'<div class="fg2"><label>'+(ko?'이름':'Name')+'</label><input id="e-name" value="'+((m.name||'').replace(/"/g,'&quot;'))+'"></div>'
         +'<div class="fg2"><label>Initials</label><input id="e-ini" value="'+((m.initials||'').replace(/"/g,'&quot;'))+'"></div>'
         +'<div class="fg2"><label>ISP</label><select id="e-isp">'+['IndiHome','MyRepublic','Biznet','Other'].map(o=>'<option'+(o===m.isp?' selected':'')+'>'+o+'</option>').join('')+'</select></div>'
         +'<div class="fg2"><label>Tool</label><input id="e-tool" value="'+((m.tool||'').replace(/"/g,'&quot;'))+'"></div>'
         +'<div class="fg2"><label>'+(ko?'입사일':'Since')+'</label><input id="e-since" value="'+((m.since||'').replace(/"/g,'&quot;'))+'"></div>'
-        +'</div>'
-        +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember(\''+m.id+'\')">'+(ko?'저장':'Save')+'</button><button onclick="cancelEdit()">'+(ko?'취소':'Cancel')+'</button></div>'
-        +'</div></td></tr>':'');
+        +'</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember(\''+m.id+'\')">'+(ko?'저장':'Save')+'</button><button onclick="cancelEdit()">'+(ko?'취소':'Cancel')+'</button></div></div></td></tr>':'');
   }).join('');
-  const addF=S.showAddMember&&can('users')?'<div class="fbox"><div class="fbox-t">'+(ko?'새 직원 추가':'New staff member')+'</div>'
-    +'<div class="fgrid">'
+  const addF=S.showAddMember&&can('users')?'<div class="fbox"><div class="fbox-t">'+(ko?'새 직원 추가':'New staff member')+'</div><div class="fgrid">'
     +'<div class="fg2"><label>'+(ko?'이름':'Name')+'</label><input id="nm-name" placeholder="Name"></div>'
     +'<div class="fg2"><label>Initials</label><input id="nm-ini" placeholder="BL"></div>'
     +'<div class="fg2"><label>Role</label><input id="nm-role" placeholder="Manager..."></div>'
@@ -952,17 +950,16 @@ function pgStaffDir(){
     +'<div class="fg2"><label>ISP</label><select id="nm-isp">'+['IndiHome','MyRepublic','Biznet','Other'].map(o=>'<option>'+o+'</option>').join('')+'</select></div>'
     +'<div class="fg2"><label>Tool</label><input id="nm-tool" placeholder="AnyViewer..."></div>'
     +'<div class="fg2"><label>'+(ko?'입사일':'Since')+'</label><input id="nm-since" placeholder="Jan 2026"></div>'
-    +'</div>'
-    +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="addMember()">'+(ko?'저장':'Save')+'</button><button onclick="S.showAddMember=false;render()">'+(ko?'취소':'Cancel')+'</button></div></div>':'';
-  return '<div class="ph">👤 '+(ko?'직원 목록':'Staff Directory')+'</div>'
-    +'<div class="mets" style="grid-template-columns:repeat(2,1fr)">'
-    +'<div class="met"><div class="mv cg">'+S.team.length+'</div><div class="ml">'+(ko?'전체':'Total')+'</div></div>'
-    +'<div class="met"><div class="mv" style="color:var(--pu)">'+S.team.filter(m=>['ceo','manager'].includes(m.role)).length+'</div><div class="ml">Management</div></div>'
-    +'</div>'
-    +'<div class="shr"><div class="sh">'+(ko?'직원 목록':'All members')+'</div>'+(can('users')?'<button class="btn-add" onclick="S.showAddMember=!S.showAddMember;render()">+ '+(ko?'직원 추가':'Add member')+'</button>':'')+'</div>'
+    +'</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addMember()">'+(ko?'저장':'Save')+'</button><button onclick="S.showAddMember=false;render()">'+(ko?'취소':'Cancel')+'</button></div></div>':'';
+  const inviteBtn=can('invite')?'<button class="btn-add" onclick="goPage(\'invite\')">+ '+(ko?'팀원 초대':'Invite teammate')+'</button>':(can('users')?'<button class="btn-add" onclick="S.showAddMember=!S.showAddMember;render()">+ '+(ko?'직원 추가':'Add member')+'</button>':'');
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px"><div>'
+    +'<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'사람':'People')+'</div>'
+    +'<div class="ph" style="margin-bottom:6px">'+(ko?'직원 목록':'Staff Directory')+'</div>'
+    +'<div class="psub" style="margin:0">'+S.team.length+' '+(ko?'팀원':'team members')+' · '+online+' '+(ko?'온라인':'online now')+'</div></div>'+inviteBtn+'</div>'
+    +(can('users')&&!can('invite')?'':(can('users')?'<div style="margin-bottom:14px"><button class="btn-sm" onclick="S.showAddMember=!S.showAddMember;render()">+ '+(ko?'수동 추가':'Add manually')+'</button></div>':''))
     +addF
-    +'<div class="tw"><table><thead><tr><th>'+(ko?'이름':'Name')+'</th><th>ISP</th><th>Tool</th><th>'+(ko?'입사일':'Since')+'</th><th></th></tr></thead>'
-    +'<tbody>'+(rows||'<tr><td colspan="5" class="nodata">'+(ko?'없음':'No members')+'</td></tr>')+'</tbody></table></div>';
+    +'<div class="tw"><table><thead><tr><th>'+(ko?'이름':'Name')+'</th><th>'+(ko?'역할':'Role')+'</th><th>ISP</th><th>'+(ko?'원격 도구':'Remote tool')+'</th><th>'+(ko?'입사일':'Since')+'</th><th>Status</th>'+(can('users')?'<th></th>':'')+'</tr></thead>'
+    +'<tbody>'+(rows||'<tr><td colspan="7" class="empty" style="border:none">'+(ko?'없음':'No members')+'</td></tr>')+'</tbody></table></div>';
 }
 
 function pgRecruitment(){
