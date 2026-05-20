@@ -27,9 +27,9 @@ body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(
 .auth-feat{font-size:13px;color:rgba(255,255,255,.72);display:flex;align-items:center;gap:10px}
 .auth-feat span{color:#2ed573;font-weight:700}
 .auth-form-panel{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 44px}
-.auth-form-inner{width:100%;max-width:320px}
+.auth-form-inner{width:100%;max-width:320px}.auth-form-inner .fg{margin-bottom:18px}.auth-form-inner .btn-full{margin-top:6px}
 .auth-sub{font-size:14px;color:var(--tx2);margin-bottom:22px;font-weight:500}
-.auth-tabs{display:flex;margin-bottom:22px;border:1px solid var(--br);border-radius:var(--r);overflow:hidden}
+.auth-tabs{display:flex;margin-bottom:26px;border:1px solid var(--br);border-radius:var(--r);overflow:hidden}
 .auth-tab{flex:1;padding:9px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--tx2);font-family:inherit}
 @media(max-width:760px){
   .auth-split{flex-direction:column;width:400px;min-height:auto}
@@ -104,7 +104,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 .fbox{background:var(--ac-bg);border:1px solid var(--ac);border-radius:var(--r2);padding:16px;margin-bottom:16px;border-left:3px solid var(--ac)}
 .fbox-t{font-weight:600;font-size:13px;color:var(--ac);margin-bottom:12px}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:12px}
-.fg label,.fg2 label{display:block;font-size:11px;color:var(--tx2);margin-bottom:3px;font-weight:500}
+.fg label,.fg2 label{display:block;font-size:11px;color:var(--tx2);margin-bottom:5px;font-weight:500}
 .fg input,.fg select,.fg2 input,.fg2 select,.fg2 textarea{width:100%;padding:7px 10px;border:1px solid var(--br);border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--tx);outline:none;background:var(--bg-i)}
 .fg input:focus,.fg select:focus,.fg2 input:focus,.fg2 select:focus,.fg2 textarea:focus{border-color:var(--ac)}
 .fg2 textarea{resize:vertical}
@@ -233,7 +233,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.2 · Build: 20260519-29</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v3.3 · Build: 20260519-30</div>
         
         <button class="so-btn" onclick="signOut()">← Sign out</button>
       </div>
