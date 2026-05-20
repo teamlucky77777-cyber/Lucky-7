@@ -323,7 +323,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.4 · Build: 20260519-42</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v4.5 · Build: 20260519-43</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1260,7 +1260,12 @@ async function assignPC(pcId,userId){
     const member=S.team.find(m=>m.id===userId);
     const upd={assigned_to:userId||null,assigned_name:member?member.name:null};
     const {error}=await sb.from('korea_pcs').update(upd).eq('id',pcId);
-    if(error){toast(error.message,'err');console.error(error);return;}
+    if(error){
+      console.error('[assignPC]',error);
+      if(/assigned_to|assigned_name|column/i.test(error.message)) alert('Assignment needs a database update.\n\nYour korea_pcs table is missing the assigned_to / assigned_name columns. Ask your developer to run the SQL provided (ALTER TABLE korea_pcs ADD COLUMN...).\n\nError: '+error.message);
+      else toast('Assign failed: '+error.message,'err');
+      return;
+    }
     const pc=S.pcs.find(p=>p.id===pcId);
     if(pc){pc.assigned_to=upd.assigned_to;pc.assigned_name=upd.assigned_name;}
     toast(userId?'Assigned ✓':'Unassigned');
