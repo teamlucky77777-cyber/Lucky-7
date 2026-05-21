@@ -366,7 +366,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.9 · Build: 20260519-67</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v7.0 · Build: 20260519-68</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -407,11 +407,11 @@ window.addEventListener('focus', refreshSessionIfNeeded);
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
   pending:    [],
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team'],
-  settlement: ['dash','pcs_view'],
-  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist'],
-  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player']
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit'],
+  settlement: ['dash','pcs_view','roster'],
+  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit'],
+  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player','roster']
 };
 const can = (f) => {
   const role=S.profile?.role||'staff';
@@ -429,6 +429,7 @@ const NAV_ITEMS=[
   {key:'dashboard',label:'Dashboard',labelKo:'대시보드',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>`,perm:'dash',sec:null},
   {key:'pcs',label:'PC Command',labelKo:'PC 관리',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,perm:'pcs_view',sec:null},
   {key:'checklist',label:'Daily Checklist',labelKo:'일일 체크리스트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,perm:'checklist',sec:'Operations'},
+  {key:'roster',label:'Shift Roster',labelKo:'근무표',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,perm:'roster',sec:'Operations',secKo:'운영'},
   {key:'tasks',label:'Tasks',labelKo:'업무',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,perm:'tasks_view',sec:'Operations'},
   {key:'clients',label:'Clients',labelKo:'클라이언트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,perm:'clients',sec:'Operations'},
   {key:'staffdir',label:'Staff Directory',labelKo:'직원 목록',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,perm:'team',sec:'People'},
@@ -666,9 +667,10 @@ async function loadAll(){
   if(can('reports')||can('reports_submit')) loads.push(sb.from('reports').select('*').order('created_at',{ascending:false})); else loads.push(Promise.resolve({data:[]}));
   if(can('invite')) loads.push(sb.from('invite_codes').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
   if(can('activity')) loads.push(sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(200)); else loads.push(Promise.resolve({data:[]}));
-  const [t,tk,pc,cl,rec,rep,codes,acts]=await Promise.all(loads);
+  loads.push(sb.from('shift_roster').select('*'));
+  const [t,tk,pc,cl,rec,rep,codes,acts,rost]=await Promise.all(loads);
   S.team=t.data||[];S.tasks=tk.data||[];S.pcs=pc.data||[];
-  S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];S.activity=(acts&&acts.data)||[];
+  S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];S.activity=(acts&&acts.data)||[];S.roster=(rost&&rost.data)||[];
   try{
     const {data:setting}=await sb.from('app_settings').select('value').eq('key','recruit_requirements').maybeSingle();
     if(setting&&setting.value) S.recruitReqs={...S.recruitReqs,...setting.value};
@@ -705,7 +707,7 @@ function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRec
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
   (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
-  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer};
+  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer};
   try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';console.error('[render]',e);}
 }
 
@@ -1321,6 +1323,78 @@ function pgUsers(){
 
 
 // ── DAILY CHECKLIST ───────────────────────────────────────────────────────
+function mondayOf(d){const dt=new Date(d);dt.setHours(0,0,0,0);const day=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-day);return dt;}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function changeRosterWeek(delta){const m=S.rosterWeek?new Date(S.rosterWeek+'T00:00:00'):mondayOf(new Date());m.setDate(m.getDate()+delta*7);S.rosterWeek=isoDate(m);render();}
+async function setShift(opId,opName,dateStr,current){
+  if(!can('roster_edit'))return;
+  const order=['','Morning','Day','Night'];
+  const next=order[(order.indexOf(current||'')+1)%order.length];
+  try{
+    if(next===''){
+      await sb.from('shift_roster').delete().eq('operator_id',opId).eq('shift_date',dateStr);
+      S.roster=S.roster.filter(r=>!(r.operator_id===opId&&r.shift_date===dateStr));
+    }else{
+      const rec={operator_id:opId,operator_name:opName,shift_date:dateStr,shift_type:next};
+      const {data,error}=await sb.from('shift_roster').upsert(rec,{onConflict:'operator_id,shift_date'}).select().single();
+      if(error){if(/shift_roster|permission|schema|could not find|relation/i.test(error.message)){alert('Shift Roster needs database setup. Run the SQL provided.\n\n'+error.message);}else toast(error.message,'err');console.error(error);return;}
+      S.roster=S.roster.filter(r=>!(r.operator_id===opId&&r.shift_date===dateStr));
+      if(data)S.roster.push(data);
+    }
+    render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[setShift]',e);}
+}
+function pgRoster(){
+  const ko=S.lang==='ko';
+  const edit=can('roster_edit');
+  if(!S.rosterWeek)S.rosterWeek=isoDate(mondayOf(new Date()));
+  if(!S.rosterView)S.rosterView='operator';
+  const mon=new Date(S.rosterWeek+'T00:00:00');
+  const days=[...Array(7)].map((_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
+  const dayNames=ko?['월','화','수','목','금','토','일']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const todayIso=isoDate(new Date());
+  const SH={Morning:['var(--ye-bg)','var(--ye)','🌅',ko?'오전':'Morning'],Day:['var(--gr-bg)','var(--gr)','☀️',ko?'주간':'Day'],Night:['var(--pu-bg)','var(--pu)','🌙',ko?'야간':'Night']};
+  const get=(opId,dIso)=>S.roster.find(r=>r.operator_id===opId&&r.shift_date===dIso);
+  // operators = team members (everyone schedulable)
+  const ops=S.team.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+
+  const cell=(opId,opName,d)=>{
+    const dIso=isoDate(d);const rec=get(opId,dIso);const st=rec?rec.shift_type:'';
+    const sty=st&&SH[st]?'background:'+SH[st][0]+';color:'+SH[st][1]:'color:var(--tx3)';
+    const lbl=st&&SH[st]?SH[st][2]+' '+SH[st][3]:'—';
+    return '<td style="text-align:center;padding:6px 4px"><div onclick="'+(edit?"setShift('"+opId+"','"+(opName||'').replace(/'/g,"")+"','"+dIso+"','"+st+"')":'')+'" style="'+sty+';border-radius:6px;padding:6px 4px;font-size:11px;font-weight:500;'+(edit?'cursor:pointer':'')+';min-height:30px;display:flex;align-items:center;justify-content:center">'+lbl+'</div></td>';
+  };
+
+  // By-operator view
+  const opRows=ops.length?ops.map(m=>'<tr><td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:8px">'+av(m.name,m.initials,24,m.avatar_url||null)+'<strong style="font-weight:500">'+esc(m.name)+'</strong></div></td>'+days.map(d=>cell(m.id,m.name,d)).join('')+'</tr>').join(''):'<tr><td colspan="8" class="empty" style="border:none">'+(ko?'팀원 없음':'No team members')+'</td></tr>';
+
+  // Coverage view: rows = shifts, cell = operators that day; warn if empty
+  const covRows=['Morning','Day','Night'].map(st=>{
+    return '<tr><td style="white-space:nowrap"><span class="badge" style="background:'+SH[st][0]+';color:'+SH[st][1]+'">'+SH[st][2]+' '+SH[st][3]+'</span></td>'+days.map(d=>{
+      const dIso=isoDate(d);const who=S.roster.filter(r=>r.shift_date===dIso&&r.shift_type===st);
+      const inner=who.length?who.map(w=>esc((w.operator_name||'').split(' ')[0])).join(', '):'<span style="color:var(--re)">⚠ '+(ko?'없음':'none')+'</span>';
+      return '<td style="text-align:center;padding:8px 4px;font-size:11px;color:'+(who.length?'var(--tx2)':'var(--re)')+'">'+inner+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+
+  const head='<tr><th>'+(S.rosterView==='operator'?(ko?'운영자':'Operator'):(ko?'시프트':'Shift'))+'</th>'+days.map((d,i)=>'<th style="text-align:center'+(isoDate(d)===todayIso?';color:var(--ac-strong)':'')+'">'+dayNames[i]+'<div style="font-size:10px;color:var(--tx3);font-weight:400">'+(d.getMonth()+1)+'/'+d.getDate()+'</div></th>').join('')+'</tr>';
+
+  const weekLabel=mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+days[6].toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px"><div>'
+    +'<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'운영':'Operations')+'</div>'
+    +'<div class="ph" style="margin-bottom:6px">'+(ko?'근무표':'Shift Roster')+'</div>'
+    +'<div class="psub" style="margin:0">'+(ko?'주간 근무 일정. ':'Weekly schedule. ')+(edit?(ko?'셀을 클릭해 시프트 설정.':'Click a cell to set the shift.'):(ko?'보기 전용.':'View only.'))+'</div></div>'
+    +'<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden">'
+      +'<button onclick="S.rosterView=\'operator\';render()" style="padding:7px 14px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.rosterView==='operator'?'var(--tx)':'transparent')+';color:'+(S.rosterView==='operator'?'var(--bg)':'var(--tx2)')+'">'+(ko?'운영자별':'By operator')+'</button>'
+      +'<span style="width:1px;background:var(--br)"></span>'
+      +'<button onclick="S.rosterView=\'coverage\';render()" style="padding:7px 14px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.rosterView==='coverage'?'var(--tx)':'transparent')+';color:'+(S.rosterView==='coverage'?'var(--bg)':'var(--tx2)')+'">'+(ko?'커버리지':'Coverage')+'</button>'
+    +'</div></div>'
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><button class="btn-sm" onclick="changeRosterWeek(-1)">‹ '+(ko?'이전':'Prev')+'</button><div style="font-size:13px;font-weight:500;min-width:150px;text-align:center">'+weekLabel+'</div><button class="btn-sm" onclick="changeRosterWeek(1)">'+(ko?'다음':'Next')+' ›</button><button class="btn-sm" onclick="S.rosterWeek=isoDate(mondayOf(new Date()));render()">'+(ko?'이번 주':'This week')+'</button></div>'
+    +'<div class="tw"><table><thead>'+head+'</thead><tbody>'+(S.rosterView==='operator'?opRows:covRows)+'</tbody></table></div>'
+    +'<div style="display:flex;gap:16px;font-size:11px;color:var(--tx2);margin-top:4px">'+['Morning','Day','Night'].map(st=>'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+SH[st][1]+';margin-right:5px;vertical-align:middle"></span>'+SH[st][2]+' '+SH[st][3]+'</span>').join('')+'</div>';
+}
+
 function pgChecklist(){
   const ko=S.lang==='ko';
   const items=S.myChecklist?.items||{};
