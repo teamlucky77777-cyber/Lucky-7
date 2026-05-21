@@ -366,7 +366,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.9 · Build: 20260519-57</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.0 · Build: 20260519-58</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -742,7 +742,7 @@ function pgDash(){
   // fleet stat
   const fstat=(label,n,c)=>`<div style="flex:1;display:flex;flex-direction:column;gap:2px"><div style="font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1;color:${c};font-variant-numeric:tabular-nums">${n}</div><div style="font-size:11px;color:var(--tx2);text-transform:uppercase;letter-spacing:.08em">${label}</div></div>`;
   // section head
-  const shead=(title,count,action)=>`<div class="section-head"><div class="section-title">${title}${count!=null?`<span class="count">${count}</span>`:''}</div>${action?`<span style="font-size:12px;color:var(--tx2)">${action} →</span>`:''}</div>`;
+  const shead=(title,count,action,page)=>`<div class="section-head"><div class="section-title">${title}${count!=null?`<span class="count">${count}</span>`:''}</div>${action?`<span ${page?`onclick="goPage('${page}')" `:''}style="font-size:12px;color:var(--tx2);${page?'cursor:pointer':''}" ${page?`onmouseover="this.style.color='var(--ac-strong)'" onmouseout="this.style.color='var(--tx2)'"`:''}>${action} →</span>`:''}</div>`;
 
   const openTasks=S.tasks.filter(t=>t.status!=='Done').sort((a,b)=>['P1','P2','P3'].indexOf(a.priority)-['P1','P2','P3'].indexOf(b.priority)).slice(0,5);
 
@@ -777,14 +777,14 @@ function pgDash(){
     +shead(ko?'온라인':'Online now',online.length)
     +`<div class="presence-row">${online.length?online.map(m=>`<div class="presence-chip"><div style="position:relative">${av(m.name,m.initials,24,m.avatar_url||null)}<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;background:var(--ok);border-radius:50%;border:2px solid var(--bg-sb)"></span></div><div><div class="presence-chip-name">${esc(m.name)}</div><div class="presence-chip-role">${ROLE_LABELS[m.role]||m.role}</div></div></div>`).join(''):`<div style="color:var(--tx3);font-size:13px">No one else online right now</div>`}</div>`
     +`<div class="two-col">`
-      +`<div>${shead(ko?'우선 업무':'Priority tasks',openTasks.length,'See all')}<div class="panel" style="padding:0">${openTasks.length?openTasks.map(t=>`<div class="task-row">${pbadge(t.priority)}<div class="task-title">${esc(ko&&t.title_ko?t.title_ko:t.title)}</div><div class="task-owner">${av(t.owner,null,22)}<span>${esc((t.owner||'').split(' ')[0])}</span></div>${sbadge(t.status)}</div>`).join(''):`<div class="nodata">🎉 All tasks done!</div>`}</div></div>`
+      +`<div>${shead(ko?'우선 업무':'Priority tasks',openTasks.length,'See all','tasks')}<div class="panel" style="padding:0">${openTasks.length?openTasks.map(t=>`<div class="task-row">${pbadge(t.priority)}<div class="task-title">${esc(ko&&t.title_ko?t.title_ko:t.title)}</div><div class="task-owner">${av(t.owner,null,22)}<span>${esc((t.owner||'').split(' ')[0])}</span></div>${sbadge(t.status)}</div>`).join(''):`<div class="nodata">🎉 All tasks done!</div>`}</div></div>`
       +`<div>`
-        +shead(ko?'PC 플릿':'PC fleet',null,'Open command')
+        +shead(ko?'PC 플릿':'PC fleet',null,'Open command','pcs')
         +`<div class="panel"><div style="display:flex;gap:14px;margin-bottom:14px">${fstat(ko?'온라인':'Online',onlinePc,'var(--ok)')}${fstat(ko?'주의':'Warning',warnPc,'var(--warn)')}${fstat(ko?'오프라인':'Offline',offPc,'var(--tx3)')}</div><div style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px">${pcGrid}</div><div class="pc-legend" style="margin-top:14px;margin-bottom:0"><div class="pc-legend-item"><span class="dot" style="background:var(--ok)"></span><span>Online</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--warn)"></span><span>Warning</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span><span>Offline</span></div></div></div>`
-        +(clTotal?`<div style="height:16px"></div>`+shead(ko?'오늘 체크리스트':"Today's checklist",null,clDone+'/'+clTotal+' done')+`<div class="panel" style="padding:8px 0">${clHtml}</div>`:'')
+        +(clTotal?`<div style="height:16px"></div>`+shead(ko?'오늘 체크리스트':"Today's checklist",null,clDone+'/'+clTotal+' done','checklist')+`<div class="panel" style="padding:8px 0">${clHtml}</div>`:'')
       +`</div>`
     +`</div>`
-    +(S.reports.length?shead(ko?'최근 보고서':'Recent reports',null,'View all')+`<div class="rep-list">${repHtml}</div>`:'');
+    +(S.reports.length?shead(ko?'최근 보고서':'Recent reports',null,'View all','reports')+`<div class="rep-list">${repHtml}</div>`:'');
 }
 
 
