@@ -366,7 +366,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.8 · Build: 20260519-66</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.9 · Build: 20260519-67</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1587,9 +1587,7 @@ async function logActivity(action,detail){
     const rec={action:action,detail:detail||null,actor_name:S.profile?.name||'?',actor_id:S.user?.id||null};
     const {data,error}=await sb.from('activity_log').insert(rec).select().single();
     if(error){
-      if(/activity_log|relation|does not exist|schema cache|could not find/i.test(error.message||'')){
-        if(!S._actWarn){S._actWarn=true;alert('Activity Log isn\'t set up yet.\n\nRun this in Supabase → SQL Editor:\n\nCREATE TABLE IF NOT EXISTS public.activity_log (id bigserial PRIMARY KEY, action text, detail text, actor_name text, actor_id uuid, created_at timestamptz DEFAULT now());\nALTER TABLE public.activity_log ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "activity_all" ON public.activity_log FOR ALL USING (true) WITH CHECK (true);');}
-      }
+      if(!S._actWarn){S._actWarn=true;alert('ACTIVITY LOG ERROR (screenshot this):\n\nmessage: '+(error.message||'(none)')+'\n\ndetails: '+(error.details||'(none)')+'\nhint: '+(error.hint||'(none)')+'\ncode: '+(error.code||'(none)'));}
       console.warn('[logActivity]',error);return;
     }
     if(data){ if(!S.activity)S.activity=[]; S.activity.unshift(data); }
