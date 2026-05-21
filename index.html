@@ -374,7 +374,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v7.2 · Build: 20260519-70</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v7.3 · Build: 20260519-71</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -780,16 +780,12 @@ function pgDash(){
   // ── Needs attention ──
   const _atm=new Date();_atm.setHours(0,0,0,0);
   const _od=(can('tasks_all')?S.tasks:S.tasks.filter(t=>(t.owner||'')===S.profile.name)).filter(t=>t.due_date&&new Date(t.due_date+'T00:00:00')<_atm&&t.status!=='Done');
-  const _offPc=can('pcs_view')?S.pcs.filter(p=>p.status==='Offline'):[];
-  const _warnPc=can('pcs_view')?S.pcs.filter(p=>p.status==='Warning'):[];
   const _expCl=can('clients')?S.clients.filter(c=>{if(c.status==='Completed'||!c.end_date)return false;const d=Math.round((new Date(c.end_date+'T00:00:00')-_atm)/86400000);return d<=7;}).sort((a,b)=>new Date(a.end_date)-new Date(b.end_date)):[];
   const _odLbl=t=>{const d=Math.round((_atm-new Date(t.due_date+'T00:00:00'))/86400000);return d===0?(ko?'오늘 마감':'due today'):d===1?(ko?'1일 지남':'1 day overdue'):(ko?d+'일 지남':d+' days overdue');};
   const _exLbl=c=>{const d=Math.round((new Date(c.end_date+'T00:00:00')-_atm)/86400000);return d<0?(ko?Math.abs(d)+'일 전 만료됨':'expired '+Math.abs(d)+'d ago'):d===0?(ko?'오늘 만료':'ends today'):(ko?d+'일 후 만료':'ends in '+d+'d');};
   const _aBlock=(color,icon,title,page,linkTxt,itemsHtml)=>`<div class="attn-block"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:13px;font-weight:600;color:${color}"><span style="margin-right:7px">${icon}</span>${title}</div><span onclick="goPage('${page}')" style="font-size:12px;color:var(--tx2);cursor:pointer" onmouseover="this.style.color='var(--ac-strong)'" onmouseout="this.style.color='var(--tx2)'">${linkTxt} →</span></div>${itemsHtml||''}</div>`;
   let _aBlocks='';
   if(_od.length)_aBlocks+=_aBlock('var(--re)','🔴',_od.length+' '+(ko?'지연 업무':'overdue task'+(_od.length>1?'s':'')),'tasks',ko?'모두 보기':'See all',_od.slice(0,3).map(t=>`<div class="attn-item">• ${esc(ko&&t.title_ko?t.title_ko:t.title)} <span style="color:var(--re)">— ${_odLbl(t)}</span></div>`).join('')+(_od.length>3?`<div class="attn-more">+${_od.length-3} ${ko?'더':'more'}</div>`:''));
-  if(_offPc.length)_aBlocks+=_aBlock('var(--re)','🖥',_offPc.length+' '+(ko?'오프라인 PC':'PC'+(_offPc.length>1?'s':'')+' offline'),'pcs',ko?'PC 관리':'Open command',`<div class="attn-item">${_offPc.map(p=>'PC-'+String(p.num).padStart(2,'0')).join('  ·  ')}</div>`);
-  if(_warnPc.length)_aBlocks+=_aBlock('var(--ye)','⚠',_warnPc.length+' '+(ko?'주의 PC':'PC'+(_warnPc.length>1?'s':'')+' on warning'),'pcs',ko?'PC 관리':'Open command',`<div class="attn-item">${_warnPc.map(p=>'PC-'+String(p.num).padStart(2,'0')).join('  ·  ')}</div>`);
   if(_expCl.length)_aBlocks+=_aBlock('var(--ye)','⏰',_expCl.length+' '+(ko?'만료 임박 고객':'client'+(_expCl.length>1?'s':'')+' expiring'),'clients',ko?'고객 보기':'View clients',_expCl.slice(0,3).map(c=>`<div class="attn-item">• ${esc(c.name)} <span style="color:var(--ye)">— ${_exLbl(c)}</span></div>`).join('')+(_expCl.length>3?`<div class="attn-more">+${_expCl.length-3} ${ko?'더':'more'}</div>`:''));
   const attn=_aBlocks
     ? `<div class="panel attn-panel"><div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">⚠ ${ko?'주의 필요':'Needs attention'}</div>${_aBlocks}</div>`
