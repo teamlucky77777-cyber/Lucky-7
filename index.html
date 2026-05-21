@@ -382,7 +382,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.2 · Build: 20260521-80</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.3 · Build: 20260521-81</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -879,9 +879,8 @@ function pgPCs(){
         +cell(ko?'운영자':'Player',selectedPC.assigned_name||(ko?'미배정':'Unassigned'))
         +cell('ISP',assignedMember?.isp||'—')
         +cell(ko?'도구':'Tool',assignedMember?.tool||'—')
-        +cell(ko?'마지막 접속':'Last seen',selectedPC.status==='Online'?(ko?'방금':'just now'):'—')
         +cell(ko?'메모':'Note',selectedPC.note?esc(selectedPC.note):'—')
-        +cell(ko?'오늘 게임':'Game today',selectedPC.game?esc(selectedPC.game):'—')
+        +cell(ko?'오늘 게임':'Game today',(()=>{if(selectedPC.game)return esc(selectedPC.game);if(selectedPC.char_level||selectedPC.char_class)return('LV.'+esc(selectedPC.char_level||'?')+' '+esc(selectedPC.char_class||'')).trim();if(selectedPC.maple_level||selectedPC.maple_class)return('🍁 LV.'+esc(selectedPC.maple_level||'?')+' '+esc(selectedPC.maple_class||'')).trim();return'—';})())
       +`</div>`;
     if(isMgr){
       detail+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 24px"><span style="font-size:11px;color:var(--tx3);align-self:center;margin-right:2px">${ko?'상태:':'Status:'}</span>${['Online','Warning','Offline'].map(st=>{const active=selectedPC.status===st;const c=st==='Online'?'var(--ok)':st==='Warning'?'var(--warn)':'var(--re)';const lbl=ko?({Online:'온라인',Warning:'주의',Offline:'오프라인'})[st]:st;return '<button class="btn-sm" onclick="setPCStatus('+selectedPC.id+',\''+st+'\')" style="'+(active?'background:'+c+';color:#fff;border-color:'+c:'color:'+c)+'">● '+lbl+'</button>';}).join('')}<select onchange="assignPC(${selectedPC.id},this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-c);color:var(--tx)"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${selectedPC.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select><button class="btn-sm" onclick="editNote(${selectedPC.id})">✏ ${ko?'메모':'Note'}</button><button class="btn-sm" onclick="editGameToday(${selectedPC.id})">🎮 ${ko?'게임':'Game'}</button><button class="btn-del btn-sm" onclick="removePC(${selectedPC.id},${selectedPC.num})">🗑 ${ko?'삭제':'Remove'}</button></div><div id="ne-${selectedPC.id}" style="display:none;margin:-12px 0 24px"><div style="display:flex;gap:8px"><input id="ni-${selectedPC.id}" value="${esc(selectedPC.note||'')}" placeholder="Note..." style="flex:1;padding:7px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg-i);color:var(--tx)"><button class="btn-add btn-sm" onclick="saveNote(${selectedPC.id})">${ko?'저장':'Save'}</button></div></div>`;
