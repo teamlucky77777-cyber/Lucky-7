@@ -304,6 +304,11 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .attn-block:first-of-type{padding-top:4px}
 .attn-item{font-size:12px;color:var(--tx2);padding:3px 0 0 25px}
 .attn-more{font-size:11px;color:var(--tx3);padding:3px 0 0 25px}
+
+/* ─── Lineage Ops ─── */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.game-card{background:var(--bg-c);border:1px solid var(--br);border-radius:10px;padding:14px 16px}
+.game-card:hover{border-color:var(--br2)}
 </style>
 </head>
 <body>
@@ -374,7 +379,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v7.3 · Build: 20260519-71</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v7.4 · Build: 20260519-72</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -415,11 +420,11 @@ window.addEventListener('focus', refreshSessionIfNeeded);
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
   pending:    [],
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit'],
-  settlement: ['dash','pcs_view','roster'],
-  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit'],
-  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player','roster']
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit'],
+  settlement: ['dash','pcs_view','roster','game'],
+  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit','game'],
+  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player','roster','game']
 };
 const can = (f) => {
   const role=S.profile?.role||'staff';
@@ -438,6 +443,7 @@ const NAV_ITEMS=[
   {key:'pcs',label:'PC Command',labelKo:'PC 관리',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,perm:'pcs_view',sec:null},
   {key:'checklist',label:'Daily Checklist',labelKo:'일일 체크리스트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,perm:'checklist',sec:'Operations'},
   {key:'roster',label:'Shift Roster',labelKo:'근무표',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,perm:'roster',sec:'Operations',secKo:'운영'},
+  {key:'game',label:'Lineage Ops',labelKo:'리니지 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 11h4M8 9v4"/><circle cx="15" cy="10" r="1"/><circle cx="17.5" cy="12.5" r="1"/><path d="M17 4H7a5 5 0 0 0-5 5v6a3 3 0 0 0 5.2 2l1.3-1.5h7l1.3 1.5A3 3 0 0 0 22 15V9a5 5 0 0 0-5-5Z"/></svg>`,perm:'game',sec:'Operations',secKo:'운영'},
   {key:'tasks',label:'Tasks',labelKo:'업무',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,perm:'tasks_view',sec:'Operations'},
   {key:'clients',label:'Clients',labelKo:'클라이언트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,perm:'clients',sec:'Operations'},
   {key:'staffdir',label:'Staff Directory',labelKo:'직원 목록',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,perm:'team',sec:'People'},
@@ -687,6 +693,10 @@ async function loadAll(){
     const {data:ro}=await sb.from('app_settings').select('value').eq('key','role_overrides').maybeSingle();
     S.rolePerms=(ro&&ro.value)||{};
   }catch(e){S.rolePerms={};console.warn('Role overrides load failed:',e);}
+  try{
+    const {data:gr}=await sb.from('app_settings').select('value').eq('key','game_rules').maybeSingle();
+    S.gameRules=(gr&&gr.value)||null;
+  }catch(e){S.gameRules=null;}
   if(can('player')){
     try{
       const {data:order}=await sb.from('clients').select('*').eq('player_email',S.user.email);
@@ -715,7 +725,7 @@ function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRec
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
   (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
-  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer};
+  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,game:pgGame,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer};
   try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';console.error('[render]',e);}
 }
 
@@ -863,9 +873,10 @@ function pgPCs(){
         +cell(ko?'도구':'Tool',assignedMember?.tool||'—')
         +cell(ko?'마지막 접속':'Last seen',selectedPC.status==='Online'?(ko?'방금':'just now'):'—')
         +cell(ko?'메모':'Note',selectedPC.note?esc(selectedPC.note):'—')
+        +cell(ko?'오늘 게임':'Game today',selectedPC.game?esc(selectedPC.game):'—')
       +`</div>`;
     if(isMgr){
-      detail+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 24px"><span style="font-size:11px;color:var(--tx3);align-self:center;margin-right:2px">${ko?'상태:':'Status:'}</span>${['Online','Warning','Offline'].map(st=>{const active=selectedPC.status===st;const c=st==='Online'?'var(--ok)':st==='Warning'?'var(--warn)':'var(--re)';const lbl=ko?({Online:'온라인',Warning:'주의',Offline:'오프라인'})[st]:st;return '<button class="btn-sm" onclick="setPCStatus('+selectedPC.id+',\''+st+'\')" style="'+(active?'background:'+c+';color:#fff;border-color:'+c:'color:'+c)+'">● '+lbl+'</button>';}).join('')}<select onchange="assignPC(${selectedPC.id},this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-c);color:var(--tx)"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${selectedPC.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select><button class="btn-sm" onclick="editNote(${selectedPC.id})">✏ ${ko?'메모':'Note'}</button><button class="btn-del btn-sm" onclick="removePC(${selectedPC.id},${selectedPC.num})">🗑 ${ko?'삭제':'Remove'}</button></div><div id="ne-${selectedPC.id}" style="display:none;margin:-12px 0 24px"><div style="display:flex;gap:8px"><input id="ni-${selectedPC.id}" value="${esc(selectedPC.note||'')}" placeholder="Note..." style="flex:1;padding:7px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg-i);color:var(--tx)"><button class="btn-add btn-sm" onclick="saveNote(${selectedPC.id})">${ko?'저장':'Save'}</button></div></div>`;
+      detail+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 24px"><span style="font-size:11px;color:var(--tx3);align-self:center;margin-right:2px">${ko?'상태:':'Status:'}</span>${['Online','Warning','Offline'].map(st=>{const active=selectedPC.status===st;const c=st==='Online'?'var(--ok)':st==='Warning'?'var(--warn)':'var(--re)';const lbl=ko?({Online:'온라인',Warning:'주의',Offline:'오프라인'})[st]:st;return '<button class="btn-sm" onclick="setPCStatus('+selectedPC.id+',\''+st+'\')" style="'+(active?'background:'+c+';color:#fff;border-color:'+c:'color:'+c)+'">● '+lbl+'</button>';}).join('')}<select onchange="assignPC(${selectedPC.id},this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-c);color:var(--tx)"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${selectedPC.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select><button class="btn-sm" onclick="editNote(${selectedPC.id})">✏ ${ko?'메모':'Note'}</button><button class="btn-sm" onclick="editGameToday(${selectedPC.id})">🎮 ${ko?'게임':'Game'}</button><button class="btn-del btn-sm" onclick="removePC(${selectedPC.id},${selectedPC.num})">🗑 ${ko?'삭제':'Remove'}</button></div><div id="ne-${selectedPC.id}" style="display:none;margin:-12px 0 24px"><div style="display:flex;gap:8px"><input id="ni-${selectedPC.id}" value="${esc(selectedPC.note||'')}" placeholder="Note..." style="flex:1;padding:7px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg-i);color:var(--tx)"><button class="btn-add btn-sm" onclick="saveNote(${selectedPC.id})">${ko?'저장':'Save'}</button></div></div>`;
     }
   }
 
@@ -1339,7 +1350,7 @@ function pgUsers(){
 <div style="background:var(--bg-c);border:1px solid var(--br);border-radius:10px;padding:16px 18px;font-size:12px;color:var(--tx2);line-height:2"><div style="font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Role summary</div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ye);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">CEO &amp; Manager</strong> — Full access to everything<br><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--info,#6f93c4);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">Settlement</strong> — Dashboard, PC Command (view)<br><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--pu);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">HR</strong> — Dashboard, tasks, recruitment, team directory<br><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tx2);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">Staff</strong> — Dashboard, PC Command (view), tasks (mark done), My Order, checklist</div>
 <div class="section-head" style="margin-top:28px"><div class="section-title">${S.lang==='ko'?'역할별 페이지 접근':'Page access by role'}</div></div>
 <div class="psub" style="margin:-4px 0 14px">${S.lang==='ko'?'각 역할이 볼 수 있는 페이지를 토글하세요. CEO는 항상 전체 접근 권한을 가집니다.':'Toggle which pages each role can see. The CEO always has full access.'}</div>
-<div class="tw"><table><thead><tr><th>${S.lang==='ko'?'페이지':'Page'}</th><th style="text-align:center">Manager</th><th style="text-align:center">Settlement</th><th style="text-align:center">HR</th><th style="text-align:center">Staff</th></tr></thead><tbody>${[['dash','Dashboard'],['pcs_view','PC Command'],['checklist','Daily Checklist'],['roster','Shift Roster'],['tasks_view','Tasks'],['clients','Clients'],['team','Staff Directory'],['recruitment','Recruitment'],['reports','Daily Report'],['invite','Invite Codes'],['users','User Roles']].map(([perm,label])=>`<tr><td>${label}</td>${['manager','settlement','hr','staff'].map(role=>`<td style=\"text-align:center\"><input type=\"checkbox\" ${roleHas(role,perm)?'checked':''} onchange=\"setPagePerm('${role}','${perm}',this.checked)\" style=\"width:16px;height:16px;cursor:pointer;accent-color:var(--ac)\"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+<div class="tw"><table><thead><tr><th>${S.lang==='ko'?'페이지':'Page'}</th><th style="text-align:center">Manager</th><th style="text-align:center">Settlement</th><th style="text-align:center">HR</th><th style="text-align:center">Staff</th></tr></thead><tbody>${[['dash','Dashboard'],['pcs_view','PC Command'],['checklist','Daily Checklist'],['roster','Shift Roster'],['game','Lineage Ops'],['tasks_view','Tasks'],['clients','Clients'],['team','Staff Directory'],['recruitment','Recruitment'],['reports','Daily Report'],['invite','Invite Codes'],['users','User Roles']].map(([perm,label])=>`<tr><td>${label}</td>${['manager','settlement','hr','staff'].map(role=>`<td style=\"text-align:center\"><input type=\"checkbox\" ${roleHas(role,perm)?'checked':''} onchange=\"setPagePerm('${role}','${perm}',this.checked)\" style=\"width:16px;height:16px;cursor:pointer;accent-color:var(--ac)\"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
 
@@ -1416,6 +1427,94 @@ function pgRoster(){
     +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><button class="btn-sm" onclick="changeRosterWeek(-1)">‹ '+(ko?'이전':'Prev')+'</button><div style="font-size:13px;font-weight:500;min-width:150px;text-align:center">'+weekLabel+'</div><button class="btn-sm" onclick="changeRosterWeek(1)">'+(ko?'다음':'Next')+' ›</button><button class="btn-sm" onclick="S.rosterWeek=isoDate(mondayOf(new Date()));render()">'+(ko?'이번 주':'This week')+'</button></div>'
     +'<div class="tw"><table><thead>'+head+'</thead><tbody>'+(S.rosterView==='operator'?opRows:covRows)+'</tbody></table></div>'
     +'<div style="display:flex;gap:16px;font-size:11px;color:var(--tx2);margin-top:4px">'+['Morning','Day','Night'].map(st=>'<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+SH[st][1]+';margin-right:5px;vertical-align:middle"></span>'+SH[st][2]+' '+SH[st][3]+'</span>').join('')+'</div>';
+}
+
+const DEFAULT_GAME_RULES=[
+  {titleEn:'Important — All Joki PCs',titleKo:'조키 PC 공통 주의사항',bodyEn:'',bodyKo:''},
+  {titleEn:'ATS Rules',titleKo:'ATS 규칙',bodyEn:'',bodyKo:''},
+  {titleEn:'Night Manager Jobs',titleKo:'야간 매니저 업무',bodyEn:'',bodyKo:''},
+  {titleEn:'EXP Rules',titleKo:'EXP 기준',bodyEn:'',bodyKo:''},
+  {titleEn:'If EXP is too low — do this in order',titleKo:'EXP 낮을 때 대응 순서',bodyEn:'',bodyKo:''},
+  {titleEn:'Night Manager Mindset',titleKo:'야간 매니저 마인드셋',bodyEn:'',bodyKo:''}
+];
+async function saveGameRules(){
+  try{
+    const {error}=await sb.from('app_settings').upsert({key:'game_rules',value:S.gameRules,updated_at:new Date().toISOString(),updated_by:S.user?.id},{onConflict:'key'});
+    if(error){toast(error.message,'err');console.error(error);return false;}
+    return true;
+  }catch(e){toast('Error: '+e.message,'err');return false;}
+}
+function addGameRule(){if(!S.gameRules)S.gameRules=[];S.gameRules.push({titleEn:'New section',titleKo:'새 섹션',bodyEn:'',bodyKo:''});S.editRuleIdx=S.gameRules.length-1;render();}
+async function delGameRule(i){if(!confirm(S.lang==='ko'?'이 섹션을 삭제할까요?':'Delete this section?'))return;S.gameRules.splice(i,1);await saveGameRules();render();}
+async function saveGameRule(i){
+  const ten=document.getElementById('gr-ten'),tko=document.getElementById('gr-tko'),ben=document.getElementById('gr-ben'),bko=document.getElementById('gr-bko');
+  S.gameRules[i]={titleEn:ten.value,titleKo:tko.value,bodyEn:ben.value,bodyKo:bko.value};
+  if(await saveGameRules()){S.editRuleIdx=null;toast('Saved ✓');render();}
+}
+async function saveGamePC(id){
+  const g=k=>{const el=document.getElementById('gp-'+k);return el?el.value.trim()||null:null;};
+  const upd={pc_type:g('type'),char_level:g('level'),char_class:g('class'),hunt_route:g('route'),game_note:g('note'),game_schedule:g('sched')};
+  try{
+    const {error}=await sb.from('korea_pcs').update(upd).eq('id',id);
+    if(error){if(/column|schema|could not find/i.test(error.message)){alert('Database needs the game columns. Run the SQL provided.\n\n'+error.message);}else toast(error.message,'err');console.error(error);return;}
+    S.pcs=S.pcs.map(p=>p.id===id?{...p,...upd}:p);
+    S.editGamePC=null;toast('PC saved ✓');render();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+function pgGame(){
+  const ko=S.lang==='ko';
+  const edit=can('game_edit');
+  if(!S.gameRules)S.gameRules=DEFAULT_GAME_RULES.slice();
+  const typeBadge=t=>{if(!t)return '';const low=t.toLowerCase();const c=low.includes('practice')||low.includes('연습')?['var(--info-bg,rgba(111,147,196,.12))','var(--info,#6f93c4)']:low.includes('owner')||low.includes('오너')?['var(--ye-bg)','var(--ye)']:['var(--pu-bg)','var(--pu)'];return '<span class="badge" style="background:'+c[0]+';color:'+c[1]+'">'+esc(t)+'</span>';};
+  const schedTable=s=>{if(!s)return '';const rows=String(s).split(/\n+/).map(l=>l.trim()).filter(Boolean).map(l=>{const parts=l.split(/\s*[→|]\s*|\s{2,}|\s-\s/);const time=parts[0]||l;const name=parts.slice(1).join(' ');return '<tr><td style="color:var(--tx2);font-size:11px;padding:3px 8px 3px 0;white-space:nowrap">'+esc(time)+'</td><td style="font-size:11px;padding:3px 0">'+esc(name||'')+'</td></tr>';}).join('');return '<table style="margin-top:8px;border-collapse:collapse">'+rows+'</table>';};
+
+  const pcsSorted=S.pcs.slice().sort((a,b)=>(a.num||0)-(b.num||0));
+  const cards=pcsSorted.map(p=>{
+    if(S.editGamePC===p.id&&edit){
+      return '<div class="game-card" style="border-color:var(--ac)">'
+        +'<div style="font-weight:700;font-size:14px;margin-bottom:10px">PC-'+String(p.num).padStart(2,'0')+'</div>'
+        +'<div class="fgrid">'
+        +'<div class="fg2"><label>'+(ko?'유형':'Type')+'</label><input id="gp-type" value="'+esc(p.pc_type||'')+'" placeholder="Joki 24h / Practice"></div>'
+        +'<div class="fg2"><label>'+(ko?'레벨':'Level')+'</label><input id="gp-level" value="'+esc(p.char_level||'')+'" placeholder="29"></div>'
+        +'<div class="fg2"><label>'+(ko?'클래스':'Class')+'</label><input id="gp-class" value="'+esc(p.char_class||'')+'" placeholder="Wizard"></div>'
+        +'<div class="fg2"><label>'+(ko?'사냥 루트':'Hunting route')+'</label><input id="gp-route" value="'+esc(p.hunt_route||'')+'" placeholder="npc → 2 → 2 → left"></div>'
+        +'</div>'
+        +'<div class="fg2" style="margin-bottom:10px"><label>'+(ko?'메모':'Notes')+'</label><textarea id="gp-note" rows="2" style="width:100%;padding:8px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:12px;resize:vertical">'+esc(p.game_note||'')+'</textarea></div>'
+        +'<div class="fg2" style="margin-bottom:10px"><label>'+(ko?'스케줄 (한 줄에 하나: 시간 → 이름)':'Schedule (one per line: time → name)')+'</label><textarea id="gp-sched" rows="3" style="width:100%;padding:8px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:12px;resize:vertical" placeholder="11:00~21:00 → claws&#10;21:00~09:00 → joel">'+esc(p.game_schedule||'')+'</textarea></div>'
+        +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="saveGamePC('+p.id+')">'+(ko?'저장':'Save')+'</button><button onclick="S.editGamePC=null;render()">'+(ko?'취소':'Cancel')+'</button></div>'
+        +'</div>';
+    }
+    const hasData=p.pc_type||p.char_level||p.hunt_route||p.game_note||p.game_schedule;
+    return '<div class="game-card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><div style="font-weight:700;font-size:14px">PC-'+String(p.num).padStart(2,'0')+'</div>'+typeBadge(p.pc_type)+'</div>'
+      +(p.char_level||p.char_class?'<div style="font-size:13px;color:var(--ac-strong);font-weight:600;margin-bottom:8px">LV.'+esc(p.char_level||'?')+' '+esc(p.char_class||'')+'</div>':'')
+      +(p.hunt_route?'<div style="font-family:ui-monospace,monospace;font-size:11px;background:var(--bg-i);border:1px solid var(--br);border-radius:6px;padding:7px 10px;color:var(--tx2);margin-bottom:8px">'+esc(p.hunt_route)+'</div>':'')
+      +(p.game_note?'<div style="font-size:11px;color:var(--tx2);line-height:1.6;margin-bottom:4px">'+esc(p.game_note).replace(/\n/g,'<br>')+'</div>':'')
+      +schedTable(p.game_schedule)
+      +(!hasData?'<div style="font-size:11px;color:var(--tx3)">'+(ko?'설정 없음':'Not configured')+'</div>':'')
+      +(edit?'<div style="margin-top:10px"><button class="btn-sm" onclick="S.editGamePC='+p.id+';render()">✏ '+(ko?'편집':'Edit')+'</button></div>':'')
+      +'</div>';
+  }).join('');
+
+  const ruleSections=(S.gameRules||[]).map((r,i)=>{
+    if(S.editRuleIdx===i&&edit){
+      return '<div class="panel" style="border-color:var(--ac);margin-bottom:12px"><div class="fgrid"><div class="fg2"><label>Title (EN)</label><input id="gr-ten" value="'+esc(r.titleEn||'')+'"></div><div class="fg2"><label>제목 (KO)</label><input id="gr-tko" value="'+esc(r.titleKo||'')+'"></div></div>'
+        +'<div class="fg2" style="margin:10px 0"><label>Body (EN)</label><textarea id="gr-ben" rows="4" style="width:100%;padding:8px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:12px;resize:vertical">'+esc(r.bodyEn||'')+'</textarea></div>'
+        +'<div class="fg2" style="margin-bottom:10px"><label>내용 (KO)</label><textarea id="gr-bko" rows="4" style="width:100%;padding:8px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:12px;resize:vertical">'+esc(r.bodyKo||'')+'</textarea></div>'
+        +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="saveGameRule('+i+')">'+(ko?'저장':'Save')+'</button><button onclick="S.editRuleIdx=null;render()">'+(ko?'취소':'Cancel')+'</button><button class="btn-del btn-sm" onclick="delGameRule('+i+')" style="margin-left:auto">🗑 '+(ko?'삭제':'Delete')+'</button></div></div>';
+    }
+    const title=ko?(r.titleKo||r.titleEn):(r.titleEn||r.titleKo);
+    const body=ko?(r.bodyKo||r.bodyEn):(r.bodyEn||r.bodyKo);
+    return '<div class="panel" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(body?'10px':'0')+'"><div style="font-size:13px;font-weight:600">'+esc(title||'')+'</div>'+(edit?'<button class="btn-sm" onclick="S.editRuleIdx='+i+';render()">✏</button>':'')+'</div>'+(body?'<div style="font-size:13px;color:var(--tx2);line-height:1.8;white-space:pre-wrap">'+esc(body)+'</div>':'<div style="font-size:12px;color:var(--tx3)">'+(ko?'내용 없음 — 편집하여 추가':'Empty — click edit to add')+'</div>')+'</div>';
+  }).join('');
+
+  return '<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'운영':'Operations')+'</div>'
+    +'<div class="ph" style="margin-bottom:6px">'+(ko?'리니지 운영 매뉴얼':'Lineage Ops Manual')+'</div>'
+    +'<div class="psub" style="margin-bottom:24px">'+(ko?'PC별 캐릭터 설정과 운영 규칙. 근무 중 열어두세요.':'Per-PC character setup and operating rules. Keep this open during your shift.')+'</div>'
+    +'<div class="section-head"><div class="section-title">'+(ko?'PC 현황':'PC Setup')+'<span class="count">'+pcsSorted.length+'</span></div></div>'
+    +'<div class="game-grid">'+cards+'</div>'
+    +'<div class="section-head" style="margin-top:32px"><div class="section-title">'+(ko?'운영 규칙':'Operating Rules')+'</div>'+(edit?'<button class="btn-sm" onclick="addGameRule()">+ '+(ko?'섹션 추가':'Add section')+'</button>':'')+'</div>'
+    +ruleSections;
 }
 
 function pgChecklist(){
@@ -1549,6 +1648,17 @@ async function cyclePC(id){
   try{
     const ord=['Online','Warning','Offline'];const p=S.pcs.find(x=>x.id===id);const ns=ord[(ord.indexOf(p.status)+1)%3];await sb.from('korea_pcs').update({status:ns}).eq('id',id);S.pcs=S.pcs.map(x=>x.id===id?{...x,status:ns}:x);render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[cyclePC]',e);}
+}
+async function editGameToday(id){
+  const pc=S.pcs.find(p=>p.id===id);if(!pc)return;
+  const v=prompt((S.lang==='ko'?'오늘 이 PC에서 실행 중인 게임:':'Game running on this PC today:'),pc.game||'Lineage');
+  if(v===null)return;
+  try{
+    const {error}=await sb.from('korea_pcs').update({game:v.trim()||null}).eq('id',id);
+    if(error){toast(error.message,'err');console.error(error);return;}
+    S.pcs=S.pcs.map(p=>p.id===id?{...p,game:v.trim()||null}:p);
+    toast('Game updated ✓');render();
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 function editNote(id){document.getElementById(`ne-${id}`).style.display='';}
 async function saveNote(id){
