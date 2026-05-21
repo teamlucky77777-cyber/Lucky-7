@@ -366,7 +366,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.0 · Build: 20260519-58</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.1 · Build: 20260519-59</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -828,7 +828,7 @@ function pgPCs(){
     const sc=selectedPC.status==='Online'?'var(--ok)':selectedPC.status==='Warning'?'var(--warn)':'var(--re)';
     const assignedMember=S.team.find(m=>m.id===selectedPC.assigned_to);
     const cell=(label,val,color)=>`<div class="pc-detail-cell">${label}<strong style="${color?`color:${color}`:''}">${val}</strong></div>`;
-    detail=shead((ko?'상세':'Detail')+' · PC-'+String(selectedPC.num).padStart(2,'0'),'Open remote')
+    detail=shead((ko?'상세':'Detail')+' · PC-'+String(selectedPC.num).padStart(2,'0'),(ko?'원격 접속':'Open remote'),'openRemote('+selectedPC.id+')')
       +`<div class="pc-detail">`
         +cell(ko?'상태':'Status',selectedPC.status,sc)
         +cell(ko?'운영자':'Player',selectedPC.assigned_name||(ko?'미배정':'Unassigned'))
@@ -836,9 +836,10 @@ function pgPCs(){
         +cell(ko?'도구':'Tool',assignedMember?.tool||'—')
         +cell(ko?'마지막 접속':'Last seen',selectedPC.status==='Online'?(ko?'방금':'just now'):'—')
         +cell(ko?'메모':'Note',selectedPC.note?esc(selectedPC.note):'—')
+        +cell(ko?'원격 링크':'Remote',selectedPC.remote_link?esc(selectedPC.remote_link):'—')
       +`</div>`;
     if(isMgr){
-      detail+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 24px"><span style="font-size:11px;color:var(--tx3);align-self:center;margin-right:2px">${ko?'상태:':'Status:'}</span>${['Online','Warning','Offline'].map(st=>{const active=selectedPC.status===st;const c=st==='Online'?'var(--ok)':st==='Warning'?'var(--warn)':'var(--re)';const lbl=ko?({Online:'온라인',Warning:'주의',Offline:'오프라인'})[st]:st;return '<button class="btn-sm" onclick="setPCStatus('+selectedPC.id+',\''+st+'\')" style="'+(active?'background:'+c+';color:#fff;border-color:'+c:'color:'+c)+'">● '+lbl+'</button>';}).join('')}<select onchange="assignPC(${selectedPC.id},this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-c);color:var(--tx)"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${selectedPC.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select><button class="btn-sm" onclick="editNote(${selectedPC.id})">✏ ${ko?'메모':'Note'}</button><button class="btn-del btn-sm" onclick="removePC(${selectedPC.id},${selectedPC.num})">🗑 ${ko?'삭제':'Remove'}</button></div><div id="ne-${selectedPC.id}" style="display:none;margin:-12px 0 24px"><div style="display:flex;gap:8px"><input id="ni-${selectedPC.id}" value="${esc(selectedPC.note||'')}" placeholder="Note..." style="flex:1;padding:7px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg-i);color:var(--tx)"><button class="btn-add btn-sm" onclick="saveNote(${selectedPC.id})">${ko?'저장':'Save'}</button></div></div>`;
+      detail+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 24px"><span style="font-size:11px;color:var(--tx3);align-self:center;margin-right:2px">${ko?'상태:':'Status:'}</span>${['Online','Warning','Offline'].map(st=>{const active=selectedPC.status===st;const c=st==='Online'?'var(--ok)':st==='Warning'?'var(--warn)':'var(--re)';const lbl=ko?({Online:'온라인',Warning:'주의',Offline:'오프라인'})[st]:st;return '<button class="btn-sm" onclick="setPCStatus('+selectedPC.id+',\''+st+'\')" style="'+(active?'background:'+c+';color:#fff;border-color:'+c:'color:'+c)+'">● '+lbl+'</button>';}).join('')}<select onchange="assignPC(${selectedPC.id},this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-c);color:var(--tx)"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${selectedPC.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select><button class="btn-sm" onclick="editNote(${selectedPC.id})">✏ ${ko?'메모':'Note'}</button><button class="btn-sm" onclick="setRemotePrompt(${selectedPC.id})">🔗 ${ko?'원격':'Remote'}</button><button class="btn-del btn-sm" onclick="removePC(${selectedPC.id},${selectedPC.num})">🗑 ${ko?'삭제':'Remove'}</button></div><div id="ne-${selectedPC.id}" style="display:none;margin:-12px 0 24px"><div style="display:flex;gap:8px"><input id="ni-${selectedPC.id}" value="${esc(selectedPC.note||'')}" placeholder="Note..." style="flex:1;padding:7px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg-i);color:var(--tx)"><button class="btn-add btn-sm" onclick="saveNote(${selectedPC.id})">${ko?'저장':'Save'}</button></div></div>`;
     }
   }
 
@@ -1413,6 +1414,33 @@ async function assignPC(pcId,userId){
     toast(userId?'Assigned ✓':'Unassigned');
     render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[assignPC]',e);}
+}
+async function openRemote(id){
+  const pc=S.pcs.find(p=>p.id===id);if(!pc)return;
+  let link=pc.remote_link;
+  if(!link){
+    if(can('pcs_edit')){
+      const v=prompt((S.lang==='ko'?'PC-':'No remote link set for PC-')+String(pc.num).padStart(2,'0')+'.\n\n'+(S.lang==='ko'?'원격 링크 또는 ID 입력 (예: AnyDesk ID, MeshCentral URL, Tailscale IP):':'Enter a remote link or ID (e.g. AnyDesk ID, MeshCentral URL, Tailscale IP):'));
+      if(v&&v.trim()){await saveRemote(id,v.trim());link=v.trim();}else return;
+    }else{toast('No remote link set for this PC','err');return;}
+  }
+  if(/^https?:\/\//i.test(link)){window.open(link,'_blank');toast('Opening remote…');}
+  else{try{await navigator.clipboard.writeText(link);toast('Remote ID copied: '+link+' — paste into your remote tool ✓',undefined,6000);}catch(e){alert('Remote ID for PC-'+pc.num+': '+link);}}
+}
+async function setRemotePrompt(id){
+  const pc=S.pcs.find(p=>p.id===id);if(!pc)return;
+  const v=prompt((S.lang==='ko'?'PC-':'Remote link/ID for PC-')+String(pc.num).padStart(2,'0')+':',pc.remote_link||'');
+  if(v===null)return;
+  await saveRemote(id,v.trim());
+  render();
+}
+async function saveRemote(id,v){
+  try{
+    const {error}=await sb.from('korea_pcs').update({remote_link:v||null}).eq('id',id);
+    if(error){if(/remote_link|column/i.test(error.message))alert('Database needs a column for this.\n\nRun in Supabase SQL Editor:\nALTER TABLE public.korea_pcs ADD COLUMN IF NOT EXISTS remote_link TEXT;\n\nError: '+error.message);else toast(error.message,'err');console.error(error);return;}
+    S.pcs=S.pcs.map(p=>p.id===id?{...p,remote_link:v||null}:p);
+    toast('Remote link saved ✓');
+  }catch(e){toast('Error: '+e.message,'err');console.error('[saveRemote]',e);}
 }
 async function setPCStatus(id,status){
   try{
