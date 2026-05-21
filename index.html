@@ -382,7 +382,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.1 · Build: 20260521-79</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.2 · Build: 20260521-80</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -864,7 +864,7 @@ function pgPCs(){
   }).join('');
 
   // PC grid
-  const grid=filtered.map(p=>`<div class="pc ${selectedPC&&selectedPC.id===p.id?'selected':''}" data-st="${p.status}" onclick="S.pcSelected=${p.id};render()" style="padding:12px 8px;text-align:left"><span class="pc-status-dot"></span><div class="pc-num">PC-${String(p.num).padStart(2,'0')}</div><div class="pc-player">${p.assigned_name?esc(p.assigned_name):'—'}</div></div>`).join('');
+  const grid=filtered.map(p=>{const gameInfo=p.char_level||p.char_class?'LV.'+esc(p.char_level||'?')+' '+esc(p.char_class||''):p.maple_level||p.maple_class?'🍁 LV.'+esc(p.maple_level||'?')+' '+esc(p.maple_class||''):'';return`<div class="pc ${selectedPC&&selectedPC.id===p.id?'selected':''}" data-st="${p.status}" onclick="S.pcSelected=${p.id};render()" style="padding:12px 8px;text-align:left"><span class="pc-status-dot"></span><div class="pc-num">PC-${String(p.num).padStart(2,'0')}</div><div class="pc-player">${p.assigned_name?esc(p.assigned_name):'—'}</div>${gameInfo?`<div style="font-size:9px;color:var(--ac);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${gameInfo.trim()}</div>`:''}</div>`;}).join('');
 
   // detail panel
   const assignableMembers=S.team.filter(m=>['manager','hr','staff'].includes(m.role)||m.id===S.profile.id);
