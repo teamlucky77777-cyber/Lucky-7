@@ -366,7 +366,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.5 · Build: 20260519-63</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v6.6 · Build: 20260519-64</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -772,7 +772,7 @@ function pgDash(){
       +metric(ko?'온라인 PC':'PCs online',onlinePc,'/ '+totalPc,uptime+'% uptime','up',onlinePc,'var(--ac)')
       +metric(ko?'팀원':'Team members',teamN,'',online.length+' online','up',teamN,'var(--ac)')
       +metric(ko?'진행 업무':'Open tasks',openT,'',p1+' P1','neutral',null)
-      +metric(ko?'활성 매출':'Active revenue',revFmt,'',activeC+' clients','up',activeC,'var(--ac)')
+      +(can('clients')?metric(ko?'활성 매출':'Active revenue',revFmt,'',activeC+(ko?' 고객':' clients'),'up',activeC,'var(--ac)'):metric(ko?'완료 업무':'Tasks done',S.tasks.filter(t=>t.status==='Done').length,'',ko?'완료됨':'completed','up',S.tasks.filter(t=>t.status==='Done').length,'var(--ac)'))
     +`</div>`
     +shead(ko?'온라인':'Online now',online.length)
     +`<div class="presence-row">${online.length?online.map(m=>`<div class="presence-chip"><div style="position:relative">${av(m.name,m.initials,24,m.avatar_url||null)}<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;background:var(--ok);border-radius:50%;border:2px solid var(--bg-sb)"></span></div><div><div class="presence-chip-name">${esc(m.name)}</div><div class="presence-chip-role">${ROLE_LABELS[m.role]||m.role}</div></div></div>`).join(''):`<div style="color:var(--tx3);font-size:13px">No one else online right now</div>`}</div>`
