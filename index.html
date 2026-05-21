@@ -274,6 +274,17 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .task-check.ip{border-color:var(--ye);background:var(--ye-bg)}
 .task-meta{font-size:11px;color:var(--tx3)}
 .empty{padding:60px 20px;text-align:center;color:var(--tx3);border:1px dashed var(--br2);border-radius:10px;font-size:13px}
+
+/* ─── Recruitment kanban ─── */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kcol{background:var(--bg-sb);border:1px solid var(--br);border-radius:10px;padding:10px}
+.kcol-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px}
+.kcol-name{font-size:12px;font-weight:600;color:var(--tx)}
+.kcol-cnt{font-size:11px;color:var(--tx3);background:var(--bg-a);padding:1px 8px;border-radius:10px}
+.kcard{background:var(--bg-c);border:1px solid var(--br);border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.kcard:hover{border-color:var(--br2)}
+.kcard-name{font-size:13px;font-weight:500}
+@media(max-width:820px){.kanban{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -344,7 +355,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.1 · Build: 20260519-49</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.2 · Build: 20260519-50</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1076,39 +1087,57 @@ function pgRecruitment(){
     +'</div>'
     +'<div style="display:flex;gap:8px"><button class="btn-add" onclick="addRecruitFull()">'+(ko?'저장':'Save')+'</button><button onclick="S.showAddRecruit=false;render()">'+(ko?'취소':'Cancel')+'</button></div></div>':'';
 
-  const rows=S.recruits.length?S.recruits.map(r=>{
-    const st=getStatus(r);
-    const stC=st==='pass'?'var(--gr)':st==='fail'?'var(--re)':'var(--ye)';
-    const stBg=st==='pass'?'var(--gr-bg)':st==='fail'?'var(--re-bg)':'var(--ye-bg)';
-    const stL=st==='pass'?'✓ Pass':st==='fail'?'✗ Fail':'• Pending';
-    const cpuOk=cpuPass(r.cpu);const gpuOk=gpuPass(r.gpu);const ramOk=ramPass(r.ram);const spdOk=spdPass(r.speed);
+  const metric=(label,value,delta,dir)=>{const arrow=dir==='down'?'↓':dir==='neutral'?'·':'↑';const acls=dir==='down'?'arrow down':dir==='neutral'?'arrow neutral':'arrow';return '<div class="metric"><div class="metric-label">'+label+'</div><div class="metric-row"><div class="metric-value">'+value+'</div></div><div class="metric-delta"><span class="'+acls+'">'+arrow+'</span><span>'+delta+'</span></div></div>';};
+  const sbadge=st=>{const map={pass:['var(--gr-bg)','var(--gr)','✓ Pass'],fail:['var(--re-bg)','var(--re)','✗ Fail'],pending:['var(--ye-bg)','var(--ye)','• Pending']};const a=map[st]||map.pending;return '<span class="badge" style="background:'+a[0]+';color:'+a[1]+'"><span class="dot" style="background:'+a[1]+'"></span>'+a[2]+'</span>';};
+  const stages=['Applied','Interview','Trial','Hired'];
+  const view=S.recView||'table';const fStage=S.recStage||'All';const fStat=S.recStat||'All';
+  const filtered=S.recruits.filter(r=>(fStage==='All'||(r.stage||'Applied')===fStage)&&(fStat==='All'||(fStat==='Pass'?getStatus(r)==='pass':getStatus(r)!=='pass')));
+  const col=ok=>ok===false?'color:var(--re)':ok===true?'color:var(--gr)':'color:var(--tx2)';
+  const tRows=filtered.length?filtered.map((r,i)=>{
+    const st=getStatus(r);const cpuOk=cpuPass(r.cpu),gpuOk=gpuPass(r.gpu),ramOk=ramPass(r.ram),spdOk=spdPass(r.speed);
+    const stageCell=can('recruitment')?'<select onchange="moveRecruit('+r.id+',this.value)" style="font-size:11px;padding:4px 7px;border:1px solid var(--br2);border-radius:6px;background:var(--bg-i);color:var(--tx);font-family:inherit">'+stages.map(s=>'<option'+((r.stage||'Applied')===s?' selected':'')+'>'+s+'</option>').join('')+'</select>':'<span style="font-size:12px;color:var(--tx2)">'+(r.stage||'Applied')+'</span>';
     return '<tr>'
-      +'<td><strong>'+(r.name||'')+'</strong><br><span style="font-size:11px;color:var(--tx3)">'+(r.source||'')+' · '+(r.date_applied||'')+'</span></td>'
-      +'<td style="font-size:12px;'+(cpuOk===false?'color:var(--re)':cpuOk===true?'color:var(--gr)':'')+'">'+(r.cpu||'—')+'</td>'
-      +'<td style="font-size:12px;'+(gpuOk===false?'color:var(--re)':gpuOk===true?'color:var(--gr)':'')+'">'+(r.gpu||'—')+'</td>'
-      +'<td style="font-size:12px;'+(ramOk===false?'color:var(--re)':ramOk===true?'color:var(--gr)':'')+'">'+(r.ram?r.ram+'GB':'—')+'</td>'
-      +'<td style="font-size:12px;'+(spdOk===false?'color:var(--re)':spdOk===true?'color:var(--gr)':'')+'">'+(r.speed?r.speed+' Mbps':'—')+'</td>'
-      +'<td style="font-size:12px">'+(r.os||'—')+'</td>'
-      +'<td style="text-align:center">'+(r.static_ip===true?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'—')+'</td>'
-      +'<td style="text-align:center">'+(r.lan_cable===true?'<span style="color:var(--gr)">✓</span>':r.lan_cable===false?'<span style="color:var(--re)">✗</span>':'—')+'</td>'
-      +'<td><span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:'+stBg+';color:'+stC+';white-space:nowrap;display:inline-block">'+stL+'</span></td>'
-      +'<td style="font-size:11px;color:var(--tx2)">'+(r.stage||'Applied')+'</td>'
-      +'<td><button class="btn-del" onclick="delRecruit('+r.id+')">🗑</button></td>'
+      +'<td><div style="display:flex;align-items:center;gap:10px">'+av(r.name,null,28)+'<div><div style="font-weight:500">'+esc(r.name||'')+'</div><div style="font-size:11px;color:var(--tx3)">'+esc(r.source||'')+(r.date_applied?' · '+esc(r.date_applied):'')+'</div></div></div></td>'
+      +'<td style="font-size:12px;'+col(cpuOk)+'">'+esc(r.cpu||'—')+'</td>'
+      +'<td style="font-size:12px;'+col(gpuOk)+'">'+esc(r.gpu||'—')+'</td>'
+      +'<td style="font-size:12px;'+col(ramOk)+'">'+(r.ram?esc(r.ram)+'GB':'—')+'</td>'
+      +'<td style="font-size:12px;'+col(spdOk)+'">'+(r.speed?esc(r.speed)+' Mbps':'—')+'</td>'
+      +'<td style="font-size:12px;color:var(--tx2)">'+esc(r.os||'—')+'</td>'
+      +'<td style="text-align:center">'+(r.static_ip===true?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'<span style="color:var(--tx3)">—</span>')+'</td>'
+      +'<td style="text-align:center">'+(r.lan_cable===true?'<span style="color:var(--gr)">✓</span>':r.lan_cable===false?'<span style="color:var(--re)">✗</span>':'<span style="color:var(--tx3)">—</span>')+'</td>'
+      +'<td>'+sbadge(st)+'</td><td>'+stageCell+'</td>'
+      +(can('recruitment')?'<td style="text-align:right"><button class="btn-del btn-sm" onclick="delRecruit('+r.id+')">🗑</button></td>':'<td></td>')
       +'</tr>';
-  }).join(''):'<tr><td colspan="11" class="nodata">'+(ko?'지원자 없음':'No applicants yet')+'</td></tr>';
-
-  const trackerHTML='<div class="mets">'
-    +'<div class="met"><div class="mv cb">'+S.recruits.length+'</div><div class="ml">Total</div></div>'
-    +'<div class="met"><div class="mv cg">'+S.recruits.filter(r=>getStatus(r)==='pass').length+'</div><div class="ml">Pass</div></div>'
-    +'<div class="met"><div class="mv ca">'+S.recruits.filter(r=>getStatus(r)==='pending').length+'</div><div class="ml">Pending</div></div>'
-    +'<div class="met"><div class="mv cr">'+S.recruits.filter(r=>getStatus(r)==='fail').length+'</div><div class="ml">Fail</div></div>'
+  }).join(''):'<tr><td colspan="11" class="empty" style="border:none">'+(ko?'지원자 없음':'No applicants')+'</td></tr>';
+  const kanban='<div class="kanban">'+stages.map(st=>{
+    const cards=S.recruits.filter(r=>(r.stage||'Applied')===st);
+    const cardHtml=cards.length?cards.map((c,i)=>{
+      const status=getStatus(c);
+      const moveSel=can('recruitment')?'<select onchange="moveRecruit('+c.id+',this.value)" style="margin-top:8px;width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--br2);border-radius:5px;background:var(--bg-i);color:var(--tx2);font-family:inherit">'+stages.map(s=>'<option'+(st===s?' selected':'')+'>'+s+'</option>').join('')+'</select>':'';
+      return '<div class="kcard"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+av(c.name,null,26)+'<div class="kcard-name" style="flex:1;margin-bottom:0">'+esc(c.name)+'</div></div><div style="font-size:11px;color:var(--tx2);line-height:1.6">'+(c.cpu?esc(c.cpu):'<em style="color:var(--tx3)">specs pending</em>')+(c.ram?'<div>'+esc(c.ram)+'GB · '+esc(c.speed||'?')+' Mbps</div>':'')+'</div><div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;align-items:center;justify-content:space-between"><span>'+sbadge(status)+'</span><span style="font-size:10px;color:var(--tx3)">'+esc(c.source||'')+'</span></div>'+moveSel+'</div>';
+    }).join(''):'<div style="font-size:11px;color:var(--tx3);padding:12px 4px;text-align:center;border:1px dashed var(--br2);border-radius:6px">Empty</div>';
+    return '<div class="kcol"><div class="kcol-h"><span class="kcol-name">'+st+'</span><span class="kcol-cnt">'+cards.length+'</span></div>'+cardHtml+'</div>';
+  }).join('')+'</div>';
+  const stagePills='<div class="pill-row" style="margin-bottom:0;align-items:center"><span style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;margin-right:6px">'+(ko?'단계':'Stage')+'</span>'+['All',...stages].map(s=>'<button class="pill '+(fStage===s?'on':'')+'" onclick="S.recStage=\''+s+'\';render()">'+s+'</button>').join('')+'</div>';
+  const statPills='<div class="pill-row" style="margin-bottom:0">'+['All','Pass','Pending'].map(s=>'<button class="pill '+(fStat===s?'on':'')+'" onclick="S.recStat=\''+s+'\';render()">'+s+'</button>').join('')+'</div>';
+  const viewPills='<div class="pill-row" style="margin-bottom:0"><button class="pill '+(view==='table'?'on':'')+'" onclick="S.recView=\'table\';render()">'+(ko?'테이블':'Table')+'</button><button class="pill '+(view==='kanban'?'on':'')+'" onclick="S.recView=\'kanban\';render()">'+(ko?'파이프라인':'Pipeline')+'</button></div>';
+  const passRate=S.recruits.length?Math.round(S.recruits.filter(r=>getStatus(r)==='pass').length/S.recruits.length*100):0;
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px"><div>'
+    +'<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'사람':'People')+'</div>'
+    +'<div class="ph" style="margin-bottom:6px">'+(ko?'채용':'Recruitment')+'</div>'
+    +'<div class="psub" style="margin:0">'+S.recruits.length+' '+(ko?'지원자':'candidates')+' · '+S.recruits.filter(r=>getStatus(r)==='pass').length+' '+(ko?'스펙 통과':'passed specs check')+'</div></div>'
+    +'<div style="display:flex;gap:8px">'+(can('recruit_settings')?'<button class="btn-sm" onclick="S.showReqs=!S.showReqs;render()">'+(ko?'요구사항':'Requirements')+'</button>':'')+(can('recruitment')?'<button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ '+(ko?'지원자 추가':'Add applicant')+'</button>':'')+'</div></div>'
+    +'<div class="metric-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">'
+      +metric(ko?'지원':'Applied',S.recruits.filter(r=>(r.stage||'Applied')==='Applied').length,ko?'검토 대기':'awaiting review','neutral')
+      +metric(ko?'인터뷰':'Interview',S.recruits.filter(r=>r.stage==='Interview').length,ko?'이번 주':'this week','up')
+      +metric(ko?'트라이얼':'Trial',S.recruits.filter(r=>r.stage==='Trial').length,ko?'진행 중':'active trials','neutral')
+      +metric(ko?'통과율':'Pass rate',passRate+'%',ko?'전체':'of all applicants','up')
     +'</div>'
-    +criteriaHTML+(can('recruit_settings')?'<div style="margin-bottom:16px;text-align:right"><button class="btn-sm" onclick="S.showEditReqs=!S.showEditReqs;render()">⚙️ '+(ko?'기준 편집':'Edit criteria')+'</button></div>':'')+(S.showEditReqs&&can('recruit_settings')?reqsEditForm:'')
-    +'<div class="shr"><div class="sh">'+(ko?'지원자 목록':'Applicants')+'</div><button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ '+(ko?'추가':'Add applicant')+'</button></div>'
+    +(S.showReqs?criteriaHTML+(can('recruit_settings')?'<div style="margin-bottom:16px;text-align:right"><button class="btn-sm" onclick="S.showEditReqs=!S.showEditReqs;render()">⚙️ '+(ko?'기준 편집':'Edit criteria')+'</button></div>':'')+(S.showEditReqs&&can('recruit_settings')?reqsEditForm:''):'')
+    +'<div class="toolbar">'+stagePills+'<div style="display:flex;gap:8px;align-items:center">'+statPills+'<div style="width:1px;height:22px;background:var(--br)"></div>'+viewPills+'</div></div>'
     +addForm
-    +'<div class="tw"><table><thead><tr><th>Name</th><th>CPU</th><th>GPU</th><th>RAM</th><th>Speed</th><th>OS</th><th>Static IP</th><th>LAN</th><th>Status</th><th>Stage</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-
-  return '<div class="ph">🎯 '+(ko?'채용':'Recruitment')+'</div>'+trackerHTML;
+    +(view==='table'?'<div class="section-head"><div class="section-title">'+(ko?'지원자':'Applicants')+'<span class="count">'+filtered.length+'</span></div></div><div class="tw"><table><thead><tr><th>'+(ko?'이름':'Name')+'</th><th>CPU</th><th>GPU</th><th>RAM</th><th>'+(ko?'속도':'Speed')+'</th><th>OS</th><th style="text-align:center">Static IP</th><th style="text-align:center">LAN</th><th>Status</th><th>'+(ko?'단계':'Stage')+'</th><th></th></tr></thead><tbody>'+tRows+'</tbody></table></div>'
+      :'<div class="section-head"><div class="section-title">'+(ko?'파이프라인':'Pipeline')+'<span class="count">'+S.recruits.length+'</span></div></div>'+kanban);
 }
 
 async function addRecruitFull(){
@@ -1440,6 +1469,7 @@ async function changeRole(id,role){
   try{
     if(!confirm(`Change this user's role to ${ROLE_LABELS[role]}?`))return;await sb.from('user_profiles').update({role}).eq('id',id);S.team=S.team.map(m=>m.id===id?{...m,role}:m);render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[changeRole]',e);}
+}
 
 async function setPagePerm(role,perm,on){
   if(!S.rolePerms)S.rolePerms={};
@@ -1451,7 +1481,6 @@ async function setPagePerm(role,perm,on){
     if(error){toast('Save failed: '+error.message,'err');console.error(error);}
     else toast('Access updated ✓');
   }catch(e){toast('Error: '+e.message,'err');console.error('[setPagePerm]',e);}
-}
 }
 
 function toast(msg,type='ok',dur){
