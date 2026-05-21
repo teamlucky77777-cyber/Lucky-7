@@ -6,7 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>🍀 Lucky 7</title>
+<title>Lucky 7</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%234d9a8a%27/%3E%3Ctext%20x%3D%2716%27%20y%3D%2722%27%20font-family%3D%27Arial%2CHelvetica%2Csans-serif%27%20font-size%3D%2715%27%20font-weight%3D%27700%27%20fill%3D%27%23ffffff%27%20text-anchor%3D%27middle%27%3EL7%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -365,7 +366,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.7 · Build: 20260519-55</div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v5.9 · Build: 20260519-57</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -422,7 +423,7 @@ const can = (f) => {
 const roleHas=(role,perm)=>{if(role==='ceo'||role==='manager')return (PERMS[role]||[]).includes(perm);const ov=S.rolePerms&&S.rolePerms[role];if(ov&&Object.prototype.hasOwnProperty.call(ov,perm))return !!ov[perm];return (PERMS[role]||[]).includes(perm);};
 
 const ROLE_LABELS = { ceo:'CEO', manager:'Manager', settlement:'Settlement', hr:'HR', staff:'Staff Player' };
-const ROLE_ICONS = { ceo:'👑', manager:'🟢', settlement:'💰', hr:'👥', staff:'🎮' };
+const ROLE_ICONS = { ceo:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:1px"><path d="M3 17h18"/><path d="M5 17l-1.6-9 5 3.5L12 5l3.6 6.5 5-3.5L19 17"/></svg>', manager:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:1px"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 8.5-4-1-7-4-7-8.5V6z"/><path d="M9 12l2 2 4-4"/></svg>', settlement:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:1px"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M16 12h2"/><path d="M2.5 9.5h19"/></svg>', hr:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:1px"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-6A3.5 3.5 0 0 0 3 18.5V20"/><circle cx="9.5" cy="8" r="3.2"/><path d="M21 20v-1.5a3.5 3.5 0 0 0-2.6-3.4"/><path d="M15.5 5a3.2 3.2 0 0 1 0 6"/></svg>', staff:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:1px"><path d="M19 20v-1.5a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4V20"/><circle cx="12" cy="8" r="3.6"/></svg>' };
 
 const NAV_ITEMS=[
   {key:'dashboard',label:'Dashboard',labelKo:'대시보드',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>`,perm:'dash',sec:null},
@@ -837,7 +838,7 @@ function pgPCs(){
         +cell(ko?'메모':'Note',selectedPC.note?esc(selectedPC.note):'—')
       +`</div>`;
     if(isMgr){
-      detail+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 24px"><button class="btn-sm" onclick="cyclePC(${selectedPC.id})">↻ ${ko?'상태 변경':'Cycle status'}</button><select onchange="assignPC(${selectedPC.id},this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-c);color:var(--tx)"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${selectedPC.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select><button class="btn-sm" onclick="editNote(${selectedPC.id})">✏ ${ko?'메모':'Note'}</button><button class="btn-del btn-sm" onclick="removePC(${selectedPC.id},${selectedPC.num})">🗑 ${ko?'삭제':'Remove'}</button></div><div id="ne-${selectedPC.id}" style="display:none;margin:-12px 0 24px"><div style="display:flex;gap:8px"><input id="ni-${selectedPC.id}" value="${esc(selectedPC.note||'')}" placeholder="Note..." style="flex:1;padding:7px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg-i);color:var(--tx)"><button class="btn-add btn-sm" onclick="saveNote(${selectedPC.id})">${ko?'저장':'Save'}</button></div></div>`;
+      detail+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:-12px 0 24px"><span style="font-size:11px;color:var(--tx3);align-self:center;margin-right:2px">${ko?'상태:':'Status:'}</span>${['Online','Warning','Offline'].map(st=>{const active=selectedPC.status===st;const c=st==='Online'?'var(--ok)':st==='Warning'?'var(--warn)':'var(--re)';const lbl=ko?({Online:'온라인',Warning:'주의',Offline:'오프라인'})[st]:st;return '<button class="btn-sm" onclick="setPCStatus('+selectedPC.id+',\''+st+'\')" style="'+(active?'background:'+c+';color:#fff;border-color:'+c:'color:'+c)+'">● '+lbl+'</button>';}).join('')}<select onchange="assignPC(${selectedPC.id},this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-c);color:var(--tx)"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${selectedPC.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select><button class="btn-sm" onclick="editNote(${selectedPC.id})">✏ ${ko?'메모':'Note'}</button><button class="btn-del btn-sm" onclick="removePC(${selectedPC.id},${selectedPC.num})">🗑 ${ko?'삭제':'Remove'}</button></div><div id="ne-${selectedPC.id}" style="display:none;margin:-12px 0 24px"><div style="display:flex;gap:8px"><input id="ni-${selectedPC.id}" value="${esc(selectedPC.note||'')}" placeholder="Note..." style="flex:1;padding:7px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg-i);color:var(--tx)"><button class="btn-add btn-sm" onclick="saveNote(${selectedPC.id})">${ko?'저장':'Save'}</button></div></div>`;
     }
   }
 
@@ -1288,11 +1289,7 @@ function pgUsers(){
 <div class="ph" style="margin-bottom:6px">${ko?'사용자 역할':'User Roles'}</div>
 <div class="psub" style="margin-bottom:20px">${ko?'각 계정의 역할과 권한을 지정하세요.':'Assign roles and permissions for each account.'}</div>
 <div class="tw"><table><thead><tr><th>${ko?'이름':'Name'}</th><th>${ko?'이메일':'Email'}</th><th>${ko?'역할':'Role'}</th><th>${ko?'마지막 활동':'Last active'}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:14px;font-size:12px;color:#1b5e20;line-height:1.7"><strong>Role summary:</strong><br>
-👑 CEO &amp; 🟢 Manager — Full access to everything<br>
-💰 Settlement — Dashboard, PC Command (view)<br>
-👥 HR — Dashboard, tasks, recruitment, team directory<br>
-🎮 Staff Player — Dashboard, PC Command (view), tasks (mark done), My Order, checklist</div>
+<div style="background:var(--bg-c);border:1px solid var(--br);border-radius:10px;padding:16px 18px;font-size:12px;color:var(--tx2);line-height:2"><div style="font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Role summary</div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ye);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">CEO &amp; Manager</strong> — Full access to everything<br><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--info,#6f93c4);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">Settlement</strong> — Dashboard, PC Command (view)<br><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--pu);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">HR</strong> — Dashboard, tasks, recruitment, team directory<br><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--tx2);margin-right:8px;vertical-align:middle"></span><strong style="color:var(--tx)">Staff</strong> — Dashboard, PC Command (view), tasks (mark done), My Order, checklist</div>
 <div class="section-head" style="margin-top:28px"><div class="section-title">${S.lang==='ko'?'역할별 페이지 접근':'Page access by role'}</div></div>
 <div class="psub" style="margin:-4px 0 14px">${S.lang==='ko'?'각 역할이 볼 수 있는 페이지를 토글하세요. CEO와 매니저는 항상 전체 접근 권한을 가집니다.':'Toggle which pages each role can see. CEO & Manager always have full access.'}</div>
 <div class="tw"><table><thead><tr><th>${S.lang==='ko'?'페이지':'Page'}</th><th style="text-align:center">Settlement</th><th style="text-align:center">HR</th><th style="text-align:center">Staff</th></tr></thead><tbody>${[['dash','Dashboard'],['pcs_view','PC Command'],['checklist','Daily Checklist'],['tasks_view','Tasks'],['clients','Clients'],['team','Staff Directory'],['recruitment','Recruitment'],['reports','Daily Report'],['invite','Invite Codes'],['users','User Roles']].map(([perm,label])=>`<tr><td>${label}</td>${['settlement','hr','staff'].map(role=>`<td style=\"text-align:center\"><input type=\"checkbox\" ${roleHas(role,perm)?'checked':''} onchange=\"setPagePerm('${role}','${perm}',this.checked)\" style=\"width:16px;height:16px;cursor:pointer;accent-color:var(--ac)\"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -1416,6 +1413,15 @@ async function assignPC(pcId,userId){
     toast(userId?'Assigned ✓':'Unassigned');
     render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[assignPC]',e);}
+}
+async function setPCStatus(id,status){
+  try{
+    const {error}=await sb.from('korea_pcs').update({status}).eq('id',id);
+    if(error){toast(error.message,'err');console.error(error);return;}
+    S.pcs=S.pcs.map(p=>p.id===id?{...p,status}:p);
+    toast('PC → '+status+' ✓');
+    render();
+  }catch(e){toast('Error: '+e.message,'err');console.error('[setPCStatus]',e);}
 }
 async function cyclePC(id){
   try{
