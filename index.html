@@ -382,7 +382,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.3 · Build: 20260521-81</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.4 · Build: 20260521-82</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -419,6 +419,44 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.visibilityState === 'visible') refreshSessionIfNeeded();
 });
 window.addEventListener('focus', refreshSessionIfNeeded);
+
+// ── AUTO UPDATE CHECK ──────────────────────────────────────────────────────
+// GitHub Pages caches the old file in the browser, so a new deploy isn't seen
+// until a hard refresh. This quietly fetches the live file, reads its build
+// number, and if it's newer than what's running, shows a one-tap Reload banner.
+let _lastUpdateCheck = 0;
+function runningBuild(){
+  const el=document.getElementById('app-version');
+  const m=(el?el.textContent:'').match(/Build:\s*([0-9-]+)/);
+  return m?m[1]:null;
+}
+function showUpdateBanner(){
+  if(document.getElementById('update-banner')) return;
+  const ko=(typeof S!=='undefined'&&S.lang==='ko');
+  const b=document.createElement('div');
+  b.id='update-banner';
+  b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:10000;background:#4d9a8a;color:#04160c;padding:12px 16px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:14px;font-size:13px;font-weight:600;animation:slideIn .2s ease';
+  b.innerHTML='<span>🔄 '+(ko?'새 버전이 있습니다':'New version available')+'</span>'
+    +'<button onclick="location.replace(location.pathname+\'?_=\'+Date.now())" style="background:#04160c;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px">'+(ko?'새로고침':'Reload now')+'</button>';
+  document.body.appendChild(b);
+}
+async function checkForUpdate(){
+  const now=Date.now();
+  if(now - _lastUpdateCheck < 60000) return; // at most once per minute
+  _lastUpdateCheck = now;
+  try{
+    const res=await fetch(location.pathname+'?_cb='+now, {cache:'no-store'});
+    if(!res.ok) return;
+    const txt=await res.text();
+    const m=txt.match(/Build:\s*([0-9-]+)/);
+    const live=m?m[1]:null;
+    const cur=runningBuild();
+    if(live && cur && live!==cur) showUpdateBanner();
+  }catch(e){ /* offline or fetch blocked — ignore */ }
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') checkForUpdate(); });
+window.addEventListener('focus', checkForUpdate);
+setInterval(checkForUpdate, 120000); // also check every 2 minutes while open
 
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
@@ -1981,6 +2019,7 @@ function toast(msg,type='ok',dur){
 }
 
 init();
+setTimeout(checkForUpdate, 8000); // first update check shortly after load
 </script>
 </body>
 </html>
