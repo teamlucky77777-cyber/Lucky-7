@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.1 · Build: 20260521-99</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.2 · Build: 20260521-100</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1707,15 +1707,21 @@ const LINEAGE_MONSTERS=[
   {kr:'발라카스',en:'Valakas',lv:95,hp:26000,mp:450,ac:-99,mr:99,exp:9026,boss:true,trEn:'Weak: Water, Aggressive, Weapon Dmg',trKr:'보스,약점:물,선공,무기손상',zones:[{en:'Valakas Lair',kr:'발라카스의 둥지'}]}
 ];
 function reqExp(L){return Math.round(74465*Math.pow(1.204,L-26));}
-function calcResultHTML(exp,kph,hours,lvl0,pct0){
+function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,perKillPct){
   const ko=S.lang==='ko';const fmt=n=>Math.round(n).toLocaleString();
-  const total=exp*kph*hours;
   lvl0=Math.max(1,Math.round(lvl0)||1);pct0=Math.min(100,Math.max(0,pct0));
+  const calibrated=perKillPct>0;
+  const exp=calibrated?(perKillPct/100)*reqExp(lvl0):baseExp;
+  const total=exp*kph*hours;
   let lvl=lvl0,pool=(pct0/100)*reqExp(lvl)+total,g=0;
   while(pool>=reqExp(lvl)&&g<800){pool-=reqExp(lvl);lvl++;g++;}
   const endPct=Math.min(100,pool/reqExp(lvl)*100);
   const sessPct=reqExp(lvl0)>0?total/reqExp(lvl0)*100:0;
   const M=(l,v,c)=>'<div><div style="font-size:11px;color:var(--tx3)">'+l+'</div><div style="font-size:19px;font-weight:700;color:'+c+'">'+v+'</div></div>';
+  const gap=monLv>0?lvl0-monLv:0;
+  let warn='';
+  if(!calibrated&&gap>5){warn='<div style="margin-top:12px;padding:10px 12px;background:rgba(217,148,58,.12);border:1px solid rgba(217,148,58,.4);border-radius:8px;font-size:11px;color:var(--warn,#d9943a);line-height:1.6">'+(ko?'⚠ 캐릭터가 이 몬스터보다 '+gap+'레벨 높습니다. 실제 게임 EXP는 레벨 페널티로 위 수치보다 훨씬 적습니다. 정확히 계산하려면 인게임에서 1마리 잡고 오른 %를 아래 칸에 입력하세요.':'⚠ You are '+gap+' levels above this monster. Real in-game EXP is much lower than shown due to the over-level penalty. For an accurate result, kill one in-game, read the % gained, and enter it below.')+'</div>';}
+  else if(calibrated){warn='<div style="margin-top:12px;font-size:11px;color:#5fae7a">'+(ko?'✓ 인게임 실측 %로 계산됨 ('+exp.toFixed(0)+' EXP/킬)':'✓ Using your observed in-game % ('+exp.toFixed(0)+' EXP/kill)')+'</div>';}
   return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">'
     +M(ko?'총 처치':'Total kills',fmt(kph*hours),'var(--ac-strong)')
     +M(ko?'시간당 EXP':'EXP / hour',fmt(exp*kph),'var(--ac-strong)')
@@ -1723,12 +1729,12 @@ function calcResultHTML(exp,kph,hours,lvl0,pct0){
   +'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid var(--br);padding-top:14px">'
     +M(ko?'획득 %':'% gained','+'+sessPct.toFixed(4)+'%','#5fae7a')
     +M(ko?'도달':'Ends at','Lv.'+lvl+' · '+endPct.toFixed(4)+'%','#5fae7a')
-  +'</div>'+(g>0?'<div style="font-size:11px;color:var(--tx3);margin-top:8px">'+(ko?'세션 중 약 '+g+'레벨 상승':'≈ '+g+' level'+(g>1?'s':'')+' gained this session')+'</div>':'');
+  +'</div>'+(g>0?'<div style="font-size:11px;color:var(--tx3);margin-top:8px">'+(ko?'세션 중 약 '+g+'레벨 상승':'≈ '+g+' level'+(g>1?'s':'')+' gained this session')+'</div>':'')+warn;
 }
 function calcGameExp(){
   const g=id=>parseFloat((document.getElementById(id)||{}).value)||0;
   const r=document.getElementById('calc-result');if(!r)return;
-  r.innerHTML=calcResultHTML(g('calc-exp'),g('calc-kph'),g('calc-hours'),g('calc-lvl'),g('calc-pct'));
+  r.innerHTML=calcResultHTML(g('calc-exp'),g('calc-kph'),g('calc-hours'),g('calc-lvl'),g('calc-pct'),g('calc-mon-lv'),g('calc-perkill'));
 }
 function calcMonSearch(){
   const q=((document.getElementById('calc-mon-search')||{}).value||'').toLowerCase();
@@ -1738,12 +1744,14 @@ function calcMonSearch(){
   const score=m=>{const en=m.en.toLowerCase(),kr=m.kr.toLowerCase();if(en.startsWith(q)||kr.startsWith(q))return 2;if(en.split(/\s+/).some(w=>w.startsWith(q))||kr.split(/\s+/).some(w=>w.startsWith(q)))return 1;return 0;};
   const matches=LINEAGE_MONSTERS.map(m=>({m:m,s:score(m)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||a.m.lv-b.m.lv).slice(0,40).map(x=>x.m);
   if(!matches.length){box.innerHTML='<div style="padding:8px 12px;font-size:12px;color:var(--tx3)">'+(ko?'결과 없음':'No match')+'</div>';box.style.display='block';return;}
-  box.innerHTML=matches.map(m=>{const nm=(ko?m.kr:m.en).replace(/'/g,'');const lbl=nm+' · Lv.'+m.lv;return '<div onmousedown="pickCalcMon('+m.exp+',\''+lbl+'\')" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--br)">'+(m.boss?'<span style=\'color:#e0584f\'>★ </span>':'')+esc(ko?m.kr:m.en)+' <span style=\'color:var(--tx3);font-size:11px\'>Lv.'+m.lv+' · '+m.exp.toLocaleString()+' EXP</span></div>';}).join('');
+  box.innerHTML=matches.map(m=>{const nm=(ko?m.kr:m.en).replace(/'/g,'');const lbl=nm+' · Lv.'+m.lv;return '<div onmousedown="pickCalcMon('+m.exp+','+m.lv+',\''+lbl+'\')" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--br)">'+(m.boss?'<span style=\'color:#e0584f\'>★ </span>':'')+esc(ko?m.kr:m.en)+' <span style=\'color:var(--tx3);font-size:11px\'>Lv.'+m.lv+' · '+m.exp.toLocaleString()+' EXP</span></div>';}).join('');
   box.style.display='block';
 }
-function pickCalcMon(exp,label){
+function pickCalcMon(exp,lv,label){
   const s=document.getElementById('calc-mon-search');if(s)s.value=label;
   const e=document.getElementById('calc-exp');if(e)e.value=exp;
+  const lvEl=document.getElementById('calc-mon-lv');if(lvEl)lvEl.value=lv;
+  const pk=document.getElementById('calc-perkill');if(pk)pk.value='';
   const box=document.getElementById('calc-mon-list');if(box){box.style.display='none';box.innerHTML='';}
   calcGameExp();
 }
@@ -1902,23 +1910,25 @@ function pgGame(){
     +'<div id="mon-count" style="font-size:12px;color:var(--tx2);margin-bottom:10px">'+zkeys.length+(ko?'개 지역 · '+sortedMon.length+'종':' zones · '+sortedMon.length+' monsters')+'</div>'
     +sections;
 
-  const defExp=730,dKph=200,dHrs=9,dLvl=30,dPct=0;
+  const defExp=730,dKph=200,dHrs=9,dLvl=30,dPct=0,dMonLv=27;
   const defLabel=(ko?'다크 엘프':'Dark Elf')+' · Lv.27';
   const inS='width:100%;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px';
   const calcContent='<div class="psub" style="margin-bottom:18px">'+(ko?'몬스터와 사냥 시간으로 예상 경험치와 레벨 %를 계산합니다.':'Estimate EXP and level % from a monster and hunting time.')+'</div>'
     +'<div class="panel" style="max-width:580px">'
+    +'<input type="hidden" id="calc-mon-lv" value="'+dMonLv+'">'
     +'<div class="fg2" style="margin-bottom:14px"><label>'+(ko?'몬스터 검색/선택':'Search a monster')+'</label><div style="position:relative"><input id="calc-mon-search" autocomplete="off" oninput="calcMonSearch()" value="'+esc(defLabel)+'" placeholder="'+(ko?'몬스터 이름 입력...':'Type a monster name...')+'" style="'+inS+'"><div id="calc-mon-list" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--bg-c);border:1px solid var(--br2);border-radius:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div></div></div>'
     +'<div class="fgrid" style="margin-bottom:12px">'
-    +'<div class="fg2"><label>'+(ko?'EXP / 1킬':'EXP per kill')+'</label><input id="calc-exp" type="number" value="'+defExp+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'EXP / 1킬 (기본값)':'EXP per kill (base)')+'</label><input id="calc-exp" type="number" value="'+defExp+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'<div class="fg2"><label>'+(ko?'시간당 처치 수':'Kills per hour')+'</label><input id="calc-kph" type="number" value="'+dKph+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'<div class="fg2"><label>'+(ko?'사냥 시간 (시간)':'Duration (hours)')+'</label><input id="calc-hours" type="number" step="0.5" value="'+dHrs+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'</div>'
-    +'<div class="fgrid" style="margin-bottom:18px">'
+    +'<div class="fgrid" style="margin-bottom:12px">'
     +'<div class="fg2"><label>'+(ko?'현재 레벨':'Current level')+'</label><input id="calc-lvl" type="number" value="'+dLvl+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'<div class="fg2"><label>'+(ko?'현재 % (선택)':'Current % (optional)')+'</label><input id="calc-pct" type="number" step="0.0001" value="'+dPct+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'</div>'
-    +'<div id="calc-result" style="background:var(--bg-i);border:1px solid var(--br);border-radius:10px;padding:16px">'+calcResultHTML(defExp,dKph,dHrs,dLvl,dPct)+'</div>'
-    +'<div style="font-size:11px;color:var(--tx3);margin-top:12px;line-height:1.6">'+(ko?'※ % 는 린클 경험치 공식(1.204^(레벨-10)) 기반 추정치이며 실제와 약간 다를 수 있습니다. 시간당 처치 수는 운영자 속도에 맞게 조정하세요.':'※ % is estimated from the Lineage Classic EXP formula (1.204^(level-10)) and may differ slightly in-game. Adjust kills/hour to your operator\'s pace.')+'</div>'
+    +'<div class="fg2" style="margin-bottom:18px"><label>'+(ko?'⭐ 인게임 1킬 % (정확도↑, 선택)':'⭐ Observed % per 1 kill in-game (most accurate, optional)')+'</label><input id="calc-perkill" type="number" step="0.0001" placeholder="'+(ko?'예: 0.0500 — 입력 시 레벨 페널티까지 반영':'e.g. 0.0500 — overrides base EXP, accounts for level penalty')+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div id="calc-result" style="background:var(--bg-i);border:1px solid var(--br);border-radius:10px;padding:16px">'+calcResultHTML(defExp,dKph,dHrs,dLvl,dPct,dMonLv,0)+'</div>'
+    +'<div style="font-size:11px;color:var(--tx3);margin-top:12px;line-height:1.6">'+(ko?'※ 기본 EXP는 몬스터의 풀 경험치입니다. 캐릭터 레벨이 몬스터보다 많이 높으면 실제 EXP는 레벨 페널티로 크게 줄어듭니다. 가장 정확한 값은 인게임에서 1마리 잡고 오른 %를 위 ⭐칸에 입력하는 것입니다.':'※ Base EXP is the monster\'s full value. If you\'re far above its level, the game gives much less (over-level penalty). For the most accurate result, kill one in-game and enter the % gained in the ⭐ field above.')+'</div>'
     +'</div>';
 
   const body=tab==='monsters'?monstersContent:(tab==='calc'?calcContent:manualContent);
