@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.2 · Build: 20260521-90</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.3 · Build: 20260521-91</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1532,6 +1532,35 @@ async function saveGamePC(id){
     S.editGamePC=null;toast('PC saved ✓');render();
   }catch(e){toast('Error: '+e.message,'err');}
 }
+// ── LINEAGE MONSTER DATA (source: lcinfo.io) ──────────────────────────────
+// Verified entries. Easy to expand — add objects in the same shape.
+const LINEAGE_MONSTERS=[
+  {kr:'개구리',en:'Frog',id:'Katak',lv:1,hp:1,exp:2,loc:'Mainland',locKr:'본토'},
+  {kr:'말미잘',en:'Sea Anemone',id:'Anemon Laut',lv:1,hp:20,exp:2,loc:"Eva's Kingdom",locKr:'에바의 왕국'},
+  {kr:'고블린',en:'Goblin',id:'Goblin',lv:2,hp:3,exp:5,loc:'Mainland, Talking Island',locKr:'본토, 말하는 섬'},
+  {kr:'오리',en:'Duck',id:'Bebek',lv:2,hp:10,exp:5,loc:'Mainland',locKr:'본토'},
+  {kr:'오크',en:'Orc',id:'Orc',lv:2,hp:6,exp:5,loc:'Mainland',locKr:'본토'},
+  {kr:'슬라임',en:'Slime',id:'Slime',lv:6,hp:60,exp:37,loc:'Mainland, Talking Island',locKr:'본토, 말하는 섬'},
+  {kr:'임프 장로',en:'Imp Elder',id:'Imp Tua',lv:6,hp:100,exp:37,loc:'Mainland',locKr:'본토'},
+  {kr:'좀비',en:'Zombie',id:'Zombie',lv:6,hp:45,exp:37,loc:'Mainland, Dungeons',locKr:'본토, 던전'},
+  {kr:'도펠겡어',en:'Doppelganger',id:'Doppelganger',lv:19,hp:280,exp:362,loc:'Mainland',locKr:'본토'},
+  {kr:'폭탄 꽃',en:'Bomb Flower',id:'Bunga Bom',lv:19,hp:180,exp:1142,loc:'Mainland',locKr:'본토'},
+  {kr:'거대 병정 개미',en:'Giant Soldier Ant',id:'Semut Prajurit',lv:20,hp:150,exp:401,loc:'Mainland, Ant Dungeon',locKr:'본토, 개미 던전'},
+  {kr:'다크 엘프',en:'Dark Elf',id:'Elf Gelap',lv:27,hp:350,exp:730,loc:'Mainland, Giran Dungeon 4F',locKr:'본토, 기란 던전 4층'}
+];
+function calcGameExp(){
+  const g=id=>parseFloat((document.getElementById(id)||{}).value)||0;
+  const exp=g('calc-exp'),kph=g('calc-kph'),hours=g('calc-hours');
+  const ko=S.lang==='ko';const fmt=n=>Math.round(n).toLocaleString();
+  const r=document.getElementById('calc-result');if(!r)return;
+  r.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">'
+    +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'총 처치':'Total kills')+'</div><div style="font-size:20px;font-weight:700;color:var(--ac-strong)">'+fmt(kph*hours)+'</div></div>'
+    +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'시간당 EXP':'EXP / hour')+'</div><div style="font-size:20px;font-weight:700;color:var(--ac-strong)">'+fmt(exp*kph)+'</div></div>'
+    +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'총 EXP':'Total EXP')+'</div><div style="font-size:20px;font-weight:700;color:#5fae7a">'+fmt(exp*kph*hours)+'</div></div>'
+  +'</div>';
+}
+function filterMons(){const q=((document.getElementById('mon-search')||{}).value||'').toLowerCase();document.querySelectorAll('#mon-tbody tr').forEach(tr=>{tr.style.display=(tr.getAttribute('data-name')||'').includes(q)?'':'none';});}
+
 function pgGame(){
   const ko=S.lang==='ko';
   const edit=can('game_edit');
@@ -1595,14 +1624,49 @@ function pgGame(){
     return '<div class="panel" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(body?'10px':'0')+'"><div style="font-size:13px;font-weight:600">'+esc(title||'')+'</div>'+(edit?'<button class="btn-sm" onclick="S.editRuleIdx='+i+';render()">✏</button>':'')+'</div>'+(body?'<div style="font-size:13px;color:var(--tx2);line-height:1.8;white-space:pre-wrap">'+esc(body)+'</div>':'<div style="font-size:12px;color:var(--tx3)">'+(ko?'내용 없음 — 편집하여 추가':'Empty — click edit to add')+'</div>')+'</div>';
   }).join('');
 
-  return '<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'운영':'Operations')+'</div>'
-    +'<div class="ph" style="margin-bottom:6px">'+(ko?'리니지 운영 매뉴얼':'Lineage Ops Manual')+'</div>'
-    +'<div class="psub" style="margin-bottom:24px">'+(ko?'PC별 캐릭터 설정과 운영 규칙. 근무 중 열어두세요.':'Per-PC character setup and operating rules. Keep this open during your shift.')+'</div>'
-    +'<div class="section-head"><div class="section-title">'+(ko?'PC 설정':'PC Setup')+'<span class="count">'+confCount+'/'+pcsSorted.length+'</span></div></div>'
+  const tab=S.gameTab||'manual';
+  const tb=(id,lbl)=>'<button onclick="S.gameTab=\''+id+'\';render()" style="padding:8px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(tab===id?'var(--ac)':'transparent')+';color:'+(tab===id?'#1a1407':'var(--tx2)')+'">'+lbl+'</button>';
+  const tabBar='<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:22px">'+tb('manual',ko?'📖 매뉴얼':'📖 Manual')+'<span style="width:1px;background:var(--br)"></span>'+tb('monsters',ko?'👹 몬스터':'👹 Monsters')+'<span style="width:1px;background:var(--br)"></span>'+tb('calc',ko?'🧮 EXP 계산기':'🧮 EXP Calc')+'</div>';
+
+  const manualContent='<div class="section-head"><div class="section-title">'+(ko?'PC 설정':'PC Setup')+'<span class="count">'+confCount+'/'+pcsSorted.length+'</span></div></div>'
     +'<div class="game-pc-grid">'+tiles+'</div>'
     +(sel?'<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.12em;margin:22px 0 10px">'+(ko?'상세':'Detail')+' · PC-'+pad(sel.num)+'</div>'+detail:'')
     +'<div class="section-head" style="margin-top:32px"><div class="section-title">'+(ko?'운영 규칙':'Operating Rules')+'</div>'+(edit?'<button class="btn-sm" onclick="addGameRule()">+ '+(ko?'섹션 추가':'Add section')+'</button>':'')+'</div>'
     +ruleSections;
+
+  const sortedMon=LINEAGE_MONSTERS.slice().sort((a,b)=>a.lv-b.lv);
+  const monRows=sortedMon.map(m=>{const nm=ko?m.kr:m.en;const loc=ko?m.locKr:m.loc;return '<tr data-name="'+(m.en+' '+m.kr+' '+m.id).toLowerCase()+'"><td style="padding:8px 10px;font-weight:500">'+esc(nm)+(ko?'':'<div style="font-size:10px;color:var(--tx3)">'+esc(m.kr)+'</div>')+'</td><td style="text-align:center;color:var(--tx2)">'+m.lv+'</td><td style="text-align:center;color:var(--tx2)">'+m.hp.toLocaleString()+'</td><td style="text-align:center;font-weight:600;color:var(--ac-strong)">'+m.exp.toLocaleString()+'</td><td style="color:var(--tx2);font-size:12px">'+esc(loc)+'</td></tr>';}).join('');
+  const monstersContent='<div class="psub" style="margin-bottom:14px">'+(ko?'몬스터 도감 — 레벨, HP, 경험치, 출현 위치. 출처: lcinfo.io':'Monster reference — level, HP, EXP, spawn location. Source: lcinfo.io')+'</div>'
+    +'<input id="mon-search" oninput="filterMons()" placeholder="'+(ko?'몬스터 검색...':'Search monster...')+'" style="width:100%;max-width:320px;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px;margin-bottom:14px">'
+    +'<div class="tw"><table><thead><tr><th>'+(ko?'몬스터':'Monster')+'</th><th style="text-align:center">'+(ko?'레벨':'Lv')+'</th><th style="text-align:center">HP</th><th style="text-align:center">EXP</th><th>'+(ko?'출현 위치':'Location')+'</th></tr></thead><tbody id="mon-tbody">'+monRows+'</tbody></table></div>'
+    +'<div style="font-size:11px;color:var(--tx3);margin-top:10px">'+sortedMon.length+(ko?'종 등록됨 · 더 추가하려면 알려주세요':' monsters listed · ask to add more')+'</div>';
+
+  const defExp=730,dKph=200,dHrs=9;
+  const monOpts=sortedMon.map(m=>'<option value="'+m.exp+'"'+(m.en==='Dark Elf'?' selected':'')+'>'+esc(ko?m.kr:m.en)+' · Lv.'+m.lv+' · '+m.exp.toLocaleString()+' EXP</option>').join('');
+  const inS='width:100%;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px';
+  const fmt=n=>Math.round(n).toLocaleString();
+  const calcContent='<div class="psub" style="margin-bottom:18px">'+(ko?'몬스터와 사냥 시간으로 예상 경험치를 계산합니다.':'Estimate EXP from a monster and hunting duration.')+'</div>'
+    +'<div class="panel" style="max-width:580px">'
+    +'<div class="fg2" style="margin-bottom:14px"><label>'+(ko?'몬스터 선택':'Pick a monster')+'</label><select id="calc-mon" onchange="document.getElementById(\'calc-exp\').value=this.value;calcGameExp()" style="'+inS+'">'+monOpts+'</select></div>'
+    +'<div class="fgrid" style="margin-bottom:18px">'
+    +'<div class="fg2"><label>'+(ko?'EXP / 1킬':'EXP per kill')+'</label><input id="calc-exp" type="number" value="'+defExp+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'시간당 처치 수':'Kills per hour')+'</label><input id="calc-kph" type="number" value="'+dKph+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'사냥 시간 (시간)':'Duration (hours)')+'</label><input id="calc-hours" type="number" step="0.5" value="'+dHrs+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'</div>'
+    +'<div id="calc-result" style="background:var(--bg-i);border:1px solid var(--br);border-radius:10px;padding:16px"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">'
+      +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'총 처치':'Total kills')+'</div><div style="font-size:20px;font-weight:700;color:var(--ac-strong)">'+fmt(dKph*dHrs)+'</div></div>'
+      +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'시간당 EXP':'EXP / hour')+'</div><div style="font-size:20px;font-weight:700;color:var(--ac-strong)">'+fmt(defExp*dKph)+'</div></div>'
+      +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'총 EXP':'Total EXP')+'</div><div style="font-size:20px;font-weight:700;color:#5fae7a">'+fmt(defExp*dKph*dHrs)+'</div></div>'
+    +'</div></div>'
+    +'<div style="font-size:11px;color:var(--tx3);margin-top:12px;line-height:1.6">'+(ko?'※ 시간당 처치 수는 운영자 속도에 맞게 조정하세요. 실제 EXP는 보너스/페널티에 따라 달라질 수 있습니다.':'※ Adjust kills/hour to your operator\'s real pace. Actual EXP varies with bonuses/penalties.')+'</div>'
+    +'</div>';
+
+  const body=tab==='monsters'?monstersContent:(tab==='calc'?calcContent:manualContent);
+
+  return '<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'운영':'Operations')+'</div>'
+    +'<div class="ph" style="margin-bottom:6px">'+(ko?'리니지 운영 매뉴얼':'Lineage Ops Manual')+'</div>'
+    +'<div class="psub" style="margin-bottom:20px">'+(ko?'PC별 캐릭터 설정과 운영 규칙. 근무 중 열어두세요.':'Per-PC character setup and operating rules. Keep this open during your shift.')+'</div>'
+    +tabBar+body;
 }
 
 async function saveMapleRules(){
