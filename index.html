@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.4 · Build: 20260521-102</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.5 · Build: 20260521-103</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -719,9 +719,10 @@ async function loadAll(){
   if(can('invite')) loads.push(sb.from('invite_codes').select('*').order('created_at')); else loads.push(Promise.resolve({data:[]}));
   if(can('activity')) loads.push(sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(200)); else loads.push(Promise.resolve({data:[]}));
   loads.push(sb.from('shift_roster').select('*'));
-  const [t,tk,pc,cl,rec,rep,codes,acts,rost]=await Promise.all(loads);
+  loads.push(sb.from('exp_logs').select('*').order('log_date'));
+  const [t,tk,pc,cl,rec,rep,codes,acts,rost,el]=await Promise.all(loads);
   S.team=t.data||[];S.tasks=tk.data||[];S.pcs=pc.data||[];
-  S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];S.activity=(acts&&acts.data)||[];S.roster=(rost&&rost.data)||[];
+  S.clients=cl.data||[];S.recruits=rec.data||[];S.reports=rep.data||[];S.codes=codes.data||[];S.activity=(acts&&acts.data)||[];S.roster=(rost&&rost.data)||[];S.expLogs=(el&&el.data)||[];
   try{
     const {data:setting}=await sb.from('app_settings').select('value').eq('key','recruit_requirements').maybeSingle();
     if(setting&&setting.value) S.recruitReqs={...S.recruitReqs,...setting.value};
@@ -1707,6 +1708,8 @@ const LINEAGE_MONSTERS=[
   {kr:'발라카스',en:'Valakas',lv:95,hp:26000,mp:450,ac:-99,mr:99,exp:9026,boss:true,trEn:'Weak: Water, Aggressive, Weapon Dmg',trKr:'보스,약점:물,선공,무기손상',zones:[{en:'Valakas Lair',kr:'발라카스의 둥지'}]}
 ];
 function reqExp(L){return Math.round(74465*Math.pow(1.204,L-26));}
+function cumExp(level,pct){level=Math.max(1,Math.round(level)||1);let s=0;for(let L=1;L<level;L++)s+=reqExp(L);return s+(Math.max(0,Math.min(100,pct))/100)*reqExp(level);}
+const EXP_LOGS_SQL="create table if not exists exp_logs (\n  id uuid primary key default gen_random_uuid(),\n  account text not null,\n  level int not null default 1,\n  exp_pct numeric not null default 0,\n  log_date date not null default current_date,\n  created_at timestamptz default now(),\n  created_by uuid\n);\ngrant all on exp_logs to authenticated;";
 function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,measuredPctPerHr){
   const ko=S.lang==='ko';const fmt=n=>Math.round(n).toLocaleString();
   lvl0=Math.max(1,Math.round(lvl0)||1);pct0=Math.min(100,Math.max(0,pct0));
@@ -1741,6 +1744,25 @@ function calcGameExp(){
   let measured=0;if(se>ss&&sh>0)measured=(se-ss)/sh;
   r.innerHTML=calcResultHTML(g('calc-exp'),g('calc-kph'),g('calc-hours'),g('calc-lvl'),g('calc-pct'),g('calc-mon-lv'),measured);
 }
+async function addExpLog(){
+  const acc=document.getElementById('el-acc'),lvl=document.getElementById('el-lvl'),pct=document.getElementById('el-pct'),dt=document.getElementById('el-date');
+  if(!acc||!acc.value.trim()){toast(S.lang==='ko'?'계정 이름을 입력하세요':'Enter an account name','err');return;}
+  const row={account:acc.value.trim(),level:parseInt(lvl&&lvl.value)||1,exp_pct:parseFloat(pct&&pct.value)||0,log_date:(dt&&dt.value)||new Date().toISOString().slice(0,10),created_by:S.user&&S.user.id};
+  try{
+    const {data,error}=await sb.from('exp_logs').insert(row).select().single();
+    if(error){if(/exist|relation|42P01|schema|could not find/i.test(error.message)){alert((S.lang==='ko'?'exp_logs 테이블이 없습니다. Supabase SQL 편집기에서 아래를 실행하세요:\n\n':'The exp_logs table is missing. Run this in your Supabase SQL editor:\n\n')+EXP_LOGS_SQL);}else toast(error.message,'err');console.error(error);return;}
+    S.expLogs=(S.expLogs||[]).concat(data);
+    if(pct)pct.value='';
+    toast(S.lang==='ko'?'기록됨 ✓':'Logged ✓');render();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+async function delExpLog(id){
+  if(!confirm(S.lang==='ko'?'이 기록을 삭제할까요?':'Delete this entry?'))return;
+  const {error}=await sb.from('exp_logs').delete().eq('id',id);
+  if(error){toast(error.message,'err');console.error(error);return;}
+  S.expLogs=(S.expLogs||[]).filter(e=>e.id!==id);toast(S.lang==='ko'?'삭제됨':'Deleted');render();
+}
+function setExpTarget(v){S.expTarget=parseInt(v)||30;render();}
 function calcMonSearch(){
   const q=((document.getElementById('calc-mon-search')||{}).value||'').toLowerCase();
   const box=document.getElementById('calc-mon-list');if(!box)return;
@@ -1871,7 +1893,7 @@ function pgGame(){
 
   const tab=S.gameTab||'manual';
   const tb=(id,lbl)=>'<button onclick="S.gameTab=\''+id+'\';render()" style="padding:8px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(tab===id?'var(--ac)':'transparent')+';color:'+(tab===id?'#1a1407':'var(--tx2)')+'">'+lbl+'</button>';
-  const tabBar='<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:22px">'+tb('manual',ko?'📖 매뉴얼':'📖 Manual')+'<span style="width:1px;background:var(--br)"></span>'+tb('monsters',ko?'👹 몬스터':'👹 Monsters')+'<span style="width:1px;background:var(--br)"></span>'+tb('calc',ko?'🧮 EXP 계산기':'🧮 EXP Calc')+'</div>';
+  const tabBar='<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:22px">'+tb('manual',ko?'📖 매뉴얼':'📖 Manual')+'<span style="width:1px;background:var(--br)"></span>'+tb('monsters',ko?'👹 몬스터':'👹 Monsters')+'<span style="width:1px;background:var(--br)"></span>'+tb('calc',ko?'📈 트래커':'📈 Tracker')+'</div>';
 
   const manualContent='<div class="section-head"><div class="section-title">'+(ko?'PC 설정':'PC Setup')+'<span class="count">'+confCount+'/'+pcsSorted.length+'</span></div></div>'
     +'<div class="game-pc-grid">'+tiles+'</div>'
@@ -1914,33 +1936,51 @@ function pgGame(){
     +'<div id="mon-count" style="font-size:12px;color:var(--tx2);margin-bottom:10px">'+zkeys.length+(ko?'개 지역 · '+sortedMon.length+'종':' zones · '+sortedMon.length+' monsters')+'</div>'
     +sections;
 
-  const defExp=730,dKph=200,dHrs=9,dLvl=30,dPct=0,dMonLv=27;
-  const defLabel=(ko?'다크 엘프':'Dark Elf')+' · Lv.27';
   const inS='width:100%;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px';
-  const calcContent='<div class="psub" style="margin-bottom:18px">'+(ko?'몬스터와 사냥 시간으로 예상 경험치와 레벨 %를 계산합니다.':'Estimate EXP and level % from a monster and hunting time.')+'</div>'
-    +'<div class="panel" style="max-width:580px">'
-    +'<input type="hidden" id="calc-mon-lv" value="'+dMonLv+'">'
-    +'<div class="fg2" style="margin-bottom:14px"><label>'+(ko?'몬스터 검색/선택':'Search a monster')+'</label><div style="position:relative"><input id="calc-mon-search" autocomplete="off" oninput="calcMonSearch()" value="'+esc(defLabel)+'" placeholder="'+(ko?'몬스터 이름 입력...':'Type a monster name...')+'" style="'+inS+'"><div id="calc-mon-list" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--bg-c);border:1px solid var(--br2);border-radius:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div></div></div>'
+  const logs=(S.expLogs||[]);
+  const target=S.expTarget||30;
+  const today=new Date().toISOString().slice(0,10);
+  const fmtDate=d=>{try{return new Date(d).toLocaleDateString(ko?'ko-KR':'en-US',{month:'short',day:'numeric'});}catch(e){return d;}};
+  const accs={};logs.forEach(e=>{(accs[e.account]=accs[e.account]||[]).push(e);});
+  const accNames=Object.keys(accs).sort();
+  const accCards=accNames.map(name=>{
+    const es=accs[name].slice().sort((a,b)=>(a.log_date<b.log_date?-1:(a.log_date>b.log_date?1:0)));
+    const entryRows=es.map(e=>'<div style="display:flex;align-items:center;gap:10px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--br)"><span style="color:var(--tx3);width:60px">'+fmtDate(e.log_date)+'</span><span style="font-weight:600">Lv.'+e.level+'</span><span style="color:var(--ac-strong)">'+(+e.exp_pct).toFixed(4)+'%</span><button onclick="delExpLog(\''+e.id+'\')" style="margin-left:auto;background:none;border:none;color:var(--tx3);cursor:pointer;font-size:12px">🗑</button></div>').join('');
+    let proj='';
+    if(es.length>=2){
+      const f=es[0],l=es[es.length-1];
+      const days=(new Date(l.log_date)-new Date(f.log_date))/86400000;
+      const gained=cumExp(l.level,+l.exp_pct)-cumExp(f.level,+f.exp_pct);
+      if(days>0&&gained>0){
+        const perDay=gained/days,pctPerDay=perDay/reqExp(l.level)*100,needed=cumExp(target,0)-cumExp(l.level,+l.exp_pct);
+        if(needed<=0){proj='<div style="font-size:12px;color:#5fae7a;margin-top:8px">✓ '+(ko?'이미 Lv.'+target+' 이상':'Already at/over Lv.'+target)+'</div>';}
+        else{const daysLeft=needed/perDay,finish=new Date(new Date(l.log_date).getTime()+daysLeft*86400000);
+          proj='<div style="margin-top:10px;padding:10px 12px;background:rgba(95,174,122,.1);border-radius:8px;font-size:12px;line-height:1.7">'
+            +'<div style="color:var(--tx2)">'+(ko?'실측 속도':'Real pace')+': <b style="color:var(--ac-strong)">'+pctPerDay.toFixed(2)+'%/'+(ko?'일':'day')+'</b></div>'
+            +'<div style="color:#5fae7a;font-weight:600;margin-top:3px">🎯 Lv.'+target+' ≈ '+Math.ceil(daysLeft)+(ko?'일 후 · ':' days · ')+fmtDate(finish.toISOString())+'</div>'
+          +'</div>';}
+      }else if(days<=0){proj='<div style="font-size:11px;color:var(--tx3);margin-top:8px">'+(ko?'다른 날짜에도 기록하면 속도가 계산됩니다.':'Log on a different day to compute pace.')+'</div>';}
+      else{proj='<div style="font-size:11px;color:var(--tx3);margin-top:8px">'+(ko?'진행이 감지되지 않았습니다.':'No forward progress detected yet.')+'</div>';}
+    }else{proj='<div style="font-size:11px;color:var(--tx3);margin-top:8px">'+(ko?'하루 더 기록하면 속도와 도달 예상일이 표시됩니다.':'Log one more day to see pace + finish date.')+'</div>';}
+    const last=es[es.length-1];
+    return '<div class="panel" style="margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-weight:600;font-size:14px">'+esc(name)+'</div><div style="font-size:12px;color:var(--tx2)">Lv.'+last.level+' · '+(+last.exp_pct).toFixed(2)+'%</div></div>'+entryRows+proj+'</div>';
+  }).join('');
+  const trackerContent='<div class="psub" style="margin-bottom:16px">'+(ko?'계정별 EXP %를 매일 기록하면 실제 성장 속도와 목표 레벨 도달 예상일을 보여줍니다.':'Log each account\'s EXP % daily — it shows the real pace and projected date to hit your target level.')+'</div>'
+    +'<div class="panel" style="margin-bottom:18px;max-width:640px">'
+    +'<div style="font-weight:600;font-size:13px;margin-bottom:12px">'+(ko?'＋ 기록 추가':'＋ Add a log')+'</div>'
     +'<div class="fgrid" style="margin-bottom:12px">'
-    +'<div class="fg2"><label>'+(ko?'EXP / 1킬 (기본값)':'EXP per kill (base)')+'</label><input id="calc-exp" type="number" value="'+defExp+'" oninput="calcGameExp()" style="'+inS+'"></div>'
-    +'<div class="fg2"><label>'+(ko?'시간당 처치 수':'Kills per hour')+'</label><input id="calc-kph" type="number" value="'+dKph+'" oninput="calcGameExp()" style="'+inS+'"></div>'
-    +'<div class="fg2"><label>'+(ko?'예상 사냥 시간':'Plan to hunt (hrs)')+'</label><input id="calc-hours" type="number" step="0.5" value="'+dHrs+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'계정/캐릭터':'Account / char')+'</label><input id="el-acc" placeholder="'+(ko?'예: PC-02 기사':'e.g. PC-02 Knight')+'" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'레벨':'Level')+'</label><input id="el-lvl" type="number" placeholder="30" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>EXP %</label><input id="el-pct" type="number" step="0.0001" placeholder="88.5735" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'날짜':'Date')+'</label><input id="el-date" type="date" value="'+today+'" style="'+inS+'"></div>'
     +'</div>'
-    +'<div class="fgrid" style="margin-bottom:12px">'
-    +'<div class="fg2"><label>'+(ko?'현재 레벨':'Current level')+'</label><input id="calc-lvl" type="number" value="'+dLvl+'" oninput="calcGameExp()" style="'+inS+'"></div>'
-    +'<div class="fg2"><label>'+(ko?'현재 % (선택)':'Current % (optional)')+'</label><input id="calc-pct" type="number" step="0.0001" value="'+dPct+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<button class="btn-add" onclick="addExpLog()">'+(ko?'기록 저장':'Save log')+'</button>'
     +'</div>'
-    +'<div style="font-size:11px;color:var(--ac-strong);font-weight:600;margin-bottom:8px">'+(ko?'📋 세션 보정 (가장 정확 — 보고서 % 두 개 입력)':'📋 Session calibration (most accurate — paste two report %s)')+'</div>'
-    +'<div class="fgrid" style="margin-bottom:18px">'
-    +'<div class="fg2"><label>'+(ko?'시작 %':'Start %')+'</label><input id="calc-sess-start" type="number" step="0.0001" placeholder="85.7829" oninput="calcGameExp()" style="'+inS+'"></div>'
-    +'<div class="fg2"><label>'+(ko?'종료 %':'End %')+'</label><input id="calc-sess-end" type="number" step="0.0001" placeholder="88.5735" oninput="calcGameExp()" style="'+inS+'"></div>'
-    +'<div class="fg2"><label>'+(ko?'경과 시간':'Hours apart')+'</label><input id="calc-sess-hours" type="number" step="0.1" placeholder="2" oninput="calcGameExp()" style="'+inS+'"></div>'
-    +'</div>'
-    +'<div id="calc-result" style="background:var(--bg-i);border:1px solid var(--br);border-radius:10px;padding:16px">'+calcResultHTML(defExp,dKph,dHrs,dLvl,dPct,dMonLv,0)+'</div>'
-    +'<div style="font-size:11px;color:var(--tx3);margin-top:12px;line-height:1.6">'+(ko?'※ 기본 EXP는 몬스터의 풀 경험치라 레벨이 높으면 과대평가됩니다. 세션 보고서의 EXP % 두 개와 시간 간격을 입력하면 레벨 페널티까지 반영된 실제 속도로 계산합니다.':'※ Base EXP is the monster\'s full value, so it over-estimates when you\'re over-leveled. Enter two EXP %s from your session reports and the hours between them — the calc then uses your real rate (penalty included).')+'</div>'
-    +'</div>';
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="font-size:13px;color:var(--tx2)">'+(ko?'목표 레벨':'Target level')+'</span><input type="number" value="'+target+'" onchange="setExpTarget(this.value)" style="width:90px;'+inS+'"></div>'
+    +(accNames.length?accCards:'<div style="font-size:13px;color:var(--tx3);padding:8px">'+(ko?'아직 기록이 없습니다. 위에서 첫 기록을 추가하세요.':'No logs yet — add your first entry above.')+'</div>')
+    +'<div style="font-size:11px;color:var(--tx3);margin-top:14px;line-height:1.6">'+(ko?'※ 속도는 첫 기록과 최신 기록 사이 실측 진행으로 계산되어 레벨 페널티가 자동 반영됩니다. 매일 같은 시간에 기록하면 가장 정확합니다.':'※ Pace is measured from your actual progress between the first and latest log, so the level penalty is automatically included. Logging at the same time each day is most accurate.')+'</div>';
 
-  const body=tab==='monsters'?monstersContent:(tab==='calc'?calcContent:manualContent);
+  const body=tab==='monsters'?monstersContent:(tab==='calc'?trackerContent:manualContent);
 
   return '<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'운영':'Operations')+'</div>'
     +'<div class="ph" style="margin-bottom:6px">'+(ko?'리니지 운영 매뉴얼':'Lineage Ops Manual')+'</div>'
