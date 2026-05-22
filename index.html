@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.6 · Build: 20260521-104</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.7 · Build: 20260521-105</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -517,7 +517,7 @@ const TOOL_OPT=['AnyViewer','Tailscale+Veyon','Rimo+VPN','MeshCentral','Other'];
 
 let S = {
   page:'dashboard', lang:'en', user:null, profile:null,
-  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[], onlineUsers:[], recruitReqs:{min_intel_gen:8,min_ryzen_gen:3,min_ram:8,min_speed:70,require_static_ip:true,require_lan_cable:true,gpu_label:'GTX 1050 Ti+ / RX 560+',os_label:'Windows 10/11'}, showEditReqs:false, pcView:'grid',
+  team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[], onlineUsers:[], recruitReqs:{min_intel_gen:8,min_ryzen_gen:3,min_ram:8,min_speed:70,require_static_ip:true,require_lan_cable:true,require_ssd:true,gpu_label:'GTX 1050 Ti+ / RX 560+',os_label:'Windows 10/11'}, showEditReqs:false, pcView:'grid',
   editMember:null, showAddMember:false, showAddRecruit:false,
   showAddTask:false, showAddClient:false, showAddReport:false, showAddCode:false,
   viewReport:null, taskFilter:'All', signupRole:'staff'
@@ -1106,7 +1106,8 @@ function pgRecruitment(){
     if(/vega\s*(56|64)/.test(g)) return true;
     return null;
   }
-  function getStatus(r){if(!r.cpu&&!r.gpu&&!r.ram&&!r.speed)return'pending';const reqIp=S.recruitReqs?.require_static_ip!==false;const reqLan=S.recruitReqs?.require_lan_cable!==false;const checks=[cpuPass(r.cpu),gpuPass(r.gpu),ramPass(r.ram),spdPass(r.speed),reqIp?(r.static_ip===true?true:r.static_ip===false?false:null):null,reqLan?(r.lan_cable===true?true:r.lan_cable===false?false:null):null];const def=checks.filter(c=>c!==null);if(def.some(c=>c===false))return'fail';if(def.length>0&&def.every(c=>c===true))return'pass';return'pending';}
+  function ssdPass(s){if(!s)return null;const t=s.toLowerCase();if(t.indexOf('ssd')>=0||t.indexOf('nvme')>=0||t.indexOf('m.2')>=0)return true;if(t.indexOf('hdd')>=0||t.indexOf('hard disk')>=0||t.indexOf('5400')>=0||t.indexOf('7200')>=0)return false;return null;}
+  function getStatus(r){if(!r.cpu&&!r.gpu&&!r.ram&&!r.speed&&!r.ssd)return'pending';const reqIp=S.recruitReqs?.require_static_ip!==false;const reqLan=S.recruitReqs?.require_lan_cable!==false;const reqSsd=S.recruitReqs?.require_ssd!==false;const checks=[cpuPass(r.cpu),gpuPass(r.gpu),ramPass(r.ram),spdPass(r.speed),reqSsd?ssdPass(r.ssd):null,reqIp?(r.static_ip===true?true:r.static_ip===false?false:null):null,reqLan?(r.lan_cable===true?true:r.lan_cable===false?false:null):null];const def=checks.filter(c=>c!==null);if(def.some(c=>c===false))return'fail';if(def.length>0&&def.every(c=>c===true))return'pass';return'pending';}
 
   const R=S.recruitReqs;
   const intelLbl=R.min_intel_gen===8?'i5 8th gen+':'i5 '+R.min_intel_gen+'th gen+';
@@ -1125,6 +1126,7 @@ function pgRecruitment(){
     +'<div class="fg2"><label>Min Speed (Mbps)</label><input id="rq-spd" type="number" value="'+R.min_speed+'"></div>'
     +'<div class="fg2"><label>Static IP required?</label><select id="rq-ip"><option value="yes"'+(R.require_static_ip!==false?' selected':'')+'>Yes</option><option value="no"'+(R.require_static_ip===false?' selected':'')+'>No</option></select></div>'
     +'<div class="fg2"><label>LAN cable required?</label><select id="rq-lan"><option value="yes"'+(R.require_lan_cable!==false?' selected':'')+'>Yes</option><option value="no"'+(R.require_lan_cable===false?' selected':'')+'>No</option></select></div>'
+    +'<div class="fg2"><label>SSD required?</label><select id="rq-ssd"><option value="yes"'+(R.require_ssd!==false?' selected':'')+'>Yes</option><option value="no"'+(R.require_ssd===false?' selected':'')+'>No</option></select></div>'
     +'</div>'
     +'<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-add" onclick="saveRequirements()">'+(ko?'저장':'Save')+'</button><button onclick="S.showEditReqs=false;render()">'+(ko?'취소':'Cancel')+'</button></div>'
     +'<div style="margin-top:10px;font-size:11px;color:var(--tx3);line-height:1.5">'+(ko?'⚙️ 변경 후 모든 지원자가 새 기준으로 다시 평가됩니다.':'⚙️ Changes apply to all applicants — they will be re-evaluated with the new criteria.')+'</div>'
@@ -1141,6 +1143,7 @@ function pgRecruitment(){
   ];
   if(R.require_static_ip!==false) _acceptList.push({label:'Public Static IP'});
   if(R.require_lan_cable!==false) _acceptList.push({label:'LAN cable connection (no WiFi)'});
+  if(R.require_ssd!==false) _acceptList.push({label:'SSD storage (NVMe / SATA SSD)'});
 
   const _rejectList=[
     {label:'Older OS (Windows 7, 8, etc.)'},
@@ -1152,6 +1155,7 @@ function pgRecruitment(){
   ];
   if(R.require_static_ip!==false) _rejectList.push({label:'Dynamic IP only / No public static IP'});
   if(R.require_lan_cable!==false) _rejectList.push({label:'WiFi only / No LAN cable'});
+  if(R.require_ssd!==false) _rejectList.push({label:'HDD only / No SSD'});
 
   const criteriaHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">'
     +'<div style="background:var(--gr-bg);border:1px solid #c4dfcc;border-radius:var(--r2);padding:14px 16px">'
@@ -1195,7 +1199,7 @@ function pgRecruitment(){
       +'<td style="font-size:12px;'+col(cpuOk)+'">'+esc(r.cpu||'—')+'</td>'
       +'<td style="font-size:12px;'+col(gpuOk)+'">'+esc(r.gpu||'—')+'</td>'
       +'<td style="font-size:12px;'+col(ramOk)+'">'+(r.ram?esc(r.ram)+'GB':'—')+'</td>'
-      +'<td style="font-size:12px;color:var(--tx2)">'+esc(r.ssd||'—')+'</td>'
+      +'<td style="font-size:12px;'+col(ssdPass(r.ssd))+'">'+esc(r.ssd||'—')+'</td>'
       +'<td style="font-size:12px;'+col(spdOk)+'">'+(r.speed?esc(r.speed)+' Mbps':'—')+'</td>'
       +'<td style="font-size:12px;color:var(--tx2)">'+esc(r.os||'—')+'</td>'
       +'<td style="text-align:center">'+(r.static_ip===true?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'<span style="color:var(--tx3)">—</span>')+'</td>'
@@ -1259,7 +1263,8 @@ async function saveRequirements(){
       min_ram:parseInt(document.getElementById('rq-ram').value)||8,
       min_speed:parseInt(document.getElementById('rq-spd').value)||70,
       require_static_ip:document.getElementById('rq-ip').value==='yes',
-      require_lan_cable:document.getElementById('rq-lan').value==='yes'
+      require_lan_cable:document.getElementById('rq-lan').value==='yes',
+      require_ssd:document.getElementById('rq-ssd').value==='yes'
     };
     const {error}=await sb.from('app_settings').upsert({key:'recruit_requirements',value:newReqs,updated_at:new Date().toISOString(),updated_by:S.user?.id},{onConflict:'key'});
     if(error){toast(error.message,'err');console.error(error);return;}
