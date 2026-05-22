@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.8 · Build: 20260521-96</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.0 · Build: 20260521-98</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1722,7 +1722,8 @@ function calcMonSearch(){
   const box=document.getElementById('calc-mon-list');if(!box)return;
   const ko=S.lang==='ko';
   if(!q){box.style.display='none';box.innerHTML='';return;}
-  const matches=LINEAGE_MONSTERS.filter(m=>(m.en+' '+m.kr).toLowerCase().indexOf(q)>=0).sort((a,b)=>a.lv-b.lv).slice(0,40);
+  const score=m=>{const en=m.en.toLowerCase(),kr=m.kr.toLowerCase();if(en.startsWith(q)||kr.startsWith(q))return 2;if(en.split(/\s+/).some(w=>w.startsWith(q))||kr.split(/\s+/).some(w=>w.startsWith(q)))return 1;return 0;};
+  const matches=LINEAGE_MONSTERS.map(m=>({m:m,s:score(m)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||a.m.lv-b.m.lv).slice(0,40).map(x=>x.m);
   if(!matches.length){box.innerHTML='<div style="padding:8px 12px;font-size:12px;color:var(--tx3)">'+(ko?'결과 없음':'No match')+'</div>';box.style.display='block';return;}
   box.innerHTML=matches.map(m=>{const nm=(ko?m.kr:m.en).replace(/'/g,'');const lbl=nm+' · Lv.'+m.lv;return '<div onmousedown="pickCalcMon('+m.exp+',\''+lbl+'\')" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--br)">'+(m.boss?'<span style=\'color:#e0584f\'>★ </span>':'')+esc(ko?m.kr:m.en)+' <span style=\'color:var(--tx3);font-size:11px\'>Lv.'+m.lv+' · '+m.exp.toLocaleString()+' EXP</span></div>';}).join('');
   box.style.display='block';
@@ -1747,25 +1748,30 @@ function locSearch(){
 }
 function pickLoc(key,label){MON_LOC=key;const s=document.getElementById('mon-loc-search');if(s)s.value=label;const box=document.getElementById('mon-loc-list');if(box)box.style.display='none';applyMonFilters();}
 function _mval(id){const e=document.getElementById(id);return e?e.value:'';}
+function toggleZone(head){const body=head.nextElementSibling;const chev=head.querySelector('.zone-chev');const open=body.style.display==='none';body.style.display=open?'block':'none';if(chev)chev.textContent=open?'▼':'▶';}
 function applyMonFilters(){
   const q=_mval('mon-search').toLowerCase();
-  const loc=MON_LOC;
   const type=_mval('mon-type');
-  let n=0;
-  document.querySelectorAll('#mon-tbody tr').forEach(tr=>{
-    const name=tr.getAttribute('data-name')||'';
-    const locs=tr.getAttribute('data-locs')||'';
-    const boss=tr.getAttribute('data-boss')==='1';
-    let show=true;
-    if(q && name.indexOf(q)<0)show=false;
-    if(loc && locs.split('|').indexOf(loc)<0)show=false;
-    if(type==='boss'&&!boss)show=false;
-    if(type==='normal'&&boss)show=false;
-    tr.style.display=show?'':'none';if(show)n++;
+  const filtering=!!(q||type);
+  let total=0;
+  document.querySelectorAll('.mon-zone').forEach(zone=>{
+    const body=zone.querySelector('.mon-zone-body');
+    const chev=zone.querySelector('.zone-chev');
+    let vis=0;
+    zone.querySelectorAll('tbody tr').forEach(tr=>{
+      const name=tr.getAttribute('data-name')||'';const boss=tr.getAttribute('data-boss')==='1';
+      let show=true;
+      if(q && name.indexOf(q)<0)show=false;
+      if(type==='boss'&&!boss)show=false;
+      if(type==='normal'&&boss)show=false;
+      tr.style.display=show?'':'none';if(show)vis++;
+    });
+    if(vis===0){zone.style.display='none';}
+    else{zone.style.display='';total+=vis;if(filtering){body.style.display='block';if(chev)chev.textContent='▼';}}
   });
-  const c=document.getElementById('mon-count');if(c)c.textContent=n+(S.lang==='ko'?'종':' monsters');
+  const c=document.getElementById('mon-count');if(c)c.textContent=total+(S.lang==='ko'?'종':' monsters');
 }
-function sortMon(col){
+function _unusedSortMon(col){
   if(MON_SORT.col===col)MON_SORT.dir*=-1;else{MON_SORT.col=col;MON_SORT.dir=1;}
   const tb=document.getElementById('mon-tbody');if(!tb)return;
   const numeric=['lv','hp','mp','ac','mr','exp'].indexOf(col)>=0;
@@ -1849,15 +1855,12 @@ function pgGame(){
     +ruleSections;
 
   const sortedMon=LINEAGE_MONSTERS.slice().sort((a,b)=>a.lv-b.lv);
-  const allZones={};LINEAGE_MONSTERS.forEach(m=>m.zones.forEach(z=>{allZones[z.en]=z;}));
-  const zoneKeys=Object.keys(allZones).sort();
   const selS='padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px';
-  MON_LOC='';
-  const monRows=sortedMon.map(m=>{
-    const nm=ko?m.kr:m.en;const tr=ko?m.trKr:m.trEn;const locText=m.zones.map(z=>ko?z.kr:z.en).join(', ');
-    const search=(m.en+' '+m.kr+' '+m.trEn+' '+m.trKr+' '+m.zones.map(z=>z.en+' '+z.kr).join(' ')).toLowerCase();
-    const locsAttr=m.zones.map(z=>z.en.toLowerCase()).join('|');
-    return '<tr data-name="'+esc(search)+'" data-locs="'+esc(locsAttr)+'" data-boss="'+(m.boss?1:0)+'" data-lv="'+m.lv+'" data-hp="'+m.hp+'" data-mp="'+m.mp+'" data-ac="'+m.ac+'" data-mr="'+m.mr+'" data-exp="'+m.exp+'">'
+  const zg={};
+  LINEAGE_MONSTERS.forEach(m=>m.zones.forEach(z=>{if(!zg[z.en])zg[z.en]={en:z.en,kr:z.kr,mons:[]};zg[z.en].mons.push(m);}));
+  const zkeys=Object.keys(zg).sort((a,b)=>Math.min.apply(null,zg[a].mons.map(x=>x.lv))-Math.min.apply(null,zg[b].mons.map(x=>x.lv)));
+  const rowHtml=m=>{const nm=ko?m.kr:m.en;const tr=ko?m.trKr:m.trEn;const search=(m.en+' '+m.kr+' '+m.trEn+' '+m.trKr).toLowerCase();
+    return '<tr data-name="'+esc(search)+'" data-boss="'+(m.boss?1:0)+'">'
       +'<td style="padding:7px 10px;font-weight:500;white-space:nowrap">'+(m.boss?'<span style="color:#e0584f">★ </span>':'')+esc(nm)+(ko?'':'<span style="font-size:10px;color:var(--tx3);margin-left:6px">'+esc(m.kr)+'</span>')+'</td>'
       +'<td style="text-align:center;color:var(--tx2)">'+m.lv+'</td>'
       +'<td style="text-align:center;color:var(--tx2)">'+m.hp.toLocaleString()+'</td>'
@@ -1866,18 +1869,25 @@ function pgGame(){
       +'<td style="text-align:center;color:var(--tx2)">'+m.mr+'</td>'
       +'<td style="text-align:center;font-weight:600;color:var(--ac-strong)">'+m.exp.toLocaleString()+'</td>'
       +'<td style="font-size:11px;color:var(--tx2)">'+esc(tr||'—')+'</td>'
-      +'<td style="font-size:11px;color:var(--tx2);white-space:nowrap">'+esc(locText)+'</td>'
-    +'</tr>';
-  }).join('');
-  const thS=(col,lbl,center)=>'<th data-col="'+col+'" onclick="sortMon(\''+col+'\')" style="cursor:pointer;user-select:none;white-space:nowrap'+(center?';text-align:center':'')+'">'+lbl+'<span class="arr">'+(col==='lv'?' ▲':'')+'</span></th>';
-  const thP=lbl=>'<th style="white-space:nowrap">'+lbl+'</th>';
-  const thead='<tr>'+thS('name',ko?'이름':'Name')+thS('lv',ko?'레벨':'Lv',true)+thS('hp','HP',true)+thS('mp','MP',true)+thS('ac','AC',true)+thS('mr','MR',true)+thS('exp','EXP',true)+thP(ko?'특징':'Traits')+thP(ko?'지역':'Location')+'</tr>';
-  const monstersContent='<div class="psub" style="margin-bottom:14px">'+(ko?'몬스터 도감 — 검색, 지역/유형 필터, 정렬 가능. 출처: lcinfo.io':'Monster database — search, filter by location/type, sortable. Source: lcinfo.io')+'</div>'
-    +'<input id="mon-search" oninput="applyMonFilters()" placeholder="'+(ko?'이름, 특징, 지역 검색...':'Search name, trait, location...')+'" style="width:100%;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px;margin-bottom:10px">'
-    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><div style="flex:1;min-width:160px;position:relative"><input id="mon-loc-search" autocomplete="off" value="'+(ko?'전체 지역':'All locations')+'" placeholder="'+(ko?'지역 검색...':'Search location...')+'" onfocus="locSearch()" oninput="locSearch()" onblur="setTimeout(function(){var b=document.getElementById(\'mon-loc-list\');if(b)b.style.display=\'none\';},150)" style="width:100%;'+selS+'"><div id="mon-loc-list" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--bg-c);border:1px solid var(--br2);border-radius:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div></div>'
-    +'<select id="mon-type" onchange="applyMonFilters()" style="flex:1;min-width:160px;'+selS+'"><option value="">'+(ko?'전체 유형':'All types')+'</option><option value="boss">'+(ko?'보스만':'Boss only')+'</option><option value="normal">'+(ko?'일반만':'Normal only')+'</option></select></div>'
-    +'<div id="mon-count" style="font-size:12px;color:var(--tx2);margin-bottom:8px">'+sortedMon.length+(ko?'종':' monsters')+'</div>'
-    +'<div class="tw"><table><thead id="mon-thead">'+thead+'</thead><tbody id="mon-tbody">'+monRows+'</tbody></table></div>';
+    +'</tr>';};
+  const thead='<tr><th style="white-space:nowrap">'+(ko?'이름':'Name')+'</th><th style="text-align:center">'+(ko?'레벨':'Lv')+'</th><th style="text-align:center">HP</th><th style="text-align:center">MP</th><th style="text-align:center">AC</th><th style="text-align:center">MR</th><th style="text-align:center">EXP</th><th>'+(ko?'특징':'Traits')+'</th></tr>';
+  const sections=zkeys.map(k=>{const g=zg[k];const zoneName=ko?g.kr:g.en;
+    const rows=g.mons.slice().sort((a,b)=>a.lv-b.lv).map(rowHtml).join('');
+    return '<div class="mon-zone" style="margin-bottom:6px">'
+      +'<div class="mon-zone-head" onclick="toggleZone(this)" style="display:flex;align-items:center;gap:9px;padding:11px 12px;cursor:pointer;background:var(--bg-c);border:1px solid var(--br);border-radius:8px">'
+        +'<span class="zone-chev" style="color:var(--tx3);font-size:10px;width:10px;flex:none">▶</span>'
+        +'<span style="font-weight:600;font-size:13px">📍 '+esc(zoneName)+'</span>'
+        +'<span class="count">'+g.mons.length+'</span>'
+      +'</div>'
+      +'<div class="mon-zone-body" style="display:none;padding:8px 0 4px"><div class="tw"><table><thead>'+thead+'</thead><tbody>'+rows+'</tbody></table></div></div>'
+    +'</div>';}).join('');
+  const monstersContent='<div class="psub" style="margin-bottom:14px">'+(ko?'지역별 몬스터 — 지역을 눌러 펼치세요. 출처: lcinfo.io':'Monsters by location — tap a zone to expand. Source: lcinfo.io')+'</div>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">'
+    +'<input id="mon-search" oninput="applyMonFilters()" placeholder="'+(ko?'이름, 특징 검색...':'Search name or trait...')+'" style="flex:2;min-width:200px;'+selS+'">'
+    +'<select id="mon-type" onchange="applyMonFilters()" style="flex:1;min-width:140px;'+selS+'"><option value="">'+(ko?'전체 유형':'All types')+'</option><option value="boss">'+(ko?'보스만':'Boss only')+'</option><option value="normal">'+(ko?'일반만':'Normal only')+'</option></select>'
+    +'</div>'
+    +'<div id="mon-count" style="font-size:12px;color:var(--tx2);margin-bottom:10px">'+zkeys.length+(ko?'개 지역 · '+sortedMon.length+'종':' zones · '+sortedMon.length+' monsters')+'</div>'
+    +sections;
 
   const defExp=730,dKph=200,dHrs=9;
   const defLabel=(ko?'다크 엘프':'Dark Elf')+' · Lv.27';
