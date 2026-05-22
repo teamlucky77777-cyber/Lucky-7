@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.1 · Build: 20260521-89</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.2 · Build: 20260521-90</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1427,7 +1427,7 @@ function pgRoster(){
   const days=[...Array(7)].map((_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
   const dayNames=ko?['월','화','수','목','금','토','일']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const todayIso=isoDate(new Date());
-  const SH={Morning:['var(--ye-bg)','var(--ye)','🌅',ko?'오전':'Morning'],Day:['var(--gr-bg)','var(--gr)','☀️',ko?'주간':'Day'],Night:['var(--pu-bg)','var(--pu)','🌙',ko?'야간':'Night']};
+  const SH={Morning:['rgba(224,149,74,.18)','#e0954a','🌅',ko?'오전':'Morning'],Day:['rgba(90,155,212,.18)','#5fa3d9','☀️',ko?'주간':'Day'],Night:['rgba(154,125,196,.20)','#a98fd6','🌙',ko?'야간':'Night']};
   const get=(opId,dIso)=>S.roster.find(r=>r.operator_id===opId&&r.shift_date===dIso);
   // operators = team members (everyone schedulable)
   const ops=S.team.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
