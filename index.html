@@ -7,13 +7,13 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Lucky 7</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%277%27%20fill%3D%27%23e0b34d%27/%3E%3Ctext%20x%3D%2716%27%20y%3D%2722%27%20font-family%3D%27Arial%2CHelvetica%2Csans-serif%27%20font-size%3D%2715%27%20font-weight%3D%27700%27%20fill%3D%27%231a1407%27%20text-anchor%3D%27middle%27%3EL7%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Crect%20x%3D%273%27%20y%3D%273%27%20width%3D%2726%27%20height%3D%2726%27%20rx%3D%277%27%20fill%3D%27none%27%20stroke%3D%27%23e0b34d%27%20stroke-width%3D%273%27/%3E%3Ctext%20x%3D%2716%27%20y%3D%2722%27%20font-family%3D%27Arial%2CHelvetica%2Csans-serif%27%20font-size%3D%2714%27%20font-weight%3D%27700%27%20fill%3D%27%23e0b34d%27%20text-anchor%3D%27middle%27%3EL7%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#fff;--bg-sb:#f7f6f3;--bg-h:#efefee;--bg-a:#e9e9e7;--bg-c:#fff;--bg-i:#fff;--tx:#37352f;--tx2:#787774;--tx3:#acaba8;--br:#e9e9e7;--br2:#d3d1cb;--ac:#2383e2;--ac-bg:#e8f3ff;--gr:#0f7b6c;--gr-bg:#edf3ec;--re:#e03e3e;--re-bg:#fbe4e4;--ye:#cb912f;--ye-bg:#fdf3d0;--pu:#6940a5;--pu-bg:#f4f0fb;--r:4px;--r2:8px}
-[data-theme=dark]{--bg:#0e0e0e;--bg-sb:#131313;--bg-h:#1c1c1c;--bg-a:#232323;--bg-c:#161616;--bg-i:#1a1a1a;--tx:#e6e5e2;--tx2:#989792;--tx3:#5f5e5a;--br:#232322;--br2:#2f2f2d;--ac:#4d9a8a;--ac-bg:rgba(77,154,138,.12);--gr:#4d9a8a;--gr-bg:rgba(77,154,138,.12);--re:#c46a6a;--re-bg:rgba(196,106,106,.12);--ye:#c79c4b;--ye-bg:rgba(199,156,75,.12);--pu:#9a7dc4;--pu-bg:rgba(154,125,196,.12)}
+:root{--bg:#fff;--bg-sb:#f7f6f3;--bg-h:#efefee;--bg-a:#e9e9e7;--bg-c:#fff;--bg-i:#fff;--tx:#37352f;--tx2:#787774;--tx3:#acaba8;--br:#e9e9e7;--br2:#d3d1cb;--ac:#a87a1e;--ac-bg:#fbf3df;--ac-strong:#8a6416;--ac-bord:rgba(168,122,30,.35);--gr:#a87a1e;--gr-bg:#fbf3df;--ok:#a87a1e;--ok-bg:#fbf3df;--warn:#b5701a;--info:#a87a1e;--info-bg:#fbf3df;--tx4:#acaba8;--re:#e03e3e;--re-bg:#fbe4e4;--ye:#cb912f;--ye-bg:#fdf3d0;--pu:#6940a5;--pu-bg:#f4f0fb;--r:4px;--r2:8px}
+[data-theme=dark]{--bg:#0e0e0e;--bg-sb:#131313;--bg-h:#1c1c1c;--bg-a:#232323;--bg-c:#161616;--bg-i:#1a1a1a;--tx:#e6e5e2;--tx2:#989792;--tx3:#5f5e5a;--br:#232322;--br2:#2f2f2d;--ac:#e0b34d;--ac-bg:rgba(224,179,77,.13);--ac-strong:#ecc66a;--ac-bord:rgba(224,179,77,.40);--gr:#e0b34d;--gr-bg:rgba(224,179,77,.13);--ok:#e0b34d;--ok-bg:rgba(224,179,77,.13);--warn:#d9943a;--info:#e0b34d;--info-bg:rgba(224,179,77,.13);--tx4:#5f5e5a;--re:#c46a6a;--re-bg:rgba(196,106,106,.12);--ye:#c79c4b;--ye-bg:rgba(199,156,75,.12);--pu:#9a7dc4;--pu-bg:rgba(154,125,196,.12)}
 body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(--bg);color:var(--tx)}
 #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
 .auth-split{display:flex;width:880px;max-width:100%;min-height:540px;background:var(--bg-c);border:1px solid var(--br);border-radius:18px;overflow:hidden;box-shadow:0 12px 50px rgba(0,0,0,.55)}
@@ -148,7 +148,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 .code-val{flex:1;font-family:monospace;font-size:13px;font-weight:600;color:var(--tx);background:var(--bg-sb);padding:6px 10px;border-radius:var(--r);border:1px solid var(--br)}
 .code-used{text-decoration:line-through;color:var(--tx3)}.code-status{font-size:12px;color:var(--tx3)}
 .player-wrap{max-width:560px;margin:0 auto}
-.player-hero{background:linear-gradient(135deg,#1a2332,#0f7b6c);border-radius:12px;padding:28px 24px;color:#fff;margin-bottom:20px;text-align:center}
+.player-hero{background:linear-gradient(135deg,#1a2332,#8a6416);border-radius:12px;padding:28px 24px;color:#fff;margin-bottom:20px;text-align:center}
 .player-char{font-size:26px;font-weight:700;margin-bottom:4px}.player-server{font-size:13px;opacity:.8;margin-bottom:16px}
 .player-status-big{display:inline-block;font-size:13px;font-weight:600;padding:5px 16px;border-radius:20px;background:rgba(255,255,255,.2)}
 .player-card{background:var(--bg-c);border:1px solid var(--br);border-radius:var(--r2);padding:18px;margin-bottom:12px}
@@ -166,7 +166,7 @@ button:hover{background:var(--bg-h)}.btn-add{background:var(--tx);color:var(--bg
 
 #toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast-msg{padding:14px 20px;border-radius:8px;font-size:14px;font-weight:500;max-width:420px;box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:all;animation:slideIn .2s ease;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.toast-ok{background:#0f7b6c;color:#fff}.toast-err{background:#c0392b;color:#fff}
+.toast-ok{background:#8a6416;color:#fff}.toast-err{background:#c0392b;color:#fff}
 @keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}
 
 /* ─── Prototype design overlay (matches Lucky 7 redesign) ─── */
@@ -177,7 +177,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .tw tbody tr:last-child td{border-bottom:none}
 .tw tbody tr:hover td{background:var(--bg-h)}
 .btn-add{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:6px;border:1px solid var(--ac-bord);background:var(--ac-bg);color:var(--ac-strong);font-weight:500;font-size:12px}
-.btn-add:hover{background:rgba(77,154,138,.18);opacity:1}
+.btn-add:hover{background:rgba(224,179,77,.20);opacity:1}
 .btn-sm{padding:5px 11px;font-size:11px;border-radius:6px;border:1px solid var(--br2);background:var(--bg-c);color:var(--tx2)}
 .btn-sm:hover{border-color:var(--br-strong);color:var(--tx)}
 .bdg{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:5px;white-space:nowrap}
@@ -216,7 +216,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .badge .dot{width:6px;height:6px;border-radius:50%}
 .pc{background:var(--bg-c);border:1px solid var(--br);border-radius:8px;text-align:center;cursor:pointer;transition:background .12s,border-color .12s;position:relative}
 .pc-num{font-size:13px;font-weight:600}
-.pc[data-st="Online"]{border-color:rgba(77,154,138,.25)}
+.pc[data-st="Online"]{border-color:rgba(224,179,77,.30)}
 .pc[data-st="Online"] .pc-num{color:var(--ok)}
 .pc[data-st="Warning"] .pc-num{color:var(--warn)}
 .pc[data-st="Offline"]{background:var(--bg)}
@@ -246,7 +246,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .pc-grid .pc{min-height:auto}
 .pc.selected{outline:1.5px solid var(--ac);outline-offset:-1px}
 .pc-status-dot{width:7px;height:7px;border-radius:50%;position:absolute;top:8px;right:8px}
-.pc[data-st="Online"] .pc-status-dot{background:var(--ok);box-shadow:0 0 8px rgba(77,154,138,.4)}
+.pc[data-st="Online"] .pc-status-dot{background:var(--ok);box-shadow:0 0 8px rgba(224,179,77,.45)}
 .pc[data-st="Warning"] .pc-status-dot{background:var(--warn)}
 .pc[data-st="Offline"] .pc-status-dot{background:var(--tx4)}
 .pc-player{font-size:10px;color:var(--tx3);margin-top:4px;height:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.7 · Build: 20260521-85</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v8.8 · Build: 20260521-86</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -430,7 +430,7 @@ function showUpdateBanner(){
   const ko=(typeof S!=='undefined'&&S.lang==='ko');
   const b=document.createElement('div');
   b.id='update-banner';
-  b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:10000;background:#4d9a8a;color:#04160c;padding:12px 16px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:14px;font-size:13px;font-weight:600;animation:slideIn .2s ease';
+  b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:10000;background:#e0b34d;color:#1a1407;padding:12px 16px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:14px;font-size:13px;font-weight:600;animation:slideIn .2s ease';
   b.innerHTML='<span>🔄 '+(ko?'새 버전이 있습니다':'New version available')+'</span>'
     +'<button onclick="location.replace(location.pathname+\'?_=\'+Date.now())" style="background:#04160c;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px">'+(ko?'새로고침':'Reload now')+'</button>';
   document.body.appendChild(b);
