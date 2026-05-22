@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.6 · Build: 20260521-94</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.7 · Build: 20260521-95</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1717,7 +1717,22 @@ function calcGameExp(){
     +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'총 EXP':'Total EXP')+'</div><div style="font-size:20px;font-weight:700;color:#5fae7a">'+fmt(exp*kph*hours)+'</div></div>'
   +'</div>';
 }
-let MON_SORT={col:'lv',dir:1};
+function calcMonSearch(){
+  const q=((document.getElementById('calc-mon-search')||{}).value||'').toLowerCase();
+  const box=document.getElementById('calc-mon-list');if(!box)return;
+  const ko=S.lang==='ko';
+  if(!q){box.style.display='none';box.innerHTML='';return;}
+  const matches=LINEAGE_MONSTERS.filter(m=>(m.en+' '+m.kr).toLowerCase().indexOf(q)>=0).sort((a,b)=>a.lv-b.lv).slice(0,40);
+  if(!matches.length){box.innerHTML='<div style="padding:8px 12px;font-size:12px;color:var(--tx3)">'+(ko?'결과 없음':'No match')+'</div>';box.style.display='block';return;}
+  box.innerHTML=matches.map(m=>{const nm=(ko?m.kr:m.en).replace(/'/g,'');const lbl=nm+' · Lv.'+m.lv;return '<div onmousedown="pickCalcMon('+m.exp+',\''+lbl+'\')" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--br)">'+(m.boss?'<span style=\'color:#e0584f\'>★ </span>':'')+esc(ko?m.kr:m.en)+' <span style=\'color:var(--tx3);font-size:11px\'>Lv.'+m.lv+' · '+m.exp.toLocaleString()+' EXP</span></div>';}).join('');
+  box.style.display='block';
+}
+function pickCalcMon(exp,label){
+  const s=document.getElementById('calc-mon-search');if(s)s.value=label;
+  const e=document.getElementById('calc-exp');if(e)e.value=exp;
+  const box=document.getElementById('calc-mon-list');if(box){box.style.display='none';box.innerHTML='';}
+  calcGameExp();
+}
 function _mval(id){const e=document.getElementById(id);return e?e.value:'';}
 function applyMonFilters(){
   const q=_mval('mon-search').toLowerCase();
@@ -1852,12 +1867,12 @@ function pgGame(){
     +'<div class="tw"><table><thead id="mon-thead">'+thead+'</thead><tbody id="mon-tbody">'+monRows+'</tbody></table></div>';
 
   const defExp=730,dKph=200,dHrs=9;
-  const monOpts=sortedMon.map(m=>'<option value="'+m.exp+'"'+(m.en==='Dark Elf'?' selected':'')+'>'+esc(ko?m.kr:m.en)+' · Lv.'+m.lv+' · '+m.exp.toLocaleString()+' EXP</option>').join('');
+  const defLabel=(ko?'다크 엘프':'Dark Elf')+' · Lv.27';
   const inS='width:100%;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px';
   const fmt=n=>Math.round(n).toLocaleString();
   const calcContent='<div class="psub" style="margin-bottom:18px">'+(ko?'몬스터와 사냥 시간으로 예상 경험치를 계산합니다.':'Estimate EXP from a monster and hunting duration.')+'</div>'
     +'<div class="panel" style="max-width:580px">'
-    +'<div class="fg2" style="margin-bottom:14px"><label>'+(ko?'몬스터 선택':'Pick a monster')+'</label><select id="calc-mon" onchange="document.getElementById(\'calc-exp\').value=this.value;calcGameExp()" style="'+inS+'">'+monOpts+'</select></div>'
+    +'<div class="fg2" style="margin-bottom:14px"><label>'+(ko?'몬스터 검색/선택':'Search a monster')+'</label><div style="position:relative"><input id="calc-mon-search" autocomplete="off" oninput="calcMonSearch()" value="'+esc(defLabel)+'" placeholder="'+(ko?'몬스터 이름 입력...':'Type a monster name...')+'" style="'+inS+'"><div id="calc-mon-list" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--bg-c);border:1px solid var(--br2);border-radius:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div></div></div>'
     +'<div class="fgrid" style="margin-bottom:18px">'
     +'<div class="fg2"><label>'+(ko?'EXP / 1킬':'EXP per kill')+'</label><input id="calc-exp" type="number" value="'+defExp+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'<div class="fg2"><label>'+(ko?'시간당 처치 수':'Kills per hour')+'</label><input id="calc-kph" type="number" value="'+dKph+'" oninput="calcGameExp()" style="'+inS+'"></div>'
