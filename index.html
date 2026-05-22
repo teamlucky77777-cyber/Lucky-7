@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.7 · Build: 20260521-95</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.8 · Build: 20260521-96</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1733,10 +1733,23 @@ function pickCalcMon(exp,label){
   const box=document.getElementById('calc-mon-list');if(box){box.style.display='none';box.innerHTML='';}
   calcGameExp();
 }
+let MON_SORT={col:'lv',dir:1};
+let MON_LOC='';
+function _monZones(){const z={};LINEAGE_MONSTERS.forEach(m=>m.zones.forEach(x=>{z[x.en]=x;}));return Object.keys(z).sort().map(k=>z[k]);}
+function locSearch(){
+  const q=((document.getElementById('mon-loc-search')||{}).value||'').toLowerCase();
+  const box=document.getElementById('mon-loc-list');if(!box)return;
+  const ko=S.lang==='ko';
+  let zs=_monZones();if(q)zs=zs.filter(z=>(z.en+' '+z.kr).toLowerCase().indexOf(q)>=0);
+  let html='<div onmousedown="pickLoc(\'\',\''+(ko?'전체 지역':'All locations')+'\')" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--br);color:var(--tx2)">'+(ko?'전체 지역':'All locations')+'</div>';
+  html+=zs.slice(0,60).map(z=>{const nm=(ko?z.kr:z.en).replace(/'/g,'');return '<div onmousedown="pickLoc(\''+z.en.toLowerCase().replace(/'/g,'')+'\',\''+nm+'\')" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--br)">'+esc(ko?z.kr:z.en)+'</div>';}).join('');
+  box.innerHTML=html;box.style.display='block';
+}
+function pickLoc(key,label){MON_LOC=key;const s=document.getElementById('mon-loc-search');if(s)s.value=label;const box=document.getElementById('mon-loc-list');if(box)box.style.display='none';applyMonFilters();}
 function _mval(id){const e=document.getElementById(id);return e?e.value:'';}
 function applyMonFilters(){
   const q=_mval('mon-search').toLowerCase();
-  const loc=_mval('mon-loc').toLowerCase();
+  const loc=MON_LOC;
   const type=_mval('mon-type');
   let n=0;
   document.querySelectorAll('#mon-tbody tr').forEach(tr=>{
@@ -1839,7 +1852,7 @@ function pgGame(){
   const allZones={};LINEAGE_MONSTERS.forEach(m=>m.zones.forEach(z=>{allZones[z.en]=z;}));
   const zoneKeys=Object.keys(allZones).sort();
   const selS='padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px';
-  const locOpts='<option value="">'+(ko?'전체 지역':'All locations')+'</option>'+zoneKeys.map(k=>'<option value="'+esc(k)+'">'+esc(ko?allZones[k].kr:allZones[k].en)+'</option>').join('');
+  MON_LOC='';
   const monRows=sortedMon.map(m=>{
     const nm=ko?m.kr:m.en;const tr=ko?m.trKr:m.trEn;const locText=m.zones.map(z=>ko?z.kr:z.en).join(', ');
     const search=(m.en+' '+m.kr+' '+m.trEn+' '+m.trKr+' '+m.zones.map(z=>z.en+' '+z.kr).join(' ')).toLowerCase();
@@ -1861,7 +1874,7 @@ function pgGame(){
   const thead='<tr>'+thS('name',ko?'이름':'Name')+thS('lv',ko?'레벨':'Lv',true)+thS('hp','HP',true)+thS('mp','MP',true)+thS('ac','AC',true)+thS('mr','MR',true)+thS('exp','EXP',true)+thP(ko?'특징':'Traits')+thP(ko?'지역':'Location')+'</tr>';
   const monstersContent='<div class="psub" style="margin-bottom:14px">'+(ko?'몬스터 도감 — 검색, 지역/유형 필터, 정렬 가능. 출처: lcinfo.io':'Monster database — search, filter by location/type, sortable. Source: lcinfo.io')+'</div>'
     +'<input id="mon-search" oninput="applyMonFilters()" placeholder="'+(ko?'이름, 특징, 지역 검색...':'Search name, trait, location...')+'" style="width:100%;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px;margin-bottom:10px">'
-    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><select id="mon-loc" onchange="applyMonFilters()" style="flex:1;min-width:160px;'+selS+'">'+locOpts+'</select>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><div style="flex:1;min-width:160px;position:relative"><input id="mon-loc-search" autocomplete="off" value="'+(ko?'전체 지역':'All locations')+'" placeholder="'+(ko?'지역 검색...':'Search location...')+'" onfocus="locSearch()" oninput="locSearch()" onblur="setTimeout(function(){var b=document.getElementById(\'mon-loc-list\');if(b)b.style.display=\'none\';},150)" style="width:100%;'+selS+'"><div id="mon-loc-list" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:50;background:var(--bg-c);border:1px solid var(--br2);border-radius:8px;margin-top:4px;max-height:260px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45)"></div></div>'
     +'<select id="mon-type" onchange="applyMonFilters()" style="flex:1;min-width:160px;'+selS+'"><option value="">'+(ko?'전체 유형':'All types')+'</option><option value="boss">'+(ko?'보스만':'Boss only')+'</option><option value="normal">'+(ko?'일반만':'Normal only')+'</option></select></div>'
     +'<div id="mon-count" style="font-size:12px;color:var(--tx2);margin-bottom:8px">'+sortedMon.length+(ko?'종':' monsters')+'</div>'
     +'<div class="tw"><table><thead id="mon-thead">'+thead+'</thead><tbody id="mon-tbody">'+monRows+'</tbody></table></div>';
