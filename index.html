@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.5 · Build: 20260521-103</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.6 · Build: 20260521-104</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1173,6 +1173,7 @@ function pgRecruitment(){
     +'<div class="fg2"><label>CPU</label><input id="nr-cpu" placeholder="i5-10400 / Ryzen 5 3600"></div>'
     +'<div class="fg2"><label>GPU</label><input id="nr-gpu" placeholder="RTX 3060 / GTX 1660"></div>'
     +'<div class="fg2"><label>RAM (GB)</label><input id="nr-ram" placeholder="8"></div>'
+    +'<div class="fg2"><label>SSD</label><input id="nr-ssd" placeholder="256GB SSD / 1TB HDD"></div>'
     +'<div class="fg2"><label>Speed (Mbps)</label><input id="nr-spd" placeholder="100"></div>'
     +'<div class="fg2"><label>OS</label><input id="nr-os" placeholder="Windows 11"></div>'
     +'<div class="fg2"><label>Static IP</label><select id="nr-sip"><option value="">Unknown</option><option value="yes">Yes ✓</option><option value="no">No ✗</option></select></div>'
@@ -1194,6 +1195,7 @@ function pgRecruitment(){
       +'<td style="font-size:12px;'+col(cpuOk)+'">'+esc(r.cpu||'—')+'</td>'
       +'<td style="font-size:12px;'+col(gpuOk)+'">'+esc(r.gpu||'—')+'</td>'
       +'<td style="font-size:12px;'+col(ramOk)+'">'+(r.ram?esc(r.ram)+'GB':'—')+'</td>'
+      +'<td style="font-size:12px;color:var(--tx2)">'+esc(r.ssd||'—')+'</td>'
       +'<td style="font-size:12px;'+col(spdOk)+'">'+(r.speed?esc(r.speed)+' Mbps':'—')+'</td>'
       +'<td style="font-size:12px;color:var(--tx2)">'+esc(r.os||'—')+'</td>'
       +'<td style="text-align:center">'+(r.static_ip===true?'<span style="color:var(--gr)">✓</span>':r.static_ip===false?'<span style="color:var(--re)">✗</span>':'<span style="color:var(--tx3)">—</span>')+'</td>'
@@ -1201,7 +1203,7 @@ function pgRecruitment(){
       +'<td>'+sbadge(st)+'</td><td>'+stageCell+'</td>'
       +(can('recruitment')?'<td style="text-align:right"><button class="btn-del btn-sm" onclick="delRecruit('+r.id+')">🗑</button></td>':'<td></td>')
       +'</tr>';
-  }).join(''):'<tr><td colspan="11" class="empty" style="border:none">'+(ko?'지원자 없음':'No applicants')+'</td></tr>';
+  }).join(''):'<tr><td colspan="12" class="empty" style="border:none">'+(ko?'지원자 없음':'No applicants')+'</td></tr>';
   const kanban='<div class="kanban">'+stages.map(st=>{
     const cards=S.recruits.filter(r=>(r.stage||'Applied')===st);
     const cardHtml=cards.length?cards.map((c,i)=>{
@@ -1229,7 +1231,7 @@ function pgRecruitment(){
     +(S.showReqs?criteriaHTML+(can('recruit_settings')?'<div style="margin-bottom:16px;text-align:right"><button class="btn-sm" onclick="S.showEditReqs=!S.showEditReqs;render()">⚙️ '+(ko?'기준 편집':'Edit criteria')+'</button></div>':'')+(S.showEditReqs&&can('recruit_settings')?reqsEditForm:''):'')
     +'<div class="toolbar">'+stagePills+'<div style="display:flex;gap:8px;align-items:center">'+statPills+'<div style="width:1px;height:22px;background:var(--br)"></div>'+viewPills+'</div></div>'
     +addForm
-    +(view==='table'?'<div class="section-head"><div class="section-title">'+(ko?'지원자':'Applicants')+'<span class="count">'+filtered.length+'</span></div></div><div class="tw"><table><thead><tr><th>'+(ko?'이름':'Name')+'</th><th>CPU</th><th>GPU</th><th>RAM</th><th>'+(ko?'속도':'Speed')+'</th><th>OS</th><th style="text-align:center">Static IP</th><th style="text-align:center">LAN</th><th>Status</th><th>'+(ko?'단계':'Stage')+'</th><th></th></tr></thead><tbody>'+tRows+'</tbody></table></div>'
+    +(view==='table'?'<div class="section-head"><div class="section-title">'+(ko?'지원자':'Applicants')+'<span class="count">'+filtered.length+'</span></div></div><div class="tw"><table><thead><tr><th>'+(ko?'이름':'Name')+'</th><th>CPU</th><th>GPU</th><th>RAM</th><th>SSD</th><th>'+(ko?'속도':'Speed')+'</th><th>OS</th><th style="text-align:center">Static IP</th><th style="text-align:center">LAN</th><th>Status</th><th>'+(ko?'단계':'Stage')+'</th><th></th></tr></thead><tbody>'+tRows+'</tbody></table></div>'
       :'<div class="section-head"><div class="section-title">'+(ko?'파이프라인':'Pipeline')+'<span class="count">'+S.recruits.length+'</span></div></div>'+kanban);
 }
 
@@ -1239,7 +1241,7 @@ async function addRecruitFull(){
   const sip=document.getElementById('nr-sip').value;
   const lan=document.getElementById('nr-lan').value;
   const base={name:n,source:document.getElementById('nr-s').value,date_applied:document.getElementById('nr-d').value,stage:'Applied'};
-  const full={...base,cpu:document.getElementById('nr-cpu').value,gpu:document.getElementById('nr-gpu').value,ram:document.getElementById('nr-ram').value,speed:document.getElementById('nr-spd').value,os:document.getElementById('nr-os').value,static_ip:sip===''?null:sip==='yes',lan_cable:lan===''?null:lan==='yes'};
+  const full={...base,cpu:document.getElementById('nr-cpu').value,gpu:document.getElementById('nr-gpu').value,ram:document.getElementById('nr-ram').value,ssd:document.getElementById('nr-ssd').value,speed:document.getElementById('nr-spd').value,os:document.getElementById('nr-os').value,static_ip:sip===''?null:sip==='yes',lan_cable:lan===''?null:lan==='yes'};
   let {data,error}=await sb.from('recruits').insert(full).select().single();
   if(error){({data,error}=await sb.from('recruits').insert(base).select().single());}
   if(error){toast(error.message,'err');console.error(error);return;}
