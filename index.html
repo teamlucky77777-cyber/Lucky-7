@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.2 · Build: 20260521-100</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.3 · Build: 20260521-101</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1707,12 +1707,12 @@ const LINEAGE_MONSTERS=[
   {kr:'발라카스',en:'Valakas',lv:95,hp:26000,mp:450,ac:-99,mr:99,exp:9026,boss:true,trEn:'Weak: Water, Aggressive, Weapon Dmg',trKr:'보스,약점:물,선공,무기손상',zones:[{en:'Valakas Lair',kr:'발라카스의 둥지'}]}
 ];
 function reqExp(L){return Math.round(74465*Math.pow(1.204,L-26));}
-function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,perKillPct){
+function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,measuredPctPerHr){
   const ko=S.lang==='ko';const fmt=n=>Math.round(n).toLocaleString();
   lvl0=Math.max(1,Math.round(lvl0)||1);pct0=Math.min(100,Math.max(0,pct0));
-  const calibrated=perKillPct>0;
-  const exp=calibrated?(perKillPct/100)*reqExp(lvl0):baseExp;
-  const total=exp*kph*hours;
+  const calibrated=measuredPctPerHr>0;
+  const expHr=calibrated?(measuredPctPerHr/100)*reqExp(lvl0):baseExp*kph;
+  const total=expHr*hours;
   let lvl=lvl0,pool=(pct0/100)*reqExp(lvl)+total,g=0;
   while(pool>=reqExp(lvl)&&g<800){pool-=reqExp(lvl);lvl++;g++;}
   const endPct=Math.min(100,pool/reqExp(lvl)*100);
@@ -1720,11 +1720,11 @@ function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,perKillPct){
   const M=(l,v,c)=>'<div><div style="font-size:11px;color:var(--tx3)">'+l+'</div><div style="font-size:19px;font-weight:700;color:'+c+'">'+v+'</div></div>';
   const gap=monLv>0?lvl0-monLv:0;
   let warn='';
-  if(!calibrated&&gap>5){warn='<div style="margin-top:12px;padding:10px 12px;background:rgba(217,148,58,.12);border:1px solid rgba(217,148,58,.4);border-radius:8px;font-size:11px;color:var(--warn,#d9943a);line-height:1.6">'+(ko?'⚠ 캐릭터가 이 몬스터보다 '+gap+'레벨 높습니다. 실제 게임 EXP는 레벨 페널티로 위 수치보다 훨씬 적습니다. 정확히 계산하려면 인게임에서 1마리 잡고 오른 %를 아래 칸에 입력하세요.':'⚠ You are '+gap+' levels above this monster. Real in-game EXP is much lower than shown due to the over-level penalty. For an accurate result, kill one in-game, read the % gained, and enter it below.')+'</div>';}
-  else if(calibrated){warn='<div style="margin-top:12px;font-size:11px;color:#5fae7a">'+(ko?'✓ 인게임 실측 %로 계산됨 ('+exp.toFixed(0)+' EXP/킬)':'✓ Using your observed in-game % ('+exp.toFixed(0)+' EXP/kill)')+'</div>';}
+  if(!calibrated&&gap>5){warn='<div style="margin-top:12px;padding:10px 12px;background:rgba(217,148,58,.12);border:1px solid rgba(217,148,58,.4);border-radius:8px;font-size:11px;color:var(--warn,#d9943a);line-height:1.6">'+(ko?'⚠ 캐릭터가 이 몬스터보다 '+gap+'레벨 높습니다. 실제 EXP는 레벨 페널티로 위 수치보다 훨씬 적습니다. 정확히 보려면 아래 "세션 보정"에 보고서 % 두 개를 입력하세요.':'⚠ You are '+gap+' levels above this monster — real EXP is far lower than shown (over-level penalty). For accuracy, fill in "Session calibration" below using two report %s.')+'</div>';}
+  else if(calibrated){warn='<div style="margin-top:12px;font-size:11px;color:#5fae7a">'+(ko?'✓ 세션 보고서 실측치로 계산됨 ('+measuredPctPerHr.toFixed(4)+'%/시간 · '+fmt(expHr)+' EXP/시간)':'✓ Based on your session report ('+measuredPctPerHr.toFixed(4)+'%/hr · '+fmt(expHr)+' EXP/hr)')+'</div>';}
   return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">'
-    +M(ko?'총 처치':'Total kills',fmt(kph*hours),'var(--ac-strong)')
-    +M(ko?'시간당 EXP':'EXP / hour',fmt(exp*kph),'var(--ac-strong)')
+    +(calibrated?M(ko?'측정 %/시간':'Measured %/hr',measuredPctPerHr.toFixed(4)+'%','var(--ac-strong)'):M(ko?'총 처치':'Total kills',fmt(kph*hours),'var(--ac-strong)'))
+    +M(ko?'시간당 EXP':'EXP / hour',fmt(expHr),'var(--ac-strong)')
     +M(ko?'총 EXP':'Total EXP',fmt(total),'#5fae7a')
   +'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid var(--br);padding-top:14px">'
     +M(ko?'획득 %':'% gained','+'+sessPct.toFixed(4)+'%','#5fae7a')
@@ -1734,7 +1734,9 @@ function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,perKillPct){
 function calcGameExp(){
   const g=id=>parseFloat((document.getElementById(id)||{}).value)||0;
   const r=document.getElementById('calc-result');if(!r)return;
-  r.innerHTML=calcResultHTML(g('calc-exp'),g('calc-kph'),g('calc-hours'),g('calc-lvl'),g('calc-pct'),g('calc-mon-lv'),g('calc-perkill'));
+  const ss=g('calc-sess-start'),se=g('calc-sess-end'),sh=g('calc-sess-hours');
+  let measured=0;if(se>ss&&sh>0)measured=(se-ss)/sh;
+  r.innerHTML=calcResultHTML(g('calc-exp'),g('calc-kph'),g('calc-hours'),g('calc-lvl'),g('calc-pct'),g('calc-mon-lv'),measured);
 }
 function calcMonSearch(){
   const q=((document.getElementById('calc-mon-search')||{}).value||'').toLowerCase();
@@ -1751,7 +1753,6 @@ function pickCalcMon(exp,lv,label){
   const s=document.getElementById('calc-mon-search');if(s)s.value=label;
   const e=document.getElementById('calc-exp');if(e)e.value=exp;
   const lvEl=document.getElementById('calc-mon-lv');if(lvEl)lvEl.value=lv;
-  const pk=document.getElementById('calc-perkill');if(pk)pk.value='';
   const box=document.getElementById('calc-mon-list');if(box){box.style.display='none';box.innerHTML='';}
   calcGameExp();
 }
@@ -1926,9 +1927,14 @@ function pgGame(){
     +'<div class="fg2"><label>'+(ko?'현재 레벨':'Current level')+'</label><input id="calc-lvl" type="number" value="'+dLvl+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'<div class="fg2"><label>'+(ko?'현재 % (선택)':'Current % (optional)')+'</label><input id="calc-pct" type="number" step="0.0001" value="'+dPct+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'</div>'
-    +'<div class="fg2" style="margin-bottom:18px"><label>'+(ko?'⭐ 인게임 1킬 % (정확도↑, 선택)':'⭐ Observed % per 1 kill in-game (most accurate, optional)')+'</label><input id="calc-perkill" type="number" step="0.0001" placeholder="'+(ko?'예: 0.0500 — 입력 시 레벨 페널티까지 반영':'e.g. 0.0500 — overrides base EXP, accounts for level penalty')+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div style="font-size:11px;color:var(--ac-strong);font-weight:600;margin-bottom:8px">'+(ko?'📋 세션 보정 (가장 정확 — 보고서 % 두 개 입력)':'📋 Session calibration (most accurate — paste two report %s)')+'</div>'
+    +'<div class="fgrid" style="margin-bottom:18px">'
+    +'<div class="fg2"><label>'+(ko?'시작 %':'Start %')+'</label><input id="calc-sess-start" type="number" step="0.0001" placeholder="85.7829" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'종료 %':'End %')+'</label><input id="calc-sess-end" type="number" step="0.0001" placeholder="88.5735" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'경과 시간':'Hours apart')+'</label><input id="calc-sess-hours" type="number" step="0.1" placeholder="2" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'</div>'
     +'<div id="calc-result" style="background:var(--bg-i);border:1px solid var(--br);border-radius:10px;padding:16px">'+calcResultHTML(defExp,dKph,dHrs,dLvl,dPct,dMonLv,0)+'</div>'
-    +'<div style="font-size:11px;color:var(--tx3);margin-top:12px;line-height:1.6">'+(ko?'※ 기본 EXP는 몬스터의 풀 경험치입니다. 캐릭터 레벨이 몬스터보다 많이 높으면 실제 EXP는 레벨 페널티로 크게 줄어듭니다. 가장 정확한 값은 인게임에서 1마리 잡고 오른 %를 위 ⭐칸에 입력하는 것입니다.':'※ Base EXP is the monster\'s full value. If you\'re far above its level, the game gives much less (over-level penalty). For the most accurate result, kill one in-game and enter the % gained in the ⭐ field above.')+'</div>'
+    +'<div style="font-size:11px;color:var(--tx3);margin-top:12px;line-height:1.6">'+(ko?'※ 기본 EXP는 몬스터의 풀 경험치라 레벨이 높으면 과대평가됩니다. 세션 보고서의 EXP % 두 개와 시간 간격을 입력하면 레벨 페널티까지 반영된 실제 속도로 계산합니다.':'※ Base EXP is the monster\'s full value, so it over-estimates when you\'re over-leveled. Enter two EXP %s from your session reports and the hours between them — the calc then uses your real rate (penalty included).')+'</div>'
     +'</div>';
 
   const body=tab==='monsters'?monstersContent:(tab==='calc'?calcContent:manualContent);
