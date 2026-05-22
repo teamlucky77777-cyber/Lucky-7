@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.3 · Build: 20260521-101</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.4 · Build: 20260521-102</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1717,11 +1717,14 @@ function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,measuredPctPerHr){
   while(pool>=reqExp(lvl)&&g<800){pool-=reqExp(lvl);lvl++;g++;}
   const endPct=Math.min(100,pool/reqExp(lvl)*100);
   const sessPct=reqExp(lvl0)>0?total/reqExp(lvl0)*100:0;
+  const pctPerHr=hours>0?sessPct/hours:0;
+  const hToNext=pctPerHr>0?(100-pct0)/pctPerHr:0;
   const M=(l,v,c)=>'<div><div style="font-size:11px;color:var(--tx3)">'+l+'</div><div style="font-size:19px;font-weight:700;color:'+c+'">'+v+'</div></div>';
   const gap=monLv>0?lvl0-monLv:0;
   let warn='';
   if(!calibrated&&gap>5){warn='<div style="margin-top:12px;padding:10px 12px;background:rgba(217,148,58,.12);border:1px solid rgba(217,148,58,.4);border-radius:8px;font-size:11px;color:var(--warn,#d9943a);line-height:1.6">'+(ko?'⚠ 캐릭터가 이 몬스터보다 '+gap+'레벨 높습니다. 실제 EXP는 레벨 페널티로 위 수치보다 훨씬 적습니다. 정확히 보려면 아래 "세션 보정"에 보고서 % 두 개를 입력하세요.':'⚠ You are '+gap+' levels above this monster — real EXP is far lower than shown (over-level penalty). For accuracy, fill in "Session calibration" below using two report %s.')+'</div>';}
   else if(calibrated){warn='<div style="margin-top:12px;font-size:11px;color:#5fae7a">'+(ko?'✓ 세션 보고서 실측치로 계산됨 ('+measuredPctPerHr.toFixed(4)+'%/시간 · '+fmt(expHr)+' EXP/시간)':'✓ Based on your session report ('+measuredPctPerHr.toFixed(4)+'%/hr · '+fmt(expHr)+' EXP/hr)')+'</div>';}
+  const nextNote=(pctPerHr>0&&hToNext>0)?'<div style="margin-top:10px;padding:9px 12px;background:rgba(95,174,122,.1);border-radius:8px;font-size:12px;color:#5fae7a">'+(ko?'⏱ 이 속도면 약 '+hToNext.toFixed(1)+'시간 후 Lv.'+(lvl0+1)+' 도달':'⏱ ≈ '+hToNext.toFixed(1)+'h to reach Lv.'+(lvl0+1)+' at this rate')+'</div>':'';
   return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">'
     +(calibrated?M(ko?'측정 %/시간':'Measured %/hr',measuredPctPerHr.toFixed(4)+'%','var(--ac-strong)'):M(ko?'총 처치':'Total kills',fmt(kph*hours),'var(--ac-strong)'))
     +M(ko?'시간당 EXP':'EXP / hour',fmt(expHr),'var(--ac-strong)')
@@ -1729,7 +1732,7 @@ function calcResultHTML(baseExp,kph,hours,lvl0,pct0,monLv,measuredPctPerHr){
   +'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid var(--br);padding-top:14px">'
     +M(ko?'획득 %':'% gained','+'+sessPct.toFixed(4)+'%','#5fae7a')
     +M(ko?'도달':'Ends at','Lv.'+lvl+' · '+endPct.toFixed(4)+'%','#5fae7a')
-  +'</div>'+(g>0?'<div style="font-size:11px;color:var(--tx3);margin-top:8px">'+(ko?'세션 중 약 '+g+'레벨 상승':'≈ '+g+' level'+(g>1?'s':'')+' gained this session')+'</div>':'')+warn;
+  +'</div>'+nextNote+(g>0?'<div style="font-size:11px;color:var(--tx3);margin-top:8px">'+(ko?'설정 시간 동안 약 '+g+'레벨 상승':'≈ '+g+' level'+(g>1?'s':'')+' over the planned time')+'</div>':'')+warn;
 }
 function calcGameExp(){
   const g=id=>parseFloat((document.getElementById(id)||{}).value)||0;
@@ -1921,7 +1924,7 @@ function pgGame(){
     +'<div class="fgrid" style="margin-bottom:12px">'
     +'<div class="fg2"><label>'+(ko?'EXP / 1킬 (기본값)':'EXP per kill (base)')+'</label><input id="calc-exp" type="number" value="'+defExp+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'<div class="fg2"><label>'+(ko?'시간당 처치 수':'Kills per hour')+'</label><input id="calc-kph" type="number" value="'+dKph+'" oninput="calcGameExp()" style="'+inS+'"></div>'
-    +'<div class="fg2"><label>'+(ko?'사냥 시간 (시간)':'Duration (hours)')+'</label><input id="calc-hours" type="number" step="0.5" value="'+dHrs+'" oninput="calcGameExp()" style="'+inS+'"></div>'
+    +'<div class="fg2"><label>'+(ko?'예상 사냥 시간':'Plan to hunt (hrs)')+'</label><input id="calc-hours" type="number" step="0.5" value="'+dHrs+'" oninput="calcGameExp()" style="'+inS+'"></div>'
     +'</div>'
     +'<div class="fgrid" style="margin-bottom:12px">'
     +'<div class="fg2"><label>'+(ko?'현재 레벨':'Current level')+'</label><input id="calc-lvl" type="number" value="'+dLvl+'" oninput="calcGameExp()" style="'+inS+'"></div>'
