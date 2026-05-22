@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.4 · Build: 20260521-92</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v9.5 · Build: 20260521-93</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1535,18 +1535,18 @@ async function saveGamePC(id){
 // ── LINEAGE MONSTER DATA (source: lcinfo.io) ──────────────────────────────
 // Verified entries. Easy to expand — add objects in the same shape.
 const LINEAGE_MONSTERS=[
-  {kr:'개구리',en:'Frog',lv:1,hp:1,exp:2,zones:[{en:'Mainland',kr:'본토'}]},
-  {kr:'말미잘',en:'Sea Anemone',lv:1,hp:20,exp:2,zones:[{en:"Eva's Kingdom",kr:'에바의 왕국'}]},
-  {kr:'고블린',en:'Goblin',lv:2,hp:3,exp:5,zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island',kr:'말하는 섬'}]},
-  {kr:'오리',en:'Duck',lv:2,hp:10,exp:5,zones:[{en:'Mainland',kr:'본토'}]},
-  {kr:'오크',en:'Orc',lv:2,hp:6,exp:5,zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island',kr:'말하는 섬'},{en:'Gludio Dungeon 1F',kr:'글루디오 던전 1층'},{en:'Desert Dungeon 1F',kr:'사막 던전 1층'}]},
-  {kr:'슬라임',en:'Slime',lv:6,hp:60,exp:37,zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island',kr:'말하는 섬'},{en:'Windawood Castle Dungeon',kr:'윈다우드 성 던전'}]},
-  {kr:'임프 장로',en:'Imp Elder',lv:6,hp:100,exp:37,zones:[{en:'Mainland',kr:'본토'}]},
-  {kr:'좀비',en:'Zombie',lv:6,hp:45,exp:37,zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island Dungeon',kr:'말하는 섬 던전'},{en:'Gludio Dungeon',kr:'글루디오 던전'},{en:'Desert Dungeon',kr:'사막 던전'}]},
-  {kr:'도펠겡어',en:'Doppelganger',lv:19,hp:280,exp:362,zones:[{en:'Mainland',kr:'본토'}]},
-  {kr:'폭탄 꽃',en:'Bomb Flower',lv:19,hp:180,exp:1142,zones:[{en:'Mainland',kr:'본토'}]},
-  {kr:'거대 병정 개미',en:'Giant Soldier Ant',lv:20,hp:150,exp:401,zones:[{en:'Mainland',kr:'본토'},{en:'Ant Dungeon',kr:'개미 던전'}]},
-  {kr:'다크 엘프',en:'Dark Elf',lv:27,hp:350,exp:730,zones:[{en:'Mainland',kr:'본토'},{en:'Giran Dungeon 4F',kr:'기란 던전 4층'}]}
+  {kr:'개구리',en:'Frog',lv:1,hp:1,mp:0,ac:10,mr:0,exp:2,boss:false,trEn:'',trKr:'',zones:[{en:'Mainland',kr:'본토'}]},
+  {kr:'말미잘',en:'Sea Anemone',lv:1,hp:20,mp:0,ac:3,mr:0,exp:2,boss:false,trEn:'',trKr:'',zones:[{en:"Eva's Kingdom",kr:'에바의 왕국'}]},
+  {kr:'고블린',en:'Goblin',lv:2,hp:3,mp:10,ac:10,mr:2,exp:5,boss:false,trEn:'Weak: Fire, Tameable, Pack',trKr:'약점: 불, 테이밍, 동족 인식',zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island',kr:'말하는 섬'}]},
+  {kr:'오리',en:'Duck',lv:2,hp:10,mp:0,ac:10,mr:0,exp:5,boss:false,trEn:'',trKr:'',zones:[{en:'Mainland',kr:'본토'}]},
+  {kr:'오크',en:'Orc',lv:2,hp:6,mp:4,ac:10,mr:0,exp:5,boss:false,trEn:'Weak: Water, Tameable, Pack',trKr:'약점: 물, 테이밍, 동족 인식',zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island',kr:'말하는 섬'},{en:'Gludio Dungeon 1F',kr:'글루디오 던전1'},{en:'Desert Dungeon 1F',kr:'사막 던전1'}]},
+  {kr:'슬라임',en:'Slime',lv:6,hp:60,mp:10,ac:-10,mr:10,exp:37,boss:false,trEn:'Weak: Wind, Tameable',trKr:'약점: 바람, 테이밍',zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island',kr:'말하는 섬'},{en:'Windawood Castle Dungeon',kr:'윈다우드 성 던전'}]},
+  {kr:'임프 장로',en:'Imp Elder',lv:6,hp:100,mp:50,ac:10,mr:30,exp:37,boss:false,trEn:'Weak: Earth, Tameable',trKr:'약점: 땅, 테이밍',zones:[{en:'Mainland',kr:'본토'}]},
+  {kr:'좀비',en:'Zombie',lv:6,hp:45,mp:12,ac:8,mr:5,exp:37,boss:false,trEn:'Weak: Fire, Undead, Aggressive, Pack',trKr:'약점: 불, 언데드, 선공, 동족 인식',zones:[{en:'Mainland',kr:'본토'},{en:'Talking Island Dungeon',kr:'말하는 섬 던전'},{en:'Gludio Dungeon',kr:'글루디오 던전'},{en:'Desert Dungeon',kr:'사막 던전'}]},
+  {kr:'도펠겡어',en:'Doppelganger',lv:19,hp:280,mp:30,ac:-6,mr:10,exp:362,boss:false,trEn:'Weak: Fire, Aggressive, Pack',trKr:'약점: 불, 선공, 동족 인식',zones:[{en:'Mainland',kr:'본토'}]},
+  {kr:'폭탄 꽃',en:'Bomb Flower',lv:19,hp:180,mp:100,ac:-10,mr:25,exp:1142,boss:false,trEn:'Weak: Water, Aggressive, Pack',trKr:'약점: 물, 선공, 동족 인식',zones:[{en:'Mainland',kr:'본토'}]},
+  {kr:'거대 병정 개미',en:'Giant Soldier Ant',lv:20,hp:150,mp:100,ac:-7,mr:60,exp:401,boss:false,trEn:'Weak: Fire, Tameable, Aggressive, Pack',trKr:'약점: 불, 테이밍, 선공, 동족 인식',zones:[{en:'Mainland',kr:'본토'},{en:'Ant Dungeon',kr:'개미 던전'}]},
+  {kr:'다크 엘프',en:'Dark Elf',lv:27,hp:350,mp:110,ac:-24,mr:30,exp:730,boss:false,trEn:'Weak: Fire, Aggressive, Pack',trKr:'약점: 불, 선공, 동족 인식',zones:[{en:'Mainland',kr:'본토'},{en:'Giran Dungeon 4F',kr:'기란 던전 4층'}]}
 ];
 function calcGameExp(){
   const g=id=>parseFloat((document.getElementById(id)||{}).value)||0;
@@ -1559,7 +1559,35 @@ function calcGameExp(){
     +'<div><div style="font-size:11px;color:var(--tx3)">'+(ko?'총 EXP':'Total EXP')+'</div><div style="font-size:20px;font-weight:700;color:#5fae7a">'+fmt(exp*kph*hours)+'</div></div>'
   +'</div>';
 }
-function filterMons(){const q=((document.getElementById('mon-search')||{}).value||'').toLowerCase();document.querySelectorAll('.mon-group').forEach(g=>{let any=false;g.querySelectorAll('tr[data-name]').forEach(tr=>{const show=(tr.getAttribute('data-name')||'').includes(q);tr.style.display=show?'':'none';if(show)any=true;});g.style.display=any?'':'none';});}
+let MON_SORT={col:'lv',dir:1};
+function _mval(id){const e=document.getElementById(id);return e?e.value:'';}
+function applyMonFilters(){
+  const q=_mval('mon-search').toLowerCase();
+  const loc=_mval('mon-loc').toLowerCase();
+  const type=_mval('mon-type');
+  let n=0;
+  document.querySelectorAll('#mon-tbody tr').forEach(tr=>{
+    const name=tr.getAttribute('data-name')||'';
+    const locs=tr.getAttribute('data-locs')||'';
+    const boss=tr.getAttribute('data-boss')==='1';
+    let show=true;
+    if(q && name.indexOf(q)<0)show=false;
+    if(loc && locs.split('|').indexOf(loc)<0)show=false;
+    if(type==='boss'&&!boss)show=false;
+    if(type==='normal'&&boss)show=false;
+    tr.style.display=show?'':'none';if(show)n++;
+  });
+  const c=document.getElementById('mon-count');if(c)c.textContent=n+(S.lang==='ko'?'종':' monsters');
+}
+function sortMon(col){
+  if(MON_SORT.col===col)MON_SORT.dir*=-1;else{MON_SORT.col=col;MON_SORT.dir=1;}
+  const tb=document.getElementById('mon-tbody');if(!tb)return;
+  const numeric=['lv','hp','mp','ac','mr','exp'].indexOf(col)>=0;
+  const rows=Array.prototype.slice.call(tb.children);
+  rows.sort((a,b)=>{let av=a.getAttribute('data-'+col)||'',bv=b.getAttribute('data-'+col)||'';if(numeric)return ((parseFloat(av)||0)-(parseFloat(bv)||0))*MON_SORT.dir;return av.localeCompare(bv)*MON_SORT.dir;});
+  rows.forEach(r=>tb.appendChild(r));
+  document.querySelectorAll('#mon-thead th[data-col]').forEach(th=>{const c=th.getAttribute('data-col');const a=th.querySelector('.arr');if(a)a.textContent=c===col?(MON_SORT.dir===1?' ▲':' ▼'):'';});
+}
 
 function pgGame(){
   const ko=S.lang==='ko';
@@ -1635,16 +1663,35 @@ function pgGame(){
     +ruleSections;
 
   const sortedMon=LINEAGE_MONSTERS.slice().sort((a,b)=>a.lv-b.lv);
-  const groups={};
-  sortedMon.forEach(m=>{(m.zones||[]).forEach(z=>{if(!groups[z.en])groups[z.en]={en:z.en,kr:z.kr,mons:[]};groups[z.en].mons.push(m);});});
-  const groupKeys=Object.keys(groups).sort((a,b)=>Math.min.apply(null,groups[a].mons.map(x=>x.lv))-Math.min.apply(null,groups[b].mons.map(x=>x.lv)));
-  const groupsHtml=groupKeys.map(k=>{const g=groups[k];const zoneName=ko?g.kr:g.en;
-    const rows=g.mons.slice().sort((a,b)=>a.lv-b.lv).map(m=>{const nm=ko?m.kr:m.en;return '<tr data-name="'+(m.en+' '+m.kr).toLowerCase()+'"><td style="padding:7px 10px;font-weight:500">'+esc(nm)+(ko?'':'<span style="font-size:10px;color:var(--tx3);margin-left:7px">'+esc(m.kr)+'</span>')+'</td><td style="text-align:center;color:var(--tx2)">'+m.lv+'</td><td style="text-align:center;color:var(--tx2)">'+m.hp.toLocaleString()+'</td><td style="text-align:center;font-weight:600;color:var(--ac-strong)">'+m.exp.toLocaleString()+'</td></tr>';}).join('');
-    return '<div class="mon-group" style="margin-bottom:20px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:14px;font-weight:600">📍 '+esc(zoneName)+'</span><span class="count">'+g.mons.length+'</span></div><div class="tw"><table><thead><tr><th>'+(ko?'몬스터':'Monster')+'</th><th style="text-align:center">'+(ko?'레벨':'Lv')+'</th><th style="text-align:center">HP</th><th style="text-align:center">EXP</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';}).join('');
-  const monstersContent='<div class="psub" style="margin-bottom:14px">'+(ko?'사냥터별 몬스터 — 레벨, HP, 경험치. 출처: lcinfo.io':'Monsters by hunting zone — level, HP, EXP. Source: lcinfo.io')+'</div>'
-    +'<input id="mon-search" oninput="filterMons()" placeholder="'+(ko?'몬스터 검색...':'Search monster...')+'" style="width:100%;max-width:320px;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px;margin-bottom:18px">'
-    +groupsHtml
-    +'<div style="font-size:11px;color:var(--tx3)">'+groupKeys.length+(ko?'개 사냥터 · '+sortedMon.length+'종 · 더 추가하려면 알려주세요':' zones · '+sortedMon.length+' monsters · ask to add more')+'</div>';
+  const allZones={};LINEAGE_MONSTERS.forEach(m=>m.zones.forEach(z=>{allZones[z.en]=z;}));
+  const zoneKeys=Object.keys(allZones).sort();
+  const selS='padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px';
+  const locOpts='<option value="">'+(ko?'전체 지역':'All locations')+'</option>'+zoneKeys.map(k=>'<option value="'+esc(k)+'">'+esc(ko?allZones[k].kr:allZones[k].en)+'</option>').join('');
+  const monRows=sortedMon.map(m=>{
+    const nm=ko?m.kr:m.en;const tr=ko?m.trKr:m.trEn;const locText=m.zones.map(z=>ko?z.kr:z.en).join(', ');
+    const search=(m.en+' '+m.kr+' '+m.trEn+' '+m.trKr+' '+m.zones.map(z=>z.en+' '+z.kr).join(' ')).toLowerCase();
+    const locsAttr=m.zones.map(z=>z.en.toLowerCase()).join('|');
+    return '<tr data-name="'+esc(search)+'" data-locs="'+esc(locsAttr)+'" data-boss="'+(m.boss?1:0)+'" data-lv="'+m.lv+'" data-hp="'+m.hp+'" data-mp="'+m.mp+'" data-ac="'+m.ac+'" data-mr="'+m.mr+'" data-exp="'+m.exp+'">'
+      +'<td style="padding:7px 10px;font-weight:500;white-space:nowrap">'+esc(nm)+(ko?'':'<span style="font-size:10px;color:var(--tx3);margin-left:6px">'+esc(m.kr)+'</span>')+'</td>'
+      +'<td style="text-align:center;color:var(--tx2)">'+m.lv+'</td>'
+      +'<td style="text-align:center;color:var(--tx2)">'+m.hp.toLocaleString()+'</td>'
+      +'<td style="text-align:center;color:var(--tx2)">'+m.mp+'</td>'
+      +'<td style="text-align:center;color:var(--tx2)">'+m.ac+'</td>'
+      +'<td style="text-align:center;color:var(--tx2)">'+m.mr+'</td>'
+      +'<td style="text-align:center;font-weight:600;color:var(--ac-strong)">'+m.exp.toLocaleString()+'</td>'
+      +'<td style="font-size:11px;color:var(--tx2)">'+esc(tr||'—')+'</td>'
+      +'<td style="font-size:11px;color:var(--tx2);white-space:nowrap">'+esc(locText)+'</td>'
+    +'</tr>';
+  }).join('');
+  const thS=(col,lbl,center)=>'<th data-col="'+col+'" onclick="sortMon(\''+col+'\')" style="cursor:pointer;user-select:none;white-space:nowrap'+(center?';text-align:center':'')+'">'+lbl+'<span class="arr">'+(col==='lv'?' ▲':'')+'</span></th>';
+  const thP=lbl=>'<th style="white-space:nowrap">'+lbl+'</th>';
+  const thead='<tr>'+thS('name',ko?'이름':'Name')+thS('lv',ko?'레벨':'Lv',true)+thS('hp','HP',true)+thS('mp','MP',true)+thS('ac','AC',true)+thS('mr','MR',true)+thS('exp','EXP',true)+thP(ko?'특징':'Traits')+thP(ko?'지역':'Location')+'</tr>';
+  const monstersContent='<div class="psub" style="margin-bottom:14px">'+(ko?'몬스터 도감 — 검색, 지역/유형 필터, 정렬 가능. 출처: lcinfo.io':'Monster database — search, filter by location/type, sortable. Source: lcinfo.io')+'</div>'
+    +'<input id="mon-search" oninput="applyMonFilters()" placeholder="'+(ko?'이름, 특징, 지역 검색...':'Search name, trait, location...')+'" style="width:100%;padding:9px 12px;border:1px solid var(--br2);border-radius:8px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px;margin-bottom:10px">'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><select id="mon-loc" onchange="applyMonFilters()" style="flex:1;min-width:160px;'+selS+'">'+locOpts+'</select>'
+    +'<select id="mon-type" onchange="applyMonFilters()" style="flex:1;min-width:160px;'+selS+'"><option value="">'+(ko?'전체 유형':'All types')+'</option><option value="boss">'+(ko?'보스만':'Boss only')+'</option><option value="normal">'+(ko?'일반만':'Normal only')+'</option></select></div>'
+    +'<div id="mon-count" style="font-size:12px;color:var(--tx2);margin-bottom:8px">'+sortedMon.length+(ko?'종':' monsters')+'</div>'
+    +'<div class="tw"><table><thead id="mon-thead">'+thead+'</thead><tbody id="mon-tbody">'+monRows+'</tbody></table></div>';
 
   const defExp=730,dKph=200,dHrs=9;
   const monOpts=sortedMon.map(m=>'<option value="'+m.exp+'"'+(m.en==='Dark Elf'?' selected':'')+'>'+esc(ko?m.kr:m.en)+' · Lv.'+m.lv+' · '+m.exp.toLocaleString()+' EXP</option>').join('');
