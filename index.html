@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.8 · Build: 20260521-106</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.9 · Build: 20260521-107</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -456,8 +456,8 @@ setInterval(checkForUpdate, 120000); // also check every 2 minutes while open
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
   pending:    [],
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule'],
   settlement: ['dash','pcs_view','roster','game','maple'],
   hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit','game','maple'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player','roster','game','maple']
@@ -479,6 +479,7 @@ const NAV_ITEMS=[
   {key:'pcs',label:'PC Command',labelKo:'PC 관리',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,perm:'pcs_view',sec:null},
   {key:'checklist',label:'Daily Checklist',labelKo:'일일 체크리스트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,perm:'checklist',sec:'Operations'},
   {key:'roster',label:'Shift Roster',labelKo:'근무표',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,perm:'roster',sec:'Operations',secKo:'운영'},
+  {key:'schedule',label:'Schedule',labelKo:'스케쥴',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>`,perm:'schedule',sec:'Operations',secKo:'운영'},
   {key:'tasks',label:'Tasks',labelKo:'업무',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,perm:'tasks_view',sec:'Operations'},
   {key:'clients',label:'Clients',labelKo:'클라이언트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,perm:'clients',sec:'Operations'},
   {key:'game',label:'Lineage Ops',labelKo:'리니지 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 11h4M8 9v4"/><circle cx="15" cy="10" r="1"/><circle cx="17.5" cy="12.5" r="1"/><path d="M17 4H7a5 5 0 0 0-5 5v6a3 3 0 0 0 5.2 2l1.3-1.5h7l1.3 1.5A3 3 0 0 0 22 15V9a5 5 0 0 0-5-5Z"/></svg>`,perm:'game',sec:'Game Ops',secKo:'게임 운영'},
@@ -739,6 +740,10 @@ async function loadAll(){
     const {data:mr}=await sb.from('app_settings').select('value').eq('key','maple_rules').maybeSingle();
     S.mapleRules=(mr&&mr.value)||null;
   }catch(e){S.mapleRules=null;}
+  try{
+    const {data:sc}=await sb.from('app_settings').select('value').eq('key','schedule').maybeSingle();
+    S.sched=(sc&&sc.value)||null;
+  }catch(e){S.sched=null;}
   if(can('player')){
     try{
       const {data:order}=await sb.from('clients').select('*').eq('player_email',S.user.email);
@@ -767,7 +772,7 @@ function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRec
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
   (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
-  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,game:pgGame,maple:pgMaple,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer};
+  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,schedule:pgSchedule,game:pgGame,maple:pgMaple,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer};
   try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';console.error('[render]',e);}
 }
 
@@ -1834,6 +1839,144 @@ function _unusedSortMon(col){
   rows.sort((a,b)=>{let av=a.getAttribute('data-'+col)||'',bv=b.getAttribute('data-'+col)||'';if(numeric)return ((parseFloat(av)||0)-(parseFloat(bv)||0))*MON_SORT.dir;return av.localeCompare(bv)*MON_SORT.dir;});
   rows.forEach(r=>tb.appendChild(r));
   document.querySelectorAll('#mon-thead th[data-col]').forEach(th=>{const c=th.getAttribute('data-col');const a=th.querySelector('.arr');if(a)a.textContent=c===col?(MON_SORT.dir===1?' ▲':' ▼'):'';});
+}
+
+// ===== SCHEDULE SYSTEM =====
+function schedState(){
+  if(!S.sched||typeof S.sched!=='object')S.sched={};
+  const d=S.sched;
+  if(!Array.isArray(d.remotes)||!d.remotes.length)d.remotes=['TeamLucky7','TeamLucky77'];
+  if(!Array.isArray(d.games)||!d.games.length)d.games=[{key:'lin',name_en:'Lineage Classic',name_ko:'리니지 클래식',color:'#d96a64'},{key:'map',name_en:'MapleStory Planet',name_ko:'메이플 플래닛',color:'#5fae7a'}];
+  if(!Array.isArray(d.zones))d.zones=['Orc Forest','NPC > 2 > 1','NPC > 2 > 2'];
+  if(typeof d.webhook!=='string')d.webhook='';
+  if(!d.pcs||typeof d.pcs!=='object')d.pcs={};
+  d.remotes.forEach(r=>{if(!Array.isArray(d.pcs[r]))d.pcs[r]=[];});
+  if(!d.cur||d.remotes.indexOf(d.cur)<0)d.cur=d.remotes[0]||'';
+  return d;
+}
+async function saveSched(){
+  try{const {error}=await sb.from('app_settings').upsert({key:'schedule',value:S.sched,updated_at:new Date().toISOString(),updated_by:S.user&&S.user.id},{onConflict:'key'});if(error){toast(error.message,'err');console.error(error);}}catch(e){console.error('[saveSched]',e);}
+}
+function schSave(){saveSched();render();}
+function schSwitch(v){schedState().cur=v;render();}
+function schAddRemote(){const d=schedState();const n=prompt(S.lang==='ko'?'새 Remote T ID:':'New Remote T ID:');if(!n)return;const v=n.trim();if(!v||d.remotes.indexOf(v)>=0)return;d.remotes.push(v);d.pcs[v]=[];d.cur=v;schSave();}
+function schDelRemote(){const d=schedState();if(d.remotes.length<=1){toast(S.lang==='ko'?'최소 1개는 있어야 합니다':'Need at least one','err');return;}if(!confirm((S.lang==='ko'?'이 Remote T 삭제: ':'Delete Remote T: ')+d.cur+'?'))return;const i=d.remotes.indexOf(d.cur);delete d.pcs[d.cur];d.remotes.splice(i,1);d.cur=d.remotes[0];schSave();}
+function schAddRow(){const d=schedState();const arr=(d.pcs[d.cur]=d.pcs[d.cur]||[]);arr.push({cli:'',mgr:arr.length+1,zone:'',blks:[{sh:9,eh:21,game:(d.games[0]||{}).key||'lin',emp:'—',ats:false}]});schSave();}
+function schDrow(pi){const d=schedState();if((d.pcs[d.cur]||[]).length<=1)return;if(!confirm(S.lang==='ko'?'이 PC를 삭제할까요?':'Delete this PC?'))return;d.pcs[d.cur].splice(pi,1);schSave();}
+function schUp(pi,k,v){const d=schedState();const r=(d.pcs[d.cur]||[])[pi];if(!r)return;r[k]=(k==='mgr')?(parseInt(v)||0):v;saveSched();if(k!=='mgr')render();}
+function schAblk(pi){const d=schedState();const r=(d.pcs[d.cur]||[])[pi];if(r)r.blks.push({sh:21,eh:9,game:(d.games[0]||{}).key||'lin',emp:'—',ats:false});schSave();}
+function schDblk(pi,bi){const d=schedState();const r=(d.pcs[d.cur]||[])[pi];if(r&&r.blks.length>1){r.blks.splice(bi,1);schSave();}}
+function schUb(pi,bi,k,v){const d=schedState();const r=(d.pcs[d.cur]||[])[pi];if(!r)return;const b=r.blks[bi];if(!b)return;b[k]=(k==='sh'||k==='eh')?parseInt(v):v;saveSched();render();}
+function schToggleAts(pi,bi){const d=schedState();const r=(d.pcs[d.cur]||[])[pi];if(!r)return;const b=r.blks[bi];if(b){b.ats=!b.ats;schSave();}}
+function schPanel(p){S.schedPanel=S.schedPanel===p?null:p;render();}
+function schAddItem(kind){
+  const d=schedState();
+  if(kind==='zone'){const el=document.getElementById('sch-new-zone');const v=el&&el.value.trim();if(!v)return;d.zones.push(v);schSave();}
+  if(kind==='game'){const en=document.getElementById('sch-game-en'),ko=document.getElementById('sch-game-ko'),col=document.getElementById('sch-game-col');const e=en&&en.value.trim();if(!e)return;d.games.push({key:'g'+Date.now().toString(36),name_en:e,name_ko:(ko&&ko.value.trim())||e,color:(col&&col.value)||'#888888'});schSave();}
+}
+function schDelItem(kind,idx){const d=schedState();if(kind==='zone')d.zones.splice(idx,1);if(kind==='game'){if(d.games.length<=1){toast(S.lang==='ko'?'최소 1개 게임 필요':'Need at least one game','err');return;}d.games.splice(idx,1);}schSave();}
+function schAtsBreak(b){const sh=+b.sh,eh=+b.eh;const covers=(H)=>sh<eh?(H>=sh&&H<eh):(H>=sh||H<eh);if(covers(13))return'13:00–14:00';if(covers(3))return'03:00–04:00';return'ATS';}
+function schAtsCount(pc){return (pc.blks||[]).filter(b=>b.ats).length;}
+function schGenMsg(){
+  const d=schedState();const list=d.pcs[d.cur]||[];
+  const dt=document.getElementById('sch-date');const dstr=(dt&&dt.value?new Date(dt.value+'T12:00:00'):new Date()).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+  const hh=n=>String(n).padStart(2,'0');const bar='='.repeat(50),thin='-'.repeat(50);
+  let body='LUCKY7 WORK SCHEDULE\n';
+  body+='Date    : '+dstr+'\n';
+  body+='Account : '+d.cur+'   (Korea Time / KST)\n'+bar+'\n\n';
+  list.forEach((pc,i)=>{
+    body+='PC '+String(i+1).padEnd(3)+(pc.cli?'  Client: '+pc.cli:'')+'   Manager No. '+pc.mgr+'\n'+thin+'\n';
+    pc.blks.forEach(b=>{const g=d.games.find(x=>x.key===b.game);const gn=(g?g.name_en:b.game)||'';body+='  '+hh(b.sh)+':00 ~ '+hh(b.eh)+':00   '+gn.padEnd(20)+'  Player: '+(b.emp||'—')+(b.ats?'  [ATS '+schAtsBreak(b)+']':'')+'\n';});
+    if(pc.zone)body+='  Hunt Zone: '+pc.zone+'\n';
+    body+='\n';
+  });
+  body+=bar+'\nTotal: '+list.length+' PC'+(list.length!==1?'s':'')+'   '+d.cur;
+  return '```\n'+body+'\n```';
+}
+async function schSendDiscord(){
+  const d=schedState();const u=(d.webhook||'').trim();
+  if(!u){toast(S.lang==='ko'?'먼저 Webhook URL을 입력하세요':'Enter the webhook URL first','err');S.schedPanel='discord';render();return;}
+  try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:schGenMsg(),username:'Lucky7 Schedule'})});if(r.ok){toast(S.lang==='ko'?'디스코드 전송 완료 ✓':'Sent to Discord ✓');logActivity('Schedule sent to Discord',d.cur);}else toast('Discord failed ('+r.status+')','err');}catch(e){toast('Error: '+e.message,'err');}
+}
+function schSaveWebhook(){const d=schedState();const el=document.getElementById('sch-webhook');if(el){d.webhook=el.value.trim();saveSched();toast(S.lang==='ko'?'저장됨 ✓':'Saved ✓');}}
+
+function pgSchedule(){
+  const ko=S.lang==='ko';
+  const d=schedState();
+  const cur=d.cur;
+  const list=d.pcs[cur]||[];
+  const players=['—'].concat((S.team||[]).filter(m=>m.role==='staff').map(m=>m.name).filter(Boolean));
+  const clientNames=(S.clients||[]).map(c=>c.name).filter(Boolean);
+  const inS='padding:7px 9px;border:1px solid var(--br2);border-radius:7px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:12px';
+  const gColor=(k)=>{const g=d.games.find(x=>x.key===k);return g?g.color:'#888';};
+  const gameOpts=(v)=>d.games.map(g=>'<option value="'+g.key+'"'+(g.key===v?' selected':'')+'>'+esc(ko?g.name_ko:g.name_en)+'</option>').join('');
+  const hourOpts=(v)=>Array.from({length:24},(_,i)=>'<option value="'+i+'"'+(i===+v?' selected':'')+'>'+String(i).padStart(2,'0')+'</option>').join('');
+  const zoneOpts=(v)=>'<option value="">'+(ko?'(사냥터 없음)':'(No Hunt Zone)')+'</option>'+d.zones.map(z=>'<option value="'+esc(z)+'"'+(z===v?' selected':'')+'>'+esc(z)+'</option>').join('');
+  const cliOpts=(v)=>'<option value="">'+(ko?'(클라이언트 없음)':'(No Client)')+'</option>'+clientNames.map(c=>'<option value="'+esc(c)+'"'+(c===v?' selected':'')+'>'+esc(c)+'</option>').join('');
+  const empOpts=(v)=>players.map(p=>'<option value="'+esc(p)+'"'+((p===v||(!v&&p==='—'))?' selected':'')+'>'+esc(p)+'</option>').join('');
+  const today=new Date().toISOString().slice(0,10);
+
+  let h='<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">';
+  h+='<div><h1 style="margin:0">'+(ko?'스케쥴':'Schedule')+'</h1><div class="psub">'+(ko?'리모트 T 별 근무 배정 · 한국시간(KST)':'Work schedule per Remote T · Korea Time (KST)')+'</div></div>';
+  h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
+  h+='<select onchange="schSwitch(this.value)" style="'+inS+';font-weight:700">'+d.remotes.map(r=>'<option'+(r===cur?' selected':'')+'>'+esc(r)+'</option>').join('')+'</select>';
+  h+='<button class="btn-sm" onclick="schAddRemote()" title="Add Remote T">+ T</button>';
+  h+='<button class="btn-sm" onclick="schDelRemote()" title="Remove Remote T">🗑</button>';
+  h+='<input type="date" id="sch-date" value="'+today+'" style="'+inS+'">';
+  h+='<button class="btn-sm" onclick="schPanel(\'games\')">🎮 '+(ko?'게임':'Games')+'</button>';
+  h+='<button class="btn-sm" onclick="schPanel(\'zones\')">🗺 '+(ko?'사냥터':'Zones')+'</button>';
+  h+='<button class="btn-sm" onclick="schPanel(\'discord\')">💬 Discord</button>';
+  h+='<button class="btn-add" onclick="schSendDiscord()">'+(ko?'전송':'Send')+'</button>';
+  h+='</div></div>';
+
+  if(S.schedPanel==='zones'){
+    h+='<div class="panel" style="margin-bottom:16px;max-width:460px"><div style="font-weight:600;margin-bottom:10px">🗺 '+(ko?'사냥터 관리':'Manage Hunt Zones')+'</div>';
+    h+=(d.zones.length?d.zones.map((z,i)=>'<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--br)"><span style="flex:1;font-size:13px">'+esc(z)+'</span><button class="btn-del btn-sm" onclick="schDelItem(\'zone\','+i+')">🗑</button></div>').join(''):'<div style="font-size:12px;color:var(--tx3)">'+(ko?'없음':'None yet')+'</div>');
+    h+='<div style="display:flex;gap:8px;margin-top:10px"><input id="sch-new-zone" placeholder="'+(ko?'새 사냥터...':'New zone...')+'" style="'+inS+';flex:1"><button class="btn-add" onclick="schAddItem(\'zone\')">'+(ko?'추가':'Add')+'</button></div></div>';
+  }
+  if(S.schedPanel==='games'){
+    h+='<div class="panel" style="margin-bottom:16px;max-width:560px"><div style="font-weight:600;margin-bottom:10px">🎮 '+(ko?'게임 관리':'Manage Games')+'</div>';
+    h+=d.games.map((g,i)=>'<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--br)"><span style="width:14px;height:14px;border-radius:4px;background:'+g.color+'"></span><span style="flex:1;font-size:13px">'+esc(g.name_en)+' / '+esc(g.name_ko)+'</span><button class="btn-del btn-sm" onclick="schDelItem(\'game\','+i+')">🗑</button></div>').join('');
+    h+='<div style="display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap"><input id="sch-game-en" placeholder="Name (EN)" style="'+inS+';flex:1;min-width:120px"><input id="sch-game-ko" placeholder="이름 (KO)" style="'+inS+';flex:1;min-width:120px"><input id="sch-game-col" type="color" value="#5fae7a" style="width:38px;height:34px;border:none;background:none;cursor:pointer"><button class="btn-add" onclick="schAddItem(\'game\')">'+(ko?'추가':'Add')+'</button></div></div>';
+  }
+  if(S.schedPanel==='discord'){
+    h+='<div class="panel" style="margin-bottom:16px;max-width:600px"><div style="font-weight:600;margin-bottom:8px">💬 Discord Webhook</div>';
+    h+='<div style="font-size:12px;color:var(--tx3);margin-bottom:8px;line-height:1.6">'+(ko?'전송할 Discord 채널의 Webhook URL을 한 번만 입력하세요. (채널 설정 → 연동 → 웹후크에서 생성)':'Paste the Discord channel\'s webhook URL once. (Channel Settings → Integrations → Webhooks)')+'</div>';
+    h+='<div style="display:flex;gap:8px"><input id="sch-webhook" value="'+esc(d.webhook||'')+'" placeholder="https://discord.com/api/webhooks/..." style="'+inS+';flex:1"><button class="btn-add" onclick="schSaveWebhook()">'+(ko?'저장':'Save')+'</button></div></div>';
+  }
+
+  h+='<div class="tw"><table><thead><tr>';
+  h+='<th style="min-width:140px">'+(ko?'PC · 클라이언트':'PC · Client')+'</th><th style="min-width:80px">'+(ko?'매니저':'Manager No.')+'</th><th>'+(ko?'근무 배정 (KST)':'Work Schedule (KST)')+'</th><th style="min-width:150px">'+(ko?'사냥터':'Hunt Zone')+'</th><th></th>';
+  h+='</tr></thead><tbody>';
+  if(!list.length){
+    h+='<tr><td colspan="5" class="empty" style="border:none">'+(ko?'PC가 없습니다. 아래에서 추가하세요.':'No PCs yet — add one below.')+'</td></tr>';
+  }
+  list.forEach((pc,pi)=>{
+    const ats=schAtsCount(pc);
+    const atsTag='<span style="font-size:11px;font-weight:600;color:'+(ats>3?'var(--re)':'var(--tx3)')+'">ATS '+ats+'/3h</span>';
+    const blocks=pc.blks.map((b,bi)=>{
+      const c=gColor(b.game);
+      let bl='<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:3px 0">';
+      bl+='<select onchange="schUb('+pi+','+bi+',\'sh\',this.value)" style="'+inS+'">'+hourOpts(b.sh)+'</select><span style="color:var(--tx3)">~</span><select onchange="schUb('+pi+','+bi+',\'eh\',this.value)" style="'+inS+'">'+hourOpts(b.eh)+'</select>';
+      bl+='<select onchange="schUb('+pi+','+bi+',\'game\',this.value)" style="'+inS+';border-left:3px solid '+c+'">'+gameOpts(b.game)+'</select>';
+      bl+='<select onchange="schUb('+pi+','+bi+',\'emp\',this.value)" style="'+inS+'">'+empOpts(b.emp)+'</select>';
+      bl+='<button class="btn-sm" onclick="schToggleAts('+pi+','+bi+')" style="'+(b.ats?'background:var(--ac);color:#fff;border-color:var(--ac);':'')+'border-radius:6px;font-size:11px" title="ATS auto-hunt break">🤖'+(b.ats?' '+schAtsBreak(b):'')+'</button>';
+      if(pc.blks.length>1)bl+='<button class="btn-del btn-sm" onclick="schDblk('+pi+','+bi+')">✕</button>';
+      bl+='</div>';
+      return bl;
+    }).join('');
+    h+='<tr>';
+    h+='<td style="vertical-align:top"><div style="font-weight:700;margin-bottom:4px">PC '+(pi+1)+'</div><select onchange="schUp('+pi+',\'cli\',this.value)" style="'+inS+';width:100%">'+cliOpts(pc.cli)+'</select></td>';
+    h+='<td style="vertical-align:top"><input type="number" value="'+(pc.mgr||'')+'" onchange="schUp('+pi+',\'mgr\',this.value)" style="'+inS+';width:58px"></td>';
+    h+='<td style="vertical-align:top">'+blocks+'<div style="margin-top:5px;display:flex;gap:10px;align-items:center"><button class="btn-sm" onclick="schAblk('+pi+')">+ '+(ko?'시간 추가':'Add block')+'</button>'+atsTag+'</div></td>';
+    h+='<td style="vertical-align:top"><select onchange="schUp('+pi+',\'zone\',this.value)" style="'+inS+';width:100%">'+zoneOpts(pc.zone)+'</select></td>';
+    h+='<td style="vertical-align:top"><button class="btn-del btn-sm" onclick="schDrow('+pi+')">🗑</button></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div style="margin-top:14px"><button class="btn-add" onclick="schAddRow()">+ '+(ko?'PC 추가':'Add PC')+'</button></div>';
+  h+='<div style="font-size:11px;color:var(--tx3);margin-top:16px;line-height:1.7;max-width:760px">'+(ko?'🤖 ATS = 게임 내 자동사냥 (계정당 하루 3시간). 블록에서 켜면 고정 휴식시간(주간 13:00–14:00, 야간 03:00–04:00)이 표시되고, PC별 ATS 사용량이 3시간을 넘으면 빨갛게 표시됩니다. 클라이언트 목록은 클라이언트 페이지에서, 플레이어는 가입한 스탭(직원)에서 자동으로 채워집니다.':'🤖 ATS = in-game auto-hunt (3h/day per account). Toggle it on a block to mark the fixed break (day 13:00–14:00, night 03:00–04:00); each PC turns red if ATS exceeds 3h. Clients come from your Clients page; players are auto-filled from signed-up staff.')+'</div>';
+  return h;
 }
 
 function pgGame(){
