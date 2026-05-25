@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.7 · Build: 20260521-105</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.8 · Build: 20260521-106</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1044,6 +1044,7 @@ function pgStaffDir(){
         +'<div class="fg2"><label>ISP</label><select id="e-isp">'+['IndiHome','MyRepublic','Biznet','Other'].map(o=>'<option'+(o===m.isp?' selected':'')+'>'+o+'</option>').join('')+'</select></div>'
         +'<div class="fg2"><label>Tool</label><input id="e-tool" value="'+((m.tool||'').replace(/"/g,'&quot;'))+'"></div>'
         +'<div class="fg2"><label>'+(ko?'입사일':'Since')+'</label><input id="e-since" value="'+((m.since||'').replace(/"/g,'&quot;'))+'"></div>'
+        +'<div class="fg2"><label>'+(ko?'역할':'Role')+'</label><select id="e-role">'+['ceo','manager','settlement','hr','staff'].map(r=>'<option value="'+r+'"'+(r===m.role?' selected':'')+'>'+ROLE_LABELS[r]+'</option>').join('')+'</select></div>'
         +'</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="saveMember(\''+m.id+'\')">'+(ko?'저장':'Save')+'</button><button onclick="cancelEdit()">'+(ko?'취소':'Cancel')+'</button></div></div></td></tr>':'');
   }).join('');
   const addF=S.showAddMember&&can('users')?'<div class="fbox"><div class="fbox-t">'+(ko?'새 직원 추가':'New staff member')+'</div><div class="fgrid">'
@@ -2309,7 +2310,9 @@ function toggleEdit(id){S.editMember=S.editMember===id?null:id;render();}
 function cancelEdit(){S.editMember=null;render();}
 async function saveMember(id){
   try{
-    const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};const {error}=await sb.from('user_profiles').update(upd).eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;toast('Saved ✓');render();
+    const re=document.getElementById('e-role');
+    const old=S.team.find(m=>m.id===id);
+    const upd={name:document.getElementById('e-name').value,initials:document.getElementById('e-ini').value,isp:document.getElementById('e-isp').value,tool:document.getElementById('e-tool').value,since:document.getElementById('e-since').value};if(re)upd.role=re.value;const {error}=await sb.from('user_profiles').update(upd).eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}if(re&&old&&old.role!==re.value)logActivity('Role changed',(old.name||id)+' → '+(ROLE_LABELS[re.value]||re.value));S.team=S.team.map(m=>m.id===id?{...m,...upd}:m);S.editMember=null;toast('Saved ✓');render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[saveMember]',e);}
 }
 async function moveRecruit(id,stage){
