@@ -463,7 +463,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v13.0 · Build: 20260527-110</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v13.1 · Build: 20260527-111</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -570,12 +570,12 @@ const NAV_ITEMS=[
   {key:'clients',label:'Clients',labelKo:'클라이언트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,perm:'clients',sec:'Operations'},
   {key:'game',label:'Lineage Ops',labelKo:'리니지 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 11h4M8 9v4"/><circle cx="15" cy="10" r="1"/><circle cx="17.5" cy="12.5" r="1"/><path d="M17 4H7a5 5 0 0 0-5 5v6a3 3 0 0 0 5.2 2l1.3-1.5h7l1.3 1.5A3 3 0 0 0 22 15V9a5 5 0 0 0-5-5Z"/></svg>`,perm:'game',sec:'Game Ops',secKo:'게임 운영'},
   {key:'maple',label:'Maple Ops',labelKo:'메이플 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 2C7 2 3 6 3 11c0 4 3 8 9 11 6-3 9-7 9-11 0-5-4-9-9-9Z"/><path d="M9 11l3-4 3 4"/></svg>`,perm:'maple',sec:'Game Ops',secKo:'게임 운영'},
-  {key:'staffdir',label:'Staff Directory',labelKo:'직원 목록',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,perm:'team',sec:'HR'},
-  {key:'hr_attend',label:'HR Attendance',labelKo:'HR 출퇴근',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>`,perm:'hr_attend',sec:'HR',secKo:'인사'},
-  {key:'trust',label:'Trust Board',labelKo:'신뢰 점수판',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`,perm:'trust',sec:'HR',secKo:'인사'},
   {key:'recruitment',label:'Recruitment',labelKo:'채용',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,perm:'recruitment',sec:'HR'},
   {key:'onboarding',label:'Onboarding',labelKo:'온보딩',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,perm:'onboarding',sec:'HR'},
   {key:'manual',label:'Manual',labelKo:'매뉴얼',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,perm:'manual',sec:'HR'},
+  {key:'staffdir',label:'Staff Directory',labelKo:'직원 목록',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,perm:'team',sec:'HR'},
+  {key:'hr_attend',label:'Attendance',labelKo:'출퇴근',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>`,perm:'hr_attend',sec:'HR'},
+  {key:'trust',label:'Trust Board',labelKo:'신뢰 점수판',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`,perm:'trust',sec:'HR'},
   {key:'reports',label:'Daily Report',labelKo:'일일 보고서',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,perm:'reports',sec:'Management'},
   {key:'myreports',label:'My Daily Report',labelKo:'내 일일 보고서',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,perm:'reports_submit',sec:'Management'},
   {key:'invite',label:'Invite Codes',labelKo:'초대 코드',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M11.5 11.5L21 2"/><path d="M16 7l3 3"/><path d="M19 4l3 3"/></svg>`,perm:'invite',sec:'Management'},
@@ -2715,8 +2715,8 @@ function pgHrAttend(){
     ${['weekly','monthly','yearly'].map(v=>`<button class="att-tab ${attView===v?'on':''}" onclick="S.attView='${v}';render()">${ko?{weekly:'이번 주',monthly:'이번 달',yearly:'올해'}[v]:{weekly:'This Week',monthly:'This Month',yearly:'All Time'}[v]}</button>`).join('')}
   </div>`;
 
-  return `<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'인사':'People'}</div>`
-    +`<div class="ph" style="margin-bottom:6px">${ko?'HR 출퇴근':'HR Attendance'}</div>`
+  return `<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'인사':'HR'}</div>`
+    +`<div class="ph" style="margin-bottom:6px">${ko?'출퇴근':'Attendance'}</div>`
     +`<div class="psub" style="margin-bottom:20px">${ko?'출퇴근 기록 및 근무 시간 확인':'Track clock-in, clock-out, and break times'}</div>`
     +clockBtns
     +todayCard
@@ -2803,7 +2803,7 @@ function pgTrustBoard(){
   }).join(''):`<tr><td colspan="6" class="empty" style="border:none">${ko?'등록된 플레이어 없음':'No players registered'}</td></tr>`;
 
   return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px"><div>`
-    +`<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'인사':'People'}</div>`
+    +`<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'인사':'HR'}</div>`
     +`<div class="ph" style="margin-bottom:6px">${ko?'신뢰 점수판':'Player Trust Board'}</div>`
     +`<div class="psub" style="margin:0">${ko?'경고 점수 · 신뢰 점수 · 보호 기간':'Warning points · Trust points · Protection period'}</div></div>`
     +(canEdit?`<button class="btn-add" onclick="S.showAddTrust=!S.showAddTrust;render()">+ ${ko?'플레이어 추가':'Add player'}</button>`:'')
