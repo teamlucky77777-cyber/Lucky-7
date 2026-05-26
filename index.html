@@ -377,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v10.9 · Build: 20260521-107</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v11.0 · Build: 20260521-108</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1886,7 +1886,7 @@ function schGenMsg(){
   body+='Account : '+d.cur+'   (Korea Time / KST)\n'+bar+'\n\n';
   list.forEach((pc,i)=>{
     body+='PC '+String(i+1).padEnd(3)+(pc.cli?'  Client: '+pc.cli:'')+'   Manager No. '+pc.mgr+'\n'+thin+'\n';
-    pc.blks.forEach(b=>{const g=d.games.find(x=>x.key===b.game);const gn=(g?g.name_en:b.game)||'';body+='  '+hh(b.sh)+':00 ~ '+hh(b.eh)+':00   '+gn.padEnd(20)+'  Player: '+(b.emp||'—')+(b.ats?'  [ATS '+schAtsBreak(b)+']':'')+'\n';});
+    pc.blks.forEach(b=>{const g=d.games.find(x=>x.key===b.game);const gn=(g?g.name_en:b.game)||'';const w=x=>String(((+x-2)%24+24)%24).padStart(2,'0');body+='  '+hh(b.sh)+':00~'+hh(b.eh)+':00 KST ('+w(b.sh)+':00~'+w(b.eh)+':00 WIB)  '+gn.padEnd(18)+' Player: '+(b.emp||'—')+(b.ats?'  [ATS '+schAtsBreak(b)+']':'')+'\n';});
     if(pc.zone)body+='  Hunt Zone: '+pc.zone+'\n';
     body+='\n';
   });
@@ -1908,6 +1908,7 @@ function pgSchedule(){
   const players=['—'].concat((S.team||[]).filter(m=>m.role==='staff').map(m=>m.name).filter(Boolean));
   const clientNames=(S.clients||[]).map(c=>c.name).filter(Boolean);
   const inS='padding:7px 9px;border:1px solid var(--br2);border-radius:7px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:12px';
+  const wh=(x)=>String(((+x-2)%24+24)%24).padStart(2,'0');
   const gColor=(k)=>{const g=d.games.find(x=>x.key===k);return g?g.color:'#888';};
   const gameOpts=(v)=>d.games.map(g=>'<option value="'+g.key+'"'+(g.key===v?' selected':'')+'>'+esc(ko?g.name_ko:g.name_en)+'</option>').join('');
   const hourOpts=(v)=>Array.from({length:24},(_,i)=>'<option value="'+i+'"'+(i===+v?' selected':'')+'>'+String(i).padStart(2,'0')+'</option>').join('');
@@ -1917,7 +1918,7 @@ function pgSchedule(){
   const today=new Date().toISOString().slice(0,10);
 
   let h='<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">';
-  h+='<div><h1 style="margin:0">'+(ko?'스케쥴':'Schedule')+'</h1><div class="psub">'+(ko?'리모트 T 별 근무 배정 · 한국시간(KST)':'Work schedule per Remote T · Korea Time (KST)')+'</div></div>';
+  h+='<div><h1 style="margin:0">'+(ko?'스케쥴':'Schedule')+'</h1><div class="psub">'+(ko?'근무 배정 · 🇰🇷 한국시간(KST) · 🇮🇩 자카르타(WIB) = KST−2시간':'Work schedule · 🇰🇷 Korea (KST) · 🇮🇩 Jakarta (WIB) = KST−2h')+'</div></div>';
   h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
   h+='<select onchange="schSwitch(this.value)" style="'+inS+';font-weight:700">'+d.remotes.map(r=>'<option'+(r===cur?' selected':'')+'>'+esc(r)+'</option>').join('')+'</select>';
   h+='<button class="btn-sm" onclick="schAddRemote()" title="Add Remote T">+ T</button>';
@@ -1957,7 +1958,7 @@ function pgSchedule(){
     const blocks=pc.blks.map((b,bi)=>{
       const c=gColor(b.game);
       let bl='<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:3px 0">';
-      bl+='<select onchange="schUb('+pi+','+bi+',\'sh\',this.value)" style="'+inS+'">'+hourOpts(b.sh)+'</select><span style="color:var(--tx3)">~</span><select onchange="schUb('+pi+','+bi+',\'eh\',this.value)" style="'+inS+'">'+hourOpts(b.eh)+'</select>';
+      bl+='<select onchange="schUb('+pi+','+bi+',\'sh\',this.value)" style="'+inS+'">'+hourOpts(b.sh)+'</select><span style="color:var(--tx3)">~</span><select onchange="schUb('+pi+','+bi+',\'eh\',this.value)" style="'+inS+'">'+hourOpts(b.eh)+'</select><span style="font-size:10px;color:var(--tx3);white-space:nowrap" title="Jakarta time (WIB = KST-2h)">🇮🇩 '+wh(b.sh)+'~'+wh(b.eh)+'</span>';
       bl+='<select onchange="schUb('+pi+','+bi+',\'game\',this.value)" style="'+inS+';border-left:3px solid '+c+'">'+gameOpts(b.game)+'</select>';
       bl+='<select onchange="schUb('+pi+','+bi+',\'emp\',this.value)" style="'+inS+'">'+empOpts(b.emp)+'</select>';
       bl+='<button class="btn-sm" onclick="schToggleAts('+pi+','+bi+')" style="'+(b.ats?'background:var(--ac);color:#fff;border-color:var(--ac);':'')+'border-radius:6px;font-size:11px" title="ATS auto-hunt break">🤖'+(b.ats?' '+schAtsBreak(b):'')+'</button>';
