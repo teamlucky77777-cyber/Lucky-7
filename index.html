@@ -277,10 +277,10 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .empty{padding:60px 20px;text-align:center;color:var(--tx3);border:1px dashed var(--br2);border-radius:10px;font-size:13px}
 
 /* ─── Recruitment kanban ─── */
-.kanban{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .kcol{background:var(--bg-sb);border:1px solid var(--br);border-radius:10px;padding:10px}
 .kcol-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 4px}
-.kcol-name{font-size:11px;font-weight:600;color:var(--tx)}
+.kcol-name{font-size:12px;font-weight:600;color:var(--tx)}
 .kcol-cnt{font-size:11px;color:var(--tx3);background:var(--bg-a);padding:1px 8px;border-radius:10px}
 .kcard{background:var(--bg-c);border:1px solid var(--br);border-radius:8px;padding:10px 12px;margin-bottom:6px}
 .kcard:hover{border-color:var(--br2)}
@@ -312,62 +312,6 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .game-pc.sel{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}
 .game-pc.empty{opacity:.5}
 .game-pc.empty:hover{opacity:.8}
-
-/* ─── HR Attendance ─── */
-.att-clock{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
-.att-btn{flex:1;min-width:120px;padding:14px 18px;border-radius:10px;border:1.5px solid var(--br2);background:var(--bg-c);cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;color:var(--tx2);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
-.att-btn:hover{border-color:var(--ac);color:var(--ac)}
-.att-btn.att-in{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
-.att-btn.att-out{border-color:var(--re);background:var(--re-bg);color:var(--re)}
-.att-btn.att-break{border-color:var(--ye);background:var(--ye-bg);color:var(--ye)}
-.att-btn:disabled{opacity:.4;cursor:not-allowed}
-.att-today{background:var(--bg-c);border:1px solid var(--br);border-radius:10px;padding:18px 20px;margin-bottom:24px}
-.att-timeline{display:flex;gap:0;margin-top:12px;position:relative}
-.att-tl-item{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
-.att-tl-item::before{content:'';position:absolute;top:10px;left:-50%;right:50%;height:2px;background:var(--br2);z-index:0}
-.att-tl-item:first-child::before{display:none}
-.att-tl-dot{width:20px;height:20px;border-radius:50%;background:var(--bg-a);border:2px solid var(--br2);position:relative;z-index:1;display:flex;align-items:center;justify-content:center;font-size:9px}
-.att-tl-dot.done{background:var(--ok);border-color:var(--ok);color:#fff}
-.att-tl-dot.break{background:var(--ye);border-color:var(--ye);color:#fff}
-.att-tl-label{font-size:10px;color:var(--tx3);margin-top:4px;text-align:center}
-.att-tl-time{font-size:11px;font-weight:600;color:var(--tx);margin-top:2px}
-.att-tab-row{display:flex;gap:6px;margin-bottom:16px}
-.att-tab{padding:6px 14px;border-radius:20px;border:1px solid var(--br);background:var(--bg);color:var(--tx2);font-size:12px;cursor:pointer;font-family:inherit}
-.att-tab.on{background:var(--tx);color:var(--bg);border-color:var(--tx);font-weight:500}
-
-/* ─── Trust Score Board ─── */
-.trust-grid{display:grid;gap:8px}
-.trust-row-header{display:grid;grid-template-columns:2fr 80px 80px 80px 120px 120px;gap:8px;padding:8px 14px;font-size:11px;color:var(--tx3);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
-.trust-row{display:grid;grid-template-columns:2fr 80px 80px 80px 120px 120px;gap:8px;align-items:center;background:var(--bg-c);border:1px solid var(--br);border-radius:8px;padding:10px 14px;transition:border-color .12s}
-.trust-row:hover{border-color:var(--br2)}
-.trust-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
-.trust-status{font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
-.trust-status.good{color:var(--ok)}.trust-status.warn{color:var(--warn)}.trust-status.bad{color:var(--re)}
-.trust-warn{color:var(--re);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
-.trust-tp{color:var(--ac);font-weight:700;font-size:14px}
-
-/* ─── Drag & Drop Shift ─── */
-.dnd-container{display:grid;grid-template-columns:200px 1fr;gap:20px;margin-top:16px}
-.dnd-pool{background:var(--bg-c);border:1px solid var(--br);border-radius:10px;padding:12px}
-.dnd-pool-title{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.dnd-chip{background:var(--bg-sb);border:1px solid var(--br);border-radius:6px;padding:7px 10px;font-size:12px;font-weight:500;cursor:grab;margin-bottom:6px;display:flex;align-items:center;gap:8px;user-select:none;transition:border-color .12s}
-.dnd-chip:hover{border-color:var(--ac)}
-.dnd-chip.dragging{opacity:.4;cursor:grabbing}
-.dnd-slots{display:flex;flex-direction:column;gap:10px}
-.dnd-slot{background:var(--bg-c);border:1.5px dashed var(--br2);border-radius:8px;padding:12px 14px;min-height:52px;display:flex;align-items:center;gap:10px;transition:border-color .15s;flex-wrap:wrap}
-.dnd-slot.dragover{border-color:var(--ac);background:var(--ac-bg)}
-.dnd-slot-label{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;min-width:70px;flex-shrink:0}
-.dnd-assigned{background:var(--bg-sb);border:1px solid var(--br);border-radius:5px;padding:5px 9px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer}
-.dnd-assigned:hover{border-color:var(--re);color:var(--re)}
-.dnd-empty{font-size:11px;color:var(--tx4);font-style:italic}
-
-/* ─── PC Status game colors ─── */
-.pc-game-lin{border-color:rgba(100,149,237,.35)!important;background:rgba(100,149,237,.06)!important}
-.pc-game-lin .pc-num{color:#6495ED!important}
-.pc-game-map{border-color:rgba(255,165,0,.35)!important;background:rgba(255,165,0,.06)!important}
-.pc-game-map .pc-num{color:#FFA500!important}
-.pc-game-lin[data-st="Online"]{border-color:rgba(100,149,237,.55)!important}
-.pc-game-map[data-st="Online"]{border-color:rgba(255,165,0,.55)!important}
 </style>
 </head>
 <body>
@@ -433,7 +377,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v12.0 · Build: 20260527-109</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v11.0 · Build: 20260521-108</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -512,11 +456,11 @@ setInterval(checkForUpdate, 120000); // also check every 2 minutes while open
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
   pending:    [],
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule','hr_attend','hr_attend_all','trust','trust_edit'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule','hr_attend','hr_attend_all','trust','trust_edit'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule'],
   settlement: ['dash','pcs_view','roster','game','maple'],
-  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit','game','maple','hr_attend','hr_attend_all','trust','trust_edit'],
-  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player','roster','game','maple','hr_attend']
+  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit','game','maple'],
+  staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player','roster','game','maple']
 };
 const can = (f) => {
   const role=S.profile?.role||'staff';
@@ -532,7 +476,7 @@ const ROLE_ICONS = { ceo:'<svg width="12" height="12" viewBox="0 0 24 24" fill="
 
 const NAV_ITEMS=[
   {key:'dashboard',label:'Dashboard',labelKo:'대시보드',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>`,perm:'dash',sec:null},
-  {key:'pcs',label:'PC Status',labelKo:'PC 현황',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,perm:'pcs_view',sec:null},
+  {key:'pcs',label:'PC Command',labelKo:'PC 관리',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,perm:'pcs_view',sec:null},
   {key:'checklist',label:'Daily Checklist',labelKo:'일일 체크리스트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,perm:'checklist',sec:'Operations'},
   {key:'roster',label:'Shift Roster',labelKo:'근무표',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>`,perm:'roster',sec:'Operations',secKo:'운영'},
   {key:'schedule',label:'Schedule',labelKo:'스케쥴',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>`,perm:'schedule',sec:'Operations',secKo:'운영'},
@@ -541,8 +485,6 @@ const NAV_ITEMS=[
   {key:'game',label:'Lineage Ops',labelKo:'리니지 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 11h4M8 9v4"/><circle cx="15" cy="10" r="1"/><circle cx="17.5" cy="12.5" r="1"/><path d="M17 4H7a5 5 0 0 0-5 5v6a3 3 0 0 0 5.2 2l1.3-1.5h7l1.3 1.5A3 3 0 0 0 22 15V9a5 5 0 0 0-5-5Z"/></svg>`,perm:'game',sec:'Game Ops',secKo:'게임 운영'},
   {key:'maple',label:'Maple Ops',labelKo:'메이플 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 2C7 2 3 6 3 11c0 4 3 8 9 11 6-3 9-7 9-11 0-5-4-9-9-9Z"/><path d="M9 11l3-4 3 4"/></svg>`,perm:'maple',sec:'Game Ops',secKo:'게임 운영'},
   {key:'staffdir',label:'Staff Directory',labelKo:'직원 목록',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,perm:'team',sec:'People'},
-  {key:'hr_attend',label:'HR Attendance',labelKo:'HR 출퇴근',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>`,perm:'hr_attend',sec:'People',secKo:'인사'},
-  {key:'trust',label:'Trust Board',labelKo:'신뢰 점수판',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`,perm:'trust',sec:'People',secKo:'인사'},
   {key:'recruitment',label:'Recruitment',labelKo:'채용',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,perm:'recruitment',sec:'People'},
   {key:'reports',label:'Daily Report',labelKo:'일일 보고서',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,perm:'reports',sec:'Management'},
   {key:'myreports',label:'My Daily Report',labelKo:'내 일일 보고서',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,perm:'reports_submit',sec:'Management'},
@@ -579,9 +521,7 @@ let S = {
   team:[], tasks:[], pcs:[], clients:[], recruits:[], reports:[], codes:[], myChecklist:null, teamChecklists:[], onlineUsers:[], recruitReqs:{min_intel_gen:8,min_ryzen_gen:3,min_ram:8,min_speed:70,require_static_ip:true,require_lan_cable:true,require_ssd:true,gpu_label:'GTX 1050 Ti+ / RX 560+',os_label:'Windows 10/11'}, showEditReqs:false, pcView:'grid',
   editMember:null, showAddMember:false, showAddRecruit:false,
   showAddTask:false, showAddClient:false, showAddReport:false, showAddCode:false,
-  viewReport:null, taskFilter:'All', signupRole:'staff',
-  attendance:[], myTodayAtt:null, attView:'weekly', trustScores:[], editTrust:null, showAddTrust:false,
-  pcGameFilter:'All', shiftDrag:null
+  viewReport:null, taskFilter:'All', signupRole:'staff'
 };
 
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -821,25 +761,6 @@ async function loadAll(){
       }
     }catch(e){console.warn('Checklist load failed:',e);}
   }
-  // Load attendance
-  try{
-    if(can('hr_attend_all')){
-      const {data:att}=await sb.from('attendance').select('*').order('clock_in',{ascending:false}).limit(200);
-      S.attendance=att||[];
-    } else if(can('hr_attend')){
-      const {data:att}=await sb.from('attendance').select('*').eq('user_id',S.user.id).order('clock_in',{ascending:false}).limit(60);
-      S.attendance=att||[];
-    }
-    // Today's record for current user
-    const tod=new Date().toISOString().slice(0,10);
-    const {data:todRec}=await sb.from('attendance').select('*').eq('user_id',S.user.id).eq('date',tod).maybeSingle();
-    S.myTodayAtt=todRec||null;
-  }catch(e){console.warn('Attendance load failed:',e);}
-  // Load trust scores
-  try{
-    const {data:ts}=await sb.from('trust_scores').select('*').order('warn_points',{ascending:false});
-    S.trustScores=ts||[];
-  }catch(e){console.warn('Trust scores load failed:',e);}
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
@@ -851,7 +772,7 @@ function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRec
 function render(){
   const visNav=NAV_ITEMS.filter(n=>can(n.perm));
   (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
-  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,schedule:pgSchedule,game:pgGame,maple:pgMaple,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer,hr_attend:pgHrAttend,trust:pgTrustBoard};
+  const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,schedule:pgSchedule,game:pgGame,maple:pgMaple,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer};
   try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';console.error('[render]',e);}
 }
 
@@ -981,9 +902,8 @@ function pgPCs(){
     return `<button class="pill ${f===s?'on':''}" onclick="S.pcFilter='${s}';render()">${lbl}${n}</button>`;
   }).join('');
 
-  // PC grid with game color coding (Lineage=Blue, Maple=Orange)
-  const pcGameClass=p=>{const g=(p.game||'').toLowerCase();if(g.includes('lineage'))return 'pc-game-lin';if(g.includes('maple'))return 'pc-game-map';return '';};
-  const grid=filtered.map(p=>{const gameInfo=p.char_level||p.char_class?'LV.'+esc(p.char_level||'?')+' '+esc(p.char_class||''):p.maple_level||p.maple_class?'🍁 LV.'+esc(p.maple_level||'?')+' '+esc(p.maple_class||''):'';const gc=pcGameClass(p);return`<div class="pc ${gc} ${selectedPC&&selectedPC.id===p.id?'selected':''}" data-st="${p.status}" onclick="S.pcSelected=${p.id};render()" style="padding:12px 8px;text-align:left"><span class="pc-status-dot"></span><div class="pc-num">PC-${String(p.num).padStart(2,'0')}</div><div class="pc-player">${p.assigned_name?esc(p.assigned_name):'—'}</div>${gameInfo?`<div style="font-size:9px;color:var(--ac);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${gameInfo.trim()}</div>`:''}</div>`;}).join('');
+  // PC grid
+  const grid=filtered.map(p=>{const gameInfo=p.char_level||p.char_class?'LV.'+esc(p.char_level||'?')+' '+esc(p.char_class||''):p.maple_level||p.maple_class?'🍁 LV.'+esc(p.maple_level||'?')+' '+esc(p.maple_class||''):'';return`<div class="pc ${selectedPC&&selectedPC.id===p.id?'selected':''}" data-st="${p.status}" onclick="S.pcSelected=${p.id};render()" style="padding:12px 8px;text-align:left"><span class="pc-status-dot"></span><div class="pc-num">PC-${String(p.num).padStart(2,'0')}</div><div class="pc-player">${p.assigned_name?esc(p.assigned_name):'—'}</div>${gameInfo?`<div style="font-size:9px;color:var(--ac);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${gameInfo.trim()}</div>`:''}</div>`;}).join('');
 
   // detail panel
   const assignableMembers=S.team.filter(m=>['manager','hr','staff'].includes(m.role)||m.id===S.profile.id);
@@ -1013,25 +933,26 @@ function pgPCs(){
     const sc=p.status==='Online'?'var(--ok)':p.status==='Warning'?'var(--warn)':'var(--re)';
     return `<tr><td><strong style="font-family:var(--font-mono,monospace)">PC-${String(p.num).padStart(2,'0')}</strong></td><td>${sel}</td><td><span style="color:${sc}">●</span> ${p.status}</td></tr>`;
   }).join('')}</tbody></table></div>`;
-  const toggle=`<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:16px"><button onclick="S.pcView='grid';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='grid'?'var(--tx)':'transparent'};color:${view==='grid'?'var(--bg)':'var(--tx2)'}">${ko?'그리드':'Grid'}</button><span style="width:1px;background:var(--br)"></span><button onclick="S.pcView='assign';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='assign'?'var(--tx)':'transparent'};color:${view==='assign'?'var(--bg)':'var(--tx2)'}">${ko?'배정 (전체)':'Assign all'}</button></div>`;
+  const toggle=`<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:20px"><button onclick="S.pcView='grid';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='grid'?'var(--tx)':'transparent'};color:${view==='grid'?'var(--bg)':'var(--tx2)'}">${ko?'그리드':'Grid'}</button><span style="width:1px;background:var(--br)"></span><button onclick="S.pcView='assign';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='assign'?'var(--tx)':'transparent'};color:${view==='assign'?'var(--bg)':'var(--tx2)'}">${ko?'배정 (전체)':'Assign all'}</button></div>`;
 
   return `<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'운영':'Operations'}</div>`
-    +`<div class="ph" style="margin-bottom:6px">${ko?'PC 현황':'PC Status'}</div>`
-    +`<div class="psub" style="margin-bottom:16px">${ko?`${total}대 워크스테이션 실시간 상태. 클릭하여 확인.`:`Live status across ${total} workstations. Click any PC to inspect.`}</div>`
+    +`<div class="ph" style="margin-bottom:6px">${ko?'PC 관리':'PC Command'}</div>`
+    +`<div class="psub" style="margin-bottom:20px">${ko?`${total}대 워크스테이션 실시간 상태. 클릭하여 확인.`:`Live status across ${total} workstations. Click any PC to inspect.`}</div>`
     +toggle
-    +`<div class="metric-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">`
+    +`<div class="metric-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">`
       +metric(ko?'온라인':'Online',onlineN,'',uptime+'% avg uptime','up')
       +metric(ko?'주의':'Warning',warnN,'',ko?'주의 필요':'needs attention','neutral')
       +metric(ko?'오프라인':'Offline',offN,'',ko?'미할당':'unallocated','neutral')
       +metric(ko?'배정됨':'Players assigned',assignedN,'/ '+total,(total-assignedN)+(ko?' 빈 슬롯':' open slots'),'neutral')
     +`</div>`
-    +`<div style="display:flex;align-items:center;gap:16px;margin-bottom:12px"><div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:var(--ok)"></span><span>Online</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--warn)"></span><span>Warning</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span><span>Offline</span></div></div><div style="width:1px;height:16px;background:var(--br)"></div><div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:#6495ED;box-shadow:0 0 4px #6495ED66"></span><span>Lineage</span></div><div class="pc-legend-item"><span class="dot" style="background:#FFA500;box-shadow:0 0 4px #FFA50066"></span><span>Maple</span></div></div></div>`
     +(view==='assign'
       ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div class="section-title">${ko?'전체 배정':'Assign operators'}</div>${isMgr?`<button class="btn-add btn-sm" onclick="addPC()">+ ${ko?'PC 추가':'Add PC'}</button>`:''}</div>`+assignTable
       : `<div class="toolbar"><div class="pill-row" style="margin-bottom:0">${pills}</div><div style="display:flex;gap:8px;align-items:center">${isMgr?`<button class="btn-add btn-sm" onclick="addPC()">+ ${ko?'PC 추가':'Add PC'}</button>`:''}<input class="input" placeholder="${ko?'PC 또는 운영자 검색…':'Search PC or player…'}" oninput="filterPCs(this.value)"><button class="btn-sm" onclick="(async()=>{await loadAll();render();})()">↻ ${ko?'새로고침':'Refresh'}</button></div></div>`
+        +`<div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:var(--ok)"></span><span>Online</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--warn)"></span><span>Warning</span></div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span><span>Offline</span></div></div>`
         +`<div class="pc-grid" id="pc-grid">${grid||`<div class="nodata">${ko?'PC 없음':'No PCs'}</div>`}</div>`
         +detail);
 }
+
 
 // ── TASKS ─────────────────────────────────────────────────────────────────
 function pgTasks(){
@@ -1272,10 +1193,8 @@ function pgRecruitment(){
 
   const metric=(label,value,delta,dir)=>{const arrow=dir==='down'?'↓':dir==='neutral'?'·':'↑';const acls=dir==='down'?'arrow down':dir==='neutral'?'arrow neutral':'arrow';return '<div class="metric"><div class="metric-label">'+label+'</div><div class="metric-row"><div class="metric-value">'+value+'</div></div><div class="metric-delta"><span class="'+acls+'">'+arrow+'</span><span>'+delta+'</span></div></div>';};
   const sbadge=st=>{const map={pass:['var(--gr-bg)','var(--gr)','✓ Pass'],fail:['var(--re-bg)','var(--re)','✗ Fail'],pending:['var(--ye-bg)','var(--ye)','• Pending']};const a=map[st]||map.pending;return '<span class="badge" style="background:'+a[0]+';color:'+a[1]+'"><span class="dot" style="background:'+a[1]+'"></span>'+a[2]+'</span>';};
-  const stages=['Applied','Document Pass','1st Interview','2nd Interview','Pass','Reject'];
-  const STAGE_COLORS={'Applied':['var(--bg-a)','var(--tx2)'],'Document Pass':['var(--ac-bg)','var(--ac)'],'1st Interview':['var(--info-bg,rgba(111,147,196,.12))','var(--info,#6f93c4)'],'2nd Interview':['var(--pu-bg)','var(--pu)'],'Pass':['var(--gr-bg)','var(--gr)'],'Reject':['var(--re-bg)','var(--re)']};
-  const stageBadge=st=>{const [bg,c]=STAGE_COLORS[st]||['var(--bg-a)','var(--tx2)'];return '<span class="badge" style="background:'+bg+';color:'+c+'"><span class="dot" style="background:'+c+'"></span>'+st+'</span>';};
-  const view=S.recView||'kanban';const fStage=S.recStage||'All';const fStat=S.recStat||'All';
+  const stages=['Applied','Interview','Trial','Hired'];
+  const view=S.recView||'table';const fStage=S.recStage||'All';const fStat=S.recStat||'All';
   const filtered=S.recruits.filter(r=>(fStage==='All'||(r.stage||'Applied')===fStage)&&(fStat==='All'||(fStat==='Pass'?getStatus(r)==='pass':getStatus(r)!=='pass')));
   const col=ok=>ok===false?'color:var(--re)':ok===true?'color:var(--gr)':'color:var(--tx2)';
   const tRows=filtered.length?filtered.map((r,i)=>{
@@ -1296,14 +1215,13 @@ function pgRecruitment(){
       +'</tr>';
   }).join(''):'<tr><td colspan="12" class="empty" style="border:none">'+(ko?'지원자 없음':'No applicants')+'</td></tr>';
   const kanban='<div class="kanban">'+stages.map(st=>{
-    const [stBg,stC]=STAGE_COLORS[st]||['var(--bg-a)','var(--tx2)'];
     const cards=S.recruits.filter(r=>(r.stage||'Applied')===st);
     const cardHtml=cards.length?cards.map((c,i)=>{
       const status=getStatus(c);
       const moveSel=can('recruitment')?'<select onchange="moveRecruit('+c.id+',this.value)" style="margin-top:8px;width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--br2);border-radius:5px;background:var(--bg-i);color:var(--tx2);font-family:inherit">'+stages.map(s=>'<option'+(st===s?' selected':'')+'>'+s+'</option>').join('')+'</select>':'';
       return '<div class="kcard"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+av(c.name,null,26)+'<div class="kcard-name" style="flex:1;margin-bottom:0">'+esc(c.name)+'</div></div><div style="font-size:11px;color:var(--tx2);line-height:1.6">'+(c.cpu?esc(c.cpu):'<em style="color:var(--tx3)">specs pending</em>')+(c.ram?'<div>'+esc(c.ram)+'GB · '+esc(c.speed||'?')+' Mbps</div>':'')+'</div><div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;align-items:center;justify-content:space-between"><span>'+sbadge(status)+'</span><span style="font-size:10px;color:var(--tx3)">'+esc(c.source||'')+'</span></div>'+moveSel+'</div>';
     }).join(''):'<div style="font-size:11px;color:var(--tx3);padding:12px 4px;text-align:center;border:1px dashed var(--br2);border-radius:6px">Empty</div>';
-    return '<div class="kcol" style="border-top:3px solid '+stC+'"><div class="kcol-h"><span class="kcol-name" style="color:'+stC+'">'+st+'</span><span class="kcol-cnt">'+cards.length+'</span></div>'+cardHtml+'</div>';
+    return '<div class="kcol"><div class="kcol-h"><span class="kcol-name">'+st+'</span><span class="kcol-cnt">'+cards.length+'</span></div>'+cardHtml+'</div>';
   }).join('')+'</div>';
   const stagePills='<div class="pill-row" style="margin-bottom:0;align-items:center"><span style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;margin-right:6px">'+(ko?'단계':'Stage')+'</span>'+['All',...stages].map(s=>'<button class="pill '+(fStage===s?'on':'')+'" onclick="S.recStage=\''+s+'\';render()">'+s+'</button>').join('')+'</div>';
   const statPills='<div class="pill-row" style="margin-bottom:0">'+['All','Pass','Pending'].map(s=>'<button class="pill '+(fStat===s?'on':'')+'" onclick="S.recStat=\''+s+'\';render()">'+s+'</button>').join('')+'</div>';
@@ -1315,10 +1233,10 @@ function pgRecruitment(){
     +'<div class="psub" style="margin:0">'+S.recruits.length+' '+(ko?'지원자':'candidates')+' · '+S.recruits.filter(r=>getStatus(r)==='pass').length+' '+(ko?'스펙 통과':'passed specs check')+'</div></div>'
     +'<div style="display:flex;gap:8px">'+(can('recruit_settings')?'<button class="btn-sm" onclick="S.showReqs=!S.showReqs;render()">'+(ko?'요구사항':'Requirements')+'</button>':'')+(can('recruitment')?'<button class="btn-add" onclick="S.showAddRecruit=!S.showAddRecruit;render()">+ '+(ko?'지원자 추가':'Add applicant')+'</button>':'')+'</div></div>'
     +'<div class="metric-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">'
-      +metric(ko?'지원':'Applied',S.recruits.filter(r=>(r.stage||'Applied')==='Applied').length,ko?'검토 대기':'awaiting','neutral')
-      +metric(ko?'서류 통과':'Doc Pass',S.recruits.filter(r=>r.stage==='Document Pass').length,ko?'서류 심사':'checked','up')
-      +metric(ko?'인터뷰':'Interview',S.recruits.filter(r=>r.stage==='1st Interview'||r.stage==='2nd Interview').length,ko?'진행 중':'in progress','neutral')
-      +metric(ko?'최종 합격':'Hired',S.recruits.filter(r=>r.stage==='Pass').length,ko?'합격':'passed','up')
+      +metric(ko?'지원':'Applied',S.recruits.filter(r=>(r.stage||'Applied')==='Applied').length,ko?'검토 대기':'awaiting review','neutral')
+      +metric(ko?'인터뷰':'Interview',S.recruits.filter(r=>r.stage==='Interview').length,ko?'이번 주':'this week','up')
+      +metric(ko?'트라이얼':'Trial',S.recruits.filter(r=>r.stage==='Trial').length,ko?'진행 중':'active trials','neutral')
+      +metric(ko?'통과율':'Pass rate',passRate+'%',ko?'전체':'of all applicants','up')
     +'</div>'
     +(S.showReqs?criteriaHTML+(can('recruit_settings')?'<div style="margin-bottom:16px;text-align:right"><button class="btn-sm" onclick="S.showEditReqs=!S.showEditReqs;render()">⚙️ '+(ko?'기준 편집':'Edit criteria')+'</button></div>':'')+(S.showEditReqs&&can('recruit_settings')?reqsEditForm:''):'')
     +'<div class="toolbar">'+stagePills+'<div style="display:flex;gap:8px;align-items:center">'+statPills+'<div style="width:1px;height:22px;background:var(--br)"></div>'+viewPills+'</div></div>'
@@ -2616,194 +2534,6 @@ async function setPagePerm(role,perm,on){
     if(error){toast('Save failed: '+error.message,'err');console.error(error);}
     else toast('Access updated ✓');
   }catch(e){toast('Error: '+e.message,'err');console.error('[setPagePerm]',e);}
-}
-
-// ── HR ATTENDANCE ──────────────────────────────────────────────────────────
-function pgHrAttend(){
-  const ko=S.lang==='ko';
-  const att=S.myTodayAtt;
-  const isIn=att&&att.clock_in&&!att.clock_out;
-  const isOut=att&&att.clock_out;
-  const onBreak=att&&att.break_start&&!att.break_end;
-  const fmtTime=ts=>{if(!ts)return'—';const d=new Date(ts);return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});};
-  const calcHours=(inTs,outTs,brkSt,brkEn)=>{if(!inTs||!outTs)return null;let ms=new Date(outTs)-new Date(inTs);if(brkSt&&brkEn)ms-=(new Date(brkEn)-new Date(brkSt));const h=Math.floor(ms/3600000);const m=Math.floor((ms%3600000)/60000);return h+'h '+m+'m';};
-  const todayHrs=att?calcHours(att.clock_in,att.clock_out,att.break_start,att.break_end):null;
-
-  // Clock buttons
-  const clockBtns=`<div class="att-clock">
-    <button class="att-btn att-in" onclick="attClockIn()" ${att&&att.clock_in?'disabled':''}>⏱ ${ko?'출근':'Clock In'}</button>
-    <button class="att-btn att-break" onclick="attBreak()" ${!isIn||isOut?'disabled':''}>${onBreak?(ko?'🔙 복귀':'🔙 Back'):(ko?'☕ 휴게 시작':'☕ Break')}</button>
-    <button class="att-btn att-out" onclick="attClockOut()" ${!isIn||isOut?'disabled':''}>⏹ ${ko?'퇴근':'Clock Out'}</button>
-  </div>`;
-
-  // Today's status card
-  const todayCard=`<div class="att-today">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div style="font-size:13px;font-weight:600">${ko?'오늘':'Today'} · ${new Date().toLocaleDateString(ko?'ko-KR':'en-US',{weekday:'short',month:'short',day:'numeric'})}</div>
-      ${todayHrs?`<span class="bdg bs">${ko?'총':'Total'} ${todayHrs}</span>`:isIn?`<span class="bdg bi">${ko?'근무 중':'On shift'}</span>`:`<span class="bdg bx">${ko?'미출근':'Not clocked in'}</span>`}
-    </div>
-    <div style="display:flex;gap:20px;flex-wrap:wrap">
-      <div><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${ko?'출근':'Clock In'}</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:${att?.clock_in?'var(--ok)':'var(--tx3)'}">${fmtTime(att?.clock_in)}</div></div>
-      <div><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${ko?'휴게 시작':'Break Start'}</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:${att?.break_start?'var(--ye)':'var(--tx3)'}">${fmtTime(att?.break_start)}</div></div>
-      <div><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${ko?'휴게 종료':'Break End'}</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:${att?.break_end?'var(--ye)':'var(--tx3)'}">${fmtTime(att?.break_end)}</div></div>
-      <div><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${ko?'퇴근':'Clock Out'}</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:${att?.clock_out?'var(--re)':'var(--tx3)'}">${fmtTime(att?.clock_out)}</div></div>
-    </div>
-  </div>`;
-
-  // Record table
-  const attView=S.attView||'weekly';
-  const now=new Date();
-  const todayIso=now.toISOString().slice(0,10);
-  let filtered=S.attendance;
-  if(attView==='weekly'){const wk=new Date(now);wk.setDate(wk.getDate()-(wk.getDay()+6)%7);const wkIso=wk.toISOString().slice(0,10);filtered=S.attendance.filter(a=>a.date>=wkIso&&a.date<=todayIso);}
-  else if(attView==='monthly'){const mon=todayIso.slice(0,7);filtered=S.attendance.filter(a=>a.date&&a.date.startsWith(mon));}
-  const showAll=can('hr_attend_all');
-  const rows=filtered.length?filtered.map(a=>{
-    const hrs=calcHours(a.clock_in,a.clock_out,a.break_start,a.break_end);
-    return `<tr>
-      ${showAll?`<td><div style="display:flex;align-items:center;gap:8px">${av(a.user_name,null,24)}<span style="font-weight:500">${esc(a.user_name||'?')}</span></div></td>`:''}
-      <td style="font-variant-numeric:tabular-nums">${a.date||'—'}</td>
-      <td style="color:var(--ok);font-weight:600">${fmtTime(a.clock_in)}</td>
-      <td style="color:var(--ye)">${a.break_start?fmtTime(a.break_start):'—'}</td>
-      <td style="color:var(--ye)">${a.break_end?fmtTime(a.break_end):'—'}</td>
-      <td style="color:var(--re);font-weight:600">${fmtTime(a.clock_out)}</td>
-      <td>${hrs?`<span class="bdg bs">${hrs}</span>`:'<span class="bdg bi">On shift</span>'}</td>
-    </tr>`;
-  }).join(''):`<tr><td colspan="7" class="empty" style="border:none">${ko?'기록 없음':'No records'}</td></tr>`;
-
-  const tabRow=`<div class="att-tab-row">
-    ${['weekly','monthly','yearly'].map(v=>`<button class="att-tab ${attView===v?'on':''}" onclick="S.attView='${v}';render()">${ko?{weekly:'이번 주',monthly:'이번 달',yearly:'올해'}[v]:{weekly:'This Week',monthly:'This Month',yearly:'All Time'}[v]}</button>`).join('')}
-  </div>`;
-
-  return `<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'인사':'People'}</div>`
-    +`<div class="ph" style="margin-bottom:6px">${ko?'HR 출퇴근':'HR Attendance'}</div>`
-    +`<div class="psub" style="margin-bottom:20px">${ko?'출퇴근 기록 및 근무 시간 확인':'Track clock-in, clock-out, and break times'}</div>`
-    +clockBtns
-    +todayCard
-    +tabRow
-    +`<div class="tw"><table><thead><tr>${showAll?`<th>${ko?'이름':'Name'}</th>`:''}<th>${ko?'날짜':'Date'}</th><th>${ko?'출근':'In'}</th><th>${ko?'휴게 시작':'Break'}</th><th>${ko?'휴게 종료':'Resume'}</th><th>${ko?'퇴근':'Out'}</th><th>${ko?'총 시간':'Hours'}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-
-async function attClockIn(){
-  const today=new Date().toISOString().slice(0,10);
-  if(S.myTodayAtt&&S.myTodayAtt.clock_in){toast(S.lang==='ko'?'이미 출근했습니다':'Already clocked in','err');return;}
-  const rec={user_id:S.user.id,user_name:S.profile.name,date:today,clock_in:new Date().toISOString()};
-  try{
-    const {data,error}=await sb.from('attendance').insert(rec).select().single();
-    if(error){toast(error.message,'err');console.error(error);return;}
-    S.myTodayAtt=data;
-    if(!S.attendance.find(a=>a.id===data.id))S.attendance.unshift(data);
-    toast(S.lang==='ko'?'출근 완료 ✓':'Clocked in ✓');render();
-  }catch(e){toast('Error: '+e.message,'err');}
-}
-async function attBreak(){
-  if(!S.myTodayAtt)return;
-  const a=S.myTodayAtt;
-  const isOnBreak=a.break_start&&!a.break_end;
-  const field=isOnBreak?{break_end:new Date().toISOString()}:{break_start:new Date().toISOString()};
-  try{
-    const {data,error}=await sb.from('attendance').update(field).eq('id',a.id).select().single();
-    if(error){toast(error.message,'err');return;}
-    S.myTodayAtt=data;
-    S.attendance=S.attendance.map(x=>x.id===data.id?data:x);
-    toast(isOnBreak?(S.lang==='ko'?'복귀 완료 ✓':'Back from break ✓'):(S.lang==='ko'?'휴게 시작 ✓':'Break started ✓'));render();
-  }catch(e){toast('Error: '+e.message,'err');}
-}
-async function attClockOut(){
-  if(!S.myTodayAtt)return;
-  try{
-    const {data,error}=await sb.from('attendance').update({clock_out:new Date().toISOString()}).eq('id',S.myTodayAtt.id).select().single();
-    if(error){toast(error.message,'err');return;}
-    S.myTodayAtt=data;
-    S.attendance=S.attendance.map(x=>x.id===data.id?data:x);
-    toast(S.lang==='ko'?'퇴근 완료 ✓':'Clocked out ✓');render();
-  }catch(e){toast('Error: '+e.message,'err');}
-}
-
-// ── TRUST SCORE BOARD ─────────────────────────────────────────────────────
-function pgTrustBoard(){
-  const ko=S.lang==='ko';
-  const scores=S.trustScores||[];
-  const canEdit=can('trust_edit');
-  const warnThresh=[3,6,9];
-  const warnLabel=w=>{if(w>=9)return ko?'해고 위기':'Termination';if(w>=6)return ko?'공식 면담':'Formal Meet';if(w>=3)return ko?'코칭':'Coaching';return ko?'정상':'Good';};
-  const statusColor=w=>w>=9?'var(--re)':w>=6?'var(--warn)':w>=3?'var(--ye)':'var(--ok)';
-
-  const addForm=S.showAddTrust?`<div class="fbox"><div class="fbox-t">${ko?'플레이어 추가':'Add player'}</div>
-    <div class="fgrid">
-      <div class="fg2"><label>${ko?'이름':'Name'}</label><input id="nt-name" placeholder="CLAWS..."></div>
-      <div class="fg2"><label>${ko?'시프트':'Shift'}</label><select id="nt-shift"><option>Day</option><option>Night</option></select></div>
-      <div class="fg2"><label>${ko?'경고점수':'Warn Pts'}</label><input id="nt-warn" type="number" value="0" min="0" step="0.5"></div>
-      <div class="fg2"><label>${ko?'신뢰점수':'Trust Pts'}</label><input id="nt-tp" type="number" value="0" min="0"></div>
-      <div class="fg2"><label>${ko?'보호 만료일':'Protected Until'}</label><input id="nt-prot" type="date"></div>
-      <div class="fg2"><label>${ko?'메모':'Notes'}</label><input id="nt-note" placeholder="Optional notes"></div>
-    </div>
-    <div style="display:flex;gap:8px"><button class="btn-add" onclick="saveTrustScore()">${ko?'저장':'Save'}</button><button onclick="S.showAddTrust=false;render()">${ko?'취소':'Cancel'}</button></div></div>`:''
-
-  const rows=scores.length?scores.map(s=>{
-    const wc=statusColor(s.warn_points||0);
-    const prot=s.protected_until?new Date(s.protected_until+'T00:00:00')>new Date():false;
-    const editRow=S.editTrust===s.id?`<tr><td colspan="6" style="padding:12px 16px;background:var(--ac-bg)">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <label style="font-size:11px;color:var(--tx2)">${ko?'경고':'Warn'}</label><input id="et-warn-${s.id}" type="number" value="${s.warn_points||0}" step="0.5" min="0" style="width:70px;padding:5px 8px;border:1px solid var(--br2);border-radius:6px;font-size:12px;background:var(--bg-i);color:var(--tx);font-family:inherit">
-        <label style="font-size:11px;color:var(--tx2)">${ko?'신뢰':'TP'}</label><input id="et-tp-${s.id}" type="number" value="${s.trust_points||0}" min="0" style="width:70px;padding:5px 8px;border:1px solid var(--br2);border-radius:6px;font-size:12px;background:var(--bg-i);color:var(--tx);font-family:inherit">
-        <label style="font-size:11px;color:var(--tx2)">${ko?'보호 만료':'Prot until'}</label><input id="et-prot-${s.id}" type="date" value="${s.protected_until||''}" style="padding:5px 8px;border:1px solid var(--br2);border-radius:6px;font-size:12px;background:var(--bg-i);color:var(--tx);font-family:inherit;color-scheme:dark">
-        <button class="btn-add btn-sm" onclick="updateTrustScore(${s.id})">${ko?'저장':'Save'}</button>
-        <button class="btn-sm" onclick="S.editTrust=null;render()">${ko?'취소':'Cancel'}</button>
-        ${canEdit?`<button class="btn-del btn-sm" onclick="delTrustScore(${s.id})" style="margin-left:auto">🗑</button>`:''}
-      </div></td></tr>`:''
-    return `<tr>
-      <td><div class="trust-name">${av(s.player_name,null,26)}<div><div style="font-weight:600">${esc(s.player_name)}</div><div style="font-size:11px;color:var(--tx3)">${esc(s.shift||'Day')}</div></div></div></td>
-      <td><span class="trust-warn">${s.warn_points||0}</span></td>
-      <td><span class="trust-tp">${s.trust_points||0}</span></td>
-      <td><div class="trust-status ${(s.warn_points||0)>=6?'bad':(s.warn_points||0)>=3?'warn':'good'}"><span style="color:${wc}">●</span> ${warnLabel(s.warn_points||0)}</div></td>
-      <td><span style="font-size:11px;color:${prot?'var(--ok)':'var(--tx3)'}">${prot?'🛡 '+(ko?'보호 중':'Protected'):s.protected_until?(ko?'만료':'Expired'):(ko?'없음':'—')}</span></td>
-      <td>${canEdit?`<button class="btn-sm" onclick="S.editTrust=S.editTrust===${s.id}?null:${s.id};render()">✏ ${ko?'수정':'Edit'}</button>`:''}</td>
-    </tr>${editRow}`;
-  }).join(''):`<tr><td colspan="6" class="empty" style="border:none">${ko?'등록된 플레이어 없음':'No players registered'}</td></tr>`;
-
-  return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px"><div>`
-    +`<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">${ko?'인사':'People'}</div>`
-    +`<div class="ph" style="margin-bottom:6px">${ko?'신뢰 점수판':'Player Trust Board'}</div>`
-    +`<div class="psub" style="margin:0">${ko?'경고 점수 · 신뢰 점수 · 보호 기간':'Warning points · Trust points · Protection period'}</div></div>`
-    +(canEdit?`<button class="btn-add" onclick="S.showAddTrust=!S.showAddTrust;render()">+ ${ko?'플레이어 추가':'Add player'}</button>`:'')
-    +`</div>`
-    +`<div class="panel" style="padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--tx2);line-height:1.7">`
-      +`<span style="color:var(--ye)">⚠ 3pt</span> → ${ko?'코칭':'Coaching'} &nbsp;·&nbsp; `
-      +`<span style="color:var(--warn)">⚠ 6pt</span> → ${ko?'공식 면담':'Formal Meeting'} &nbsp;·&nbsp; `
-      +`<span style="color:var(--re)">⚠ 9pt</span> → ${ko?'해고 대상':'Terminated'}`
-    +`</div>`
-    +addForm
-    +`<div class="tw"><table><thead><tr><th>${ko?'이름':'Name'}</th><th>${ko?'경고':'Warn pts'}</th><th>Trust pts</th><th>${ko?'상태':'Status'}</th><th>${ko?'보호':'Protected'}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-async function saveTrustScore(){
-  const n=document.getElementById('nt-name').value.trim();
-  if(!n)return;
-  const rec={player_name:n,shift:document.getElementById('nt-shift').value,warn_points:parseFloat(document.getElementById('nt-warn').value)||0,trust_points:parseInt(document.getElementById('nt-tp').value)||0,protected_until:document.getElementById('nt-prot').value||null,notes:document.getElementById('nt-note').value,updated_by:S.profile?.name,updated_at:new Date().toISOString()};
-  try{
-    const {data,error}=await sb.from('trust_scores').insert(rec).select().single();
-    if(error){toast(error.message,'err');return;}
-    if(data){S.trustScores.unshift(data);toast('Player added ✓');}
-    S.showAddTrust=false;render();
-  }catch(e){toast('Error: '+e.message,'err');}
-}
-async function updateTrustScore(id){
-  const rec={warn_points:parseFloat(document.getElementById(`et-warn-${id}`).value)||0,trust_points:parseInt(document.getElementById(`et-tp-${id}`).value)||0,protected_until:document.getElementById(`et-prot-${id}`).value||null,updated_by:S.profile?.name,updated_at:new Date().toISOString()};
-  try{
-    const {data,error}=await sb.from('trust_scores').update(rec).eq('id',id).select().single();
-    if(error){toast(error.message,'err');return;}
-    if(data){S.trustScores=S.trustScores.map(x=>x.id===id?data:x);toast('Updated ✓');}
-    S.editTrust=null;render();
-    logActivity('Trust score updated',S.trustScores.find(x=>x.id===id)?.player_name||id);
-  }catch(e){toast('Error: '+e.message,'err');}
-}
-async function delTrustScore(id){
-  if(!confirm('Delete this player?'))return;
-  try{
-    const {error}=await sb.from('trust_scores').delete().eq('id',id);
-    if(error){toast(error.message,'err');return;}
-    S.trustScores=S.trustScores.filter(x=>x.id!==id);toast('Deleted');render();
-  }catch(e){toast('Error: '+e.message,'err');}
 }
 
 function toast(msg,type='ok',dur){
