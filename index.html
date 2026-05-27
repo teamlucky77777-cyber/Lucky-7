@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.2 · Build: 20260527-121</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.3 · Build: 20260527-122</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2113,17 +2113,22 @@ function pgSchedule(){
     // PC view: rows = each PC, cols = Day/Night, for the selected day
     const pcs=(S.pcs||[]).slice().sort((a,b)=>(a.num||0)-(b.num||0));
     if(!pcs.length){
-      grid='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:13px;background:var(--bg-c);border:1px dashed var(--br);border-radius:10px">'+(ko?'PC가 없습니다. PC 현황에서 추가하세요.':'No PCs yet — add some in PC Status first.')+'</div>';
+      grid='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:13px;background:var(--bg-c);border:1px dashed var(--br);border-radius:10px">'+(ko?'PC가 없습니다.':'No PCs yet.')+(can('pcs_edit')?'<div style="margin-top:14px"><button class="btn-add" onclick="addPC()">+ '+(ko?'첫 PC 추가':'Add your first PC')+'</button></div>':'')+'</div>';
     } else {
       const dy=S.schedDay;
+      const canEditPC=can('pcs_edit');
       grid='<div class="sh-grid">';
       grid+='<span></span><div class="sh-head day">☀ '+(ko?'주간':'Day')+'</div><div class="sh-head night">☾ '+(ko?'야간':'Night')+'</div>';
       for(const p of pcs){
         const lbl='PC-'+String(p.num).padStart(2,'0');
         const sc=p.status==='Online'?'var(--ok)':p.status==='Warning'?'var(--warn)':'var(--tx4)';
-        grid+='<div class="sh-rowlbl"><span style="color:'+sc+';margin-right:5px">●</span>'+lbl+(p.assigned_name?'<small style="display:block;color:var(--ac);font-size:9px;margin-top:2px">'+esc(p.assigned_name)+'</small>':'')+'</div>'+cell(dy,'Day',p.id)+cell(dy,'Night',p.id);
+        const rmBtn=canEditPC?' <span onclick="removePC('+p.id+','+p.num+')" style="cursor:pointer;color:var(--tx4);font-size:11px;opacity:.45;margin-left:4px" title="'+(ko?'PC 제거':'Remove PC')+'">✕</span>':'';
+        grid+='<div class="sh-rowlbl"><span style="color:'+sc+';margin-right:5px">●</span>'+lbl+rmBtn+(p.assigned_name?'<small style="display:block;color:var(--ac);font-size:9px;margin-top:2px">'+esc(p.assigned_name)+'</small>':'')+'</div>'+cell(dy,'Day',p.id)+cell(dy,'Night',p.id);
       }
       grid+='</div>';
+      if(canEditPC){
+        grid+='<div style="margin-top:14px;display:flex;align-items:center;gap:8px"><button class="btn-add btn-sm" onclick="addPC()">+ '+(ko?'PC 추가':'Add PC')+'</button><span style="font-size:11px;color:var(--tx3)">'+(ko?'다음 번호로 자동 추가됩니다':'auto-numbered as PC-'+String((pcs[pcs.length-1]?.num||0)+1).padStart(2,'0'))+'</span></div>';
+      }
     }
   }
 
