@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.0 · Build: 20260527-119</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.1 · Build: 20260527-120</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2080,7 +2080,7 @@ function pgSchedule(){
       +'<select onchange="S.schedPC=parseInt(this.value);render()" style="padding:6px 10px;border:1px solid var(--br2);border-radius:7px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px;font-weight:600">'
         +pcs.map(p=>{const st=p.status==='Online'?'●':p.status==='Warning'?'▲':'○';return '<option value="'+p.id+'"'+(p.id===S.schedPC?' selected':'')+'>'+st+' PC-'+String(p.num).padStart(2,'0')+(p.assigned_name?' · '+p.assigned_name:'')+'</option>';}).join('')
       +'</select>'
-      +'<span style="font-size:11px;color:var(--tx3);margin-left:auto">'+(ko?'배정 시 현재 시프트는 PC 현황에 자동 반영':'Drops on the current live shift auto-sync to PC Status')+'</span>'
+      +'<span style="font-size:11px;color:var(--tx3);margin-left:auto">'+(ko?'드롭 시 PC 현황 자동 반영 →':'Drops auto-assign to PC Status →')+'</span>'
       +'</div>';
   }
 
@@ -2177,8 +2177,8 @@ async function schedDrop(ev,dow,shift){
       saved=data;
       S.shifts.unshift(saved);
     }
-    // Sync to PC Status if dropped on the LIVE shift
-    if(saved.pc_id && isLiveSlot(saved.week_start,saved.dow,saved.shift_type)){
+    // Sync to PC Status whenever a PC view drop happens (any day/shift)
+    if(saved.pc_id){
       try{
         const member=S.team.find(x=>x.id===saved.operator_id);
         const upd={assigned_to:saved.operator_id,assigned_name:member?member.name:saved.operator_name};
@@ -2201,14 +2201,16 @@ async function schedRemove(ev,id){
     const {error}=await sb.from('shifts').delete().eq('id',id);
     if(error){toast(error.message,'err');return;}
     S.shifts=S.shifts.filter(x=>x.id!==id);
-    // If this was a live PC assignment, also unassign on PC Status
-    if(s && s.pc_id && isLiveSlot(s.week_start,s.dow,s.shift_type)){
-      try{
-        await sb.from('korea_pcs').update({assigned_to:null,assigned_name:null}).eq('id',s.pc_id);
-        const pcLive=S.pcs.find(p=>p.id===s.pc_id);
-        if(pcLive){pcLive.assigned_to=null;pcLive.assigned_name=null;}
-        toast(S.lang==='ko'?'제거 · PC 현황도 해제됨':'Removed · PC Status also cleared');
-      }catch(e){console.warn('PC unsync failed:',e);}
+    // If this was a PC-tagged assignment AND the PC currently shows this operator, also unassign on PC Status
+    if(s && s.pc_id){
+      const pcLive=S.pcs.find(p=>p.id===s.pc_id);
+      if(pcLive && pcLive.assigned_to===s.operator_id){
+        try{
+          await sb.from('korea_pcs').update({assigned_to:null,assigned_name:null}).eq('id',s.pc_id);
+          pcLive.assigned_to=null; pcLive.assigned_name=null;
+          toast(S.lang==='ko'?'제거 · PC 현황도 해제됨':'Removed · PC Status also cleared');
+        }catch(e){console.warn('PC unsync failed:',e);}
+      }
     }
     render();
   }catch(e){toast('Error: '+e.message,'err');}
