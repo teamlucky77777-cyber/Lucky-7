@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v17.0 · Build: 20260527-124</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v17.2 · Build: 20260527-126</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1071,7 +1071,7 @@ function pgPCs(){
 
   // PC grid with game color coding (Lineage=Blue, Maple=Orange)
   const pcGameClass=p=>{const g=(p.game||'').toLowerCase();if(g.includes('lineage'))return 'pc-game-lin';if(g.includes('maple'))return 'pc-game-map';return '';};
-  const grid=filtered.map(p=>{const gameInfo=p.char_level||p.char_class?'LV.'+esc(p.char_level||'?')+' '+esc(p.char_class||''):p.maple_level||p.maple_class?'🍁 LV.'+esc(p.maple_level||'?')+' '+esc(p.maple_class||''):'';const gc=pcGameClass(p);return`<div class="pc ${gc} ${selectedPC&&selectedPC.id===p.id?'selected':''}" data-st="${p.status}" onclick="S.pcSelected=${p.id};render()" style="padding:12px 8px;text-align:left"><span class="pc-status-dot"></span><div class="pc-num">PC-${String(p.num).padStart(2,'0')}</div><div class="pc-player">${p.assigned_name?esc(p.assigned_name):'—'}</div>${gameInfo?`<div style="font-size:9px;color:var(--ac);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${gameInfo.trim()}</div>`:''}</div>`;}).join('');
+  const grid=filtered.map(p=>{const gameInfo=p.char_level||p.char_class?'LV.'+esc(p.char_level||'?')+' '+esc(p.char_class||''):p.maple_level||p.maple_class?'🍁 LV.'+esc(p.maple_level||'?')+' '+esc(p.maple_class||''):'';const gc=pcGameClass(p);const cli=(S.clients||[]).find(c=>c.pc_id===p.id);const cliBadge=cli?`<div style="font-size:9px;color:var(--ac);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500" title="Client: ${esc(cli.name)}">👤 ${esc(cli.name)}</div>`:'';return`<div class="pc ${gc} ${selectedPC&&selectedPC.id===p.id?'selected':''}" data-st="${p.status}" onclick="S.pcSelected=${p.id};render()" style="padding:12px 8px;text-align:left"><span class="pc-status-dot"></span><div class="pc-num">PC-${String(p.num).padStart(2,'0')}</div><div class="pc-player">${p.assigned_name?esc(p.assigned_name):'—'}</div>${cliBadge}${gameInfo?`<div style="font-size:9px;color:var(--tx3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${gameInfo.trim()}</div>`:''}</div>`;}).join('');
 
   // detail panel
   const assignableMembers=S.team.filter(m=>['manager','hr','staff'].includes(m.role)||m.id===S.profile.id);
@@ -1079,11 +1079,13 @@ function pgPCs(){
   if(selectedPC){
     const sc=selectedPC.status==='Online'?'var(--ok)':selectedPC.status==='Warning'?'var(--warn)':'var(--re)';
     const assignedMember=S.team.find(m=>m.id===selectedPC.assigned_to);
+    const boundClient=(S.clients||[]).find(c=>c.pc_id===selectedPC.id);
     const cell=(label,val,color)=>`<div class="pc-detail-cell">${label}<strong style="${color?`color:${color}`:''}">${val}</strong></div>`;
     detail=shead((ko?'상세':'Detail')+' · PC-'+String(selectedPC.num).padStart(2,'0'))
       +`<div class="pc-detail">`
         +cell(ko?'상태':'Status',selectedPC.status,sc)
         +cell(ko?'운영자':'Player',selectedPC.assigned_name||(ko?'미배정':'Unassigned'))
+        +cell(ko?'클라이언트':'Client',boundClient?esc(boundClient.name):'<span style="color:var(--tx3);font-weight:400">'+(ko?'팀 Lucky7':'Team Lucky7')+'</span>',boundClient?'var(--ac)':null)
         +cell('ISP',assignedMember?.isp||'—')
         +cell(ko?'도구':'Tool',assignedMember?.tool||'—')
         +cell(ko?'메모':'Note',selectedPC.note?esc(selectedPC.note):'—')
@@ -1096,10 +1098,12 @@ function pgPCs(){
 
   const view=S.pcView||'grid';
   const isMgr2=isMgr;
-  const assignTable=`<div class="tw"><table><thead><tr><th>PC</th><th>${ko?'운영자':'Operator'}</th><th>${ko?'상태':'Status'}</th></tr></thead><tbody>${S.pcs.map(p=>{
+  const assignTable=`<div class="tw"><table><thead><tr><th>PC</th><th>${ko?'클라이언트':'Client'}</th><th>${ko?'운영자':'Operator'}</th><th>${ko?'상태':'Status'}</th></tr></thead><tbody>${S.pcs.map(p=>{
     const sel=isMgr2?`<select onchange="assignPC(${p.id},this.value)" style="font-size:12px;padding:5px 9px;border:1px solid var(--br2);border-radius:6px;font-family:inherit;background:var(--bg-i);color:var(--tx);min-width:160px"><option value="">— ${ko?'미배정':'Unassigned'} —</option>${assignableMembers.map(m=>`<option value="${m.id}"${p.assigned_to===m.id?' selected':''}>${esc(m.name)}</option>`).join('')}</select>`:(p.assigned_name?esc(p.assigned_name):`<span style="color:var(--tx3)">—</span>`);
     const sc=p.status==='Online'?'var(--ok)':p.status==='Warning'?'var(--warn)':'var(--re)';
-    return `<tr><td><strong style="font-family:var(--font-mono,monospace)">PC-${String(p.num).padStart(2,'0')}</strong></td><td>${sel}</td><td><span style="color:${sc}">●</span> ${p.status}</td></tr>`;
+    const cli=(S.clients||[]).find(c=>c.pc_id===p.id);
+    const cliCell=cli?`<span style="color:var(--ac);font-weight:500">${esc(cli.name)}</span>`:`<span style="color:var(--tx3);font-size:11px">${ko?'팀 Lucky7':'Team Lucky7'}</span>`;
+    return `<tr><td><strong style="font-family:var(--font-mono,monospace)">PC-${String(p.num).padStart(2,'0')}</strong></td><td>${cliCell}</td><td>${sel}</td><td><span style="color:${sc}">●</span> ${p.status}</td></tr>`;
   }).join('')}</tbody></table></div>`;
   const toggle=`<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:16px"><button onclick="S.pcView='grid';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='grid'?'var(--tx)':'transparent'};color:${view==='grid'?'var(--bg)':'var(--tx2)'}">${ko?'그리드':'Grid'}</button><span style="width:1px;background:var(--br)"></span><button onclick="S.pcView='assign';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:${view==='assign'?'var(--tx)':'transparent'};color:${view==='assign'?'var(--bg)':'var(--tx2)'}">${ko?'배정 (전체)':'Assign all'}</button></div>`;
 
@@ -2119,8 +2123,9 @@ function pgSchedule(){
   } else if(S.schedView==='client') {
     // Client view: rows = each client, cols = Day/Night, for the selected day
     const cliList=(S.clients||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    const canEditCli=can('clients');
     if(!cliList.length){
-      grid='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:13px;background:var(--bg-c);border:1px dashed var(--br);border-radius:10px">'+(ko?'클라이언트가 없습니다. 클라이언트 페이지에서 추가하세요.':'No clients yet — add some on the Clients page first.')+'</div>';
+      grid='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:13px;background:var(--bg-c);border:1px dashed var(--br);border-radius:10px">'+(ko?'클라이언트가 없습니다.':'No clients yet.')+(canEditCli?'<div style="margin-top:14px"><button class="btn-add" onclick="addClientQuick()">+ '+(ko?'첫 클라이언트 추가':'Add your first client')+'</button></div>':'')+'</div>';
     } else {
       const dy=S.schedDay;
       const pcs=(S.pcs||[]).slice().sort((a,b)=>(a.num||0)-(b.num||0));
@@ -2130,9 +2135,13 @@ function pgSchedule(){
         const boundPC=c.pc_id?pcs.find(p=>p.id===c.pc_id):null;
         const bindLbl=boundPC?'PC-'+String(boundPC.num).padStart(2,'0'):(ko?'PC 미연결':'No PC');
         const bindSel=canEdit?'<select onchange="schedBindClientPC('+c.id+',this.value)" style="margin-top:3px;margin-left:14px;font-size:10px;padding:2px 5px;border:1px solid var(--br);border-radius:4px;background:var(--bg-i);color:'+(boundPC?'var(--ac)':'var(--tx3)')+';font-family:inherit;max-width:88px"><option value=""'+(!boundPC?' selected':'')+'>'+(ko?'PC 미연결':'No PC')+'</option>'+pcs.map(p=>'<option value="'+p.id+'"'+(p.id===c.pc_id?' selected':'')+'>PC-'+String(p.num).padStart(2,'0')+'</option>').join('')+'</select>':'<small style="display:block;color:'+(boundPC?'var(--ac)':'var(--tx3)')+';font-size:10px;font-weight:500;margin-top:3px;margin-left:14px">→ '+bindLbl+'</small>';
-        grid+='<div class="sh-rowlbl" style="flex-direction:column;align-items:stretch;justify-content:center"><div style="display:flex;align-items:center;gap:5px"><span style="color:var(--tx3)">●</span><span>'+esc(c.name||'?')+'</span></div>'+bindSel+'</div>'+cell(dy,'Day',undefined,c.id)+cell(dy,'Night',undefined,c.id);
+        const rmBtn=canEditCli?'<span onclick="delClient('+c.id+')" style="cursor:pointer;color:var(--tx4);font-size:11px;opacity:.4;margin-left:auto;padding:0 2px" title="'+(ko?'클라이언트 삭제':'Delete client')+'">✕</span>':'';
+        grid+='<div class="sh-rowlbl" style="flex-direction:column;align-items:stretch;justify-content:center"><div style="display:flex;align-items:center;gap:5px"><span style="color:var(--tx3)">●</span><span>'+esc(c.name||'?')+'</span>'+rmBtn+'</div>'+bindSel+'</div>'+cell(dy,'Day',undefined,c.id)+cell(dy,'Night',undefined,c.id);
       }
       grid+='</div>';
+      if(canEditCli){
+        grid+='<div style="margin-top:14px;display:flex;align-items:center;gap:8px"><button class="btn-add btn-sm" onclick="addClientQuick()">+ '+(ko?'클라이언트 추가':'Add client')+'</button><span style="font-size:11px;color:var(--tx3)">'+(ko?'더 상세한 정보는 클라이언트 페이지에서 편집':'edit details on the Clients page')+'</span></div>';
+      }
     }
   }
   if(S.schedView==='pc'){
@@ -2757,6 +2766,16 @@ async function delClient(id){
   try{
     if(!confirm('Delete?'))return;const {error}=await sb.from('clients').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.clients=S.clients.filter(c=>c.id!==id);toast('Deleted');render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[delClient]',e);}
+}
+async function addClientQuick(){
+  if(!can('clients')){toast(S.lang==='ko'?'권한이 없습니다':'No permission','err');return;}
+  const name=prompt(S.lang==='ko'?'클라이언트 이름:':'Client name:');
+  if(!name||!name.trim())return;
+  try{
+    const {data,error}=await sb.from('clients').insert({name:name.trim(),status:'Active'}).select().single();
+    if(error){toast(error.message,'err');console.error(error);return;}
+    if(data){S.clients.push(data);toast(S.lang==='ko'?'클라이언트 추가됨 ✓':'Client added ✓');render();}
+  }catch(e){toast('Error: '+e.message,'err');console.error('[addClientQuick]',e);}
 }
 async function addClient(){
   try{
