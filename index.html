@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v15.1 · Build: 20260527-118</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.0 · Build: 20260527-119</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -655,7 +655,7 @@ let S = {
   attendance:[], myTodayAtt:null, attView:'weekly', trustScores:[], editTrust:null, showAddTrust:false,
   pcGameFilter:'All', shiftDrag:null,
   onboarding:[], onboardStaff:null, manualOpen:{0:true},
-  shifts:[], schedWeek:null, schedDrag:null
+  shifts:[], schedWeek:null, schedDrag:null, schedView:'shift', schedPC:null
 };
 
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -2047,19 +2047,42 @@ function pgSchedule(){
   const weekShifts=S.shifts.filter(s=>s.week_start===wk);
 
   const cellChips=(dow,shift)=>{
-    const list=weekShifts.filter(s=>s.dow===dow&&s.shift_type===shift);
+    let list=weekShifts.filter(s=>s.dow===dow&&s.shift_type===shift);
+    if(S.schedView==='pc'&&S.schedPC) list=list.filter(s=>s.pc_id===S.schedPC);
     if(!list.length)return '<span class="sh-empty">'+(ko?'비어있음':'empty')+'</span>';
     return list.map(s=>{
       const gc=gameClass(s.game);
       const nm=esc(s.operator_name||'?');
-      if(!canEdit)return '<span class="sh-chip '+gc+'">'+nm+'</span>';
+      const pcTag=(S.schedView==='shift'&&s.pc_num)?'<span style="font-size:9px;font-weight:600;background:var(--bg-a);color:var(--tx3);padding:1px 5px;border-radius:3px;margin-right:2px">PC-'+esc(s.pc_num)+'</span>':'';
+      if(!canEdit)return '<span class="sh-chip '+gc+'">'+pcTag+nm+'</span>';
       return '<span class="sh-chip '+gc+'">'
         +'<span class="sh-gdot '+gc+'" title="'+(ko?'게임 변경':'cycle game')+'" onclick="schedCycleGame(event,'+s.id+')"></span>'
-        +nm
+        +pcTag+nm
         +'<span class="sh-x" title="'+(ko?'제거':'remove')+'" onclick="schedRemove(event,'+s.id+')">✕</span>'
         +'</span>';
     }).join('');
   };
+
+  // View toggle
+  const viewToggle='<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:14px">'
+    +'<button onclick="S.schedView=\'shift\';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='shift'?'var(--tx)':'transparent')+';color:'+(S.schedView==='shift'?'var(--bg)':'var(--tx2)')+'">'+(ko?'시프트':'Shift')+'</button>'
+    +'<span style="width:1px;background:var(--br)"></span>'
+    +'<button onclick="schedSetView(\'pc\')" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='pc'?'var(--tx)':'transparent')+';color:'+(S.schedView==='pc'?'var(--bg)':'var(--tx2)')+'">PC</button>'
+    +'</div>';
+
+  // PC selector (only in PC view)
+  let pcSelector='';
+  if(S.schedView==='pc'){
+    const pcs=(S.pcs||[]).slice().sort((a,b)=>(a.num||0)-(b.num||0));
+    if(!S.schedPC && pcs.length) S.schedPC=pcs[0].id;
+    pcSelector='<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:11px 14px;background:var(--bg-c);border:1px solid var(--br);border-radius:10px;flex-wrap:wrap">'
+      +'<span style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em">PC</span>'
+      +'<select onchange="S.schedPC=parseInt(this.value);render()" style="padding:6px 10px;border:1px solid var(--br2);border-radius:7px;background:var(--bg-i);color:var(--tx);font-family:inherit;font-size:13px;font-weight:600">'
+        +pcs.map(p=>{const st=p.status==='Online'?'●':p.status==='Warning'?'▲':'○';return '<option value="'+p.id+'"'+(p.id===S.schedPC?' selected':'')+'>'+st+' PC-'+String(p.num).padStart(2,'0')+(p.assigned_name?' · '+p.assigned_name:'')+'</option>';}).join('')
+      +'</select>'
+      +'<span style="font-size:11px;color:var(--tx3);margin-left:auto">'+(ko?'배정 시 현재 시프트는 PC 현황에 자동 반영':'Drops on the current live shift auto-sync to PC Status')+'</span>'
+      +'</div>';
+  }
 
   const pool=canEdit?('<div class="sh-pool"><span class="sh-pool-lbl">'+(ko?'운영자':'Operators')+'</span>'
     +ops.map(m=>'<span class="sh-chip drag" draggable="true" ondragstart="schedDragStart(event,\''+m.id+'\')"><span class="sh-grip">⠿</span>'+esc(m.name)+'</span>').join('')
@@ -2084,10 +2107,25 @@ function pgSchedule(){
       +'<span class="sh-wk-label">'+wkLabel+'</span>'
       +'<button class="btn-sm" onclick="schedWeekNav(1)">'+(ko?'다음':'Next')+' ›</button>'
       +'<button class="btn-sm" onclick="schedWeekNav(0)">'+(ko?'이번 주':'This week')+'</button></div>'
+    +viewToggle
+    +pcSelector
     +pool
     +grid
     +'<div class="sh-legend"><div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:#6495ED"></span>Lineage</div><div class="pc-legend-item"><span class="dot" style="background:#FFA500"></span>Maple</div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span>'+(ko?'게임 미지정':'No game')+'</div></div></div>'
     +(canEdit?'<div style="font-size:11px;color:var(--tx3);margin-top:6px">'+(ko?'팁: 칩의 점을 클릭해 게임 변경 (라인G→메이플→없음), ✕로 제거':'Tip: click a chip\'s dot to cycle its game (Lineage → Maple → none), ✕ to remove')+'</div>':'');
+}
+function schedSetView(v){
+  S.schedView=v;
+  if(v==='pc' && !S.schedPC && S.pcs && S.pcs.length){
+    const sorted=S.pcs.slice().sort((a,b)=>(a.num||0)-(b.num||0));
+    S.schedPC=sorted[0].id;
+  }
+  render();
+}
+function currentShift(){const h=new Date().getHours(); return (h>=6&&h<18)?'Day':'Night';}
+function todayDow(){return (new Date().getDay()+6)%7;}
+function isLiveSlot(week_start,dow,shift_type){
+  return week_start===isoDate(mondayOf(new Date())) && dow===todayDow() && shift_type===currentShift();
 }
 function schedWeekNav(delta){
   if(!S.schedWeek)S.schedWeek=isoDate(mondayOf(new Date()));
@@ -2113,23 +2151,66 @@ async function schedDrop(ev,dow,shift){
   if(!id)return;
   const m=(S.team||[]).find(x=>x.id===id);
   const name=m?m.name:'?';
-  const dup=S.shifts.find(s=>s.week_start===S.schedWeek&&s.dow===dow&&s.shift_type===shift&&s.operator_id===id);
-  if(dup){toast(S.lang==='ko'?'이미 이 슬롯에 배정됨':'Already in this slot','err');return;}
-  const rec={week_start:S.schedWeek,dow,shift_type:shift,operator_id:id,operator_name:name,game:null};
+  const wk=S.schedWeek;
+  // PC view context
+  const inPCView=S.schedView==='pc' && S.schedPC;
+  const pc=inPCView?(S.pcs||[]).find(p=>p.id===S.schedPC):null;
+  const pcId=inPCView?S.schedPC:null;
+  const pcNum=pc?String(pc.num).padStart(2,'0'):null;
+  // Existing assignment for this operator at this (week,dow,shift)?
+  const existing=S.shifts.find(s=>s.week_start===wk&&s.dow===dow&&s.shift_type===shift&&s.operator_id===id);
   try{
-    const {data,error}=await sb.from('shifts').insert(rec).select().single();
-    if(error){toast(error.message,'err');console.error(error);return;}
-    S.shifts.unshift(data);
+    let saved;
+    if(existing){
+      if(inPCView && existing.pc_id===pcId){ toast(S.lang==='ko'?'이미 이 PC에 배정됨':'Already on this PC','err'); return; }
+      if(!inPCView && !existing.pc_id){ toast(S.lang==='ko'?'이미 이 슬롯에 배정됨':'Already in this slot','err'); return; }
+      // Update existing — either to refine (null→pcId), to move (pcA→pcB), or to clear (pc→null)
+      const upd=inPCView?{pc_id:pcId,pc_num:pcNum}:{pc_id:null,pc_num:null};
+      const {data,error}=await sb.from('shifts').update(upd).eq('id',existing.id).select().single();
+      if(error){toast(error.message,'err');console.error(error);return;}
+      saved=data;
+      S.shifts=S.shifts.map(s=>s.id===saved.id?saved:s);
+    } else {
+      const rec={week_start:wk,dow,shift_type:shift,operator_id:id,operator_name:name,game:null,pc_id:pcId,pc_num:pcNum};
+      const {data,error}=await sb.from('shifts').insert(rec).select().single();
+      if(error){toast(error.message,'err');console.error(error);return;}
+      saved=data;
+      S.shifts.unshift(saved);
+    }
+    // Sync to PC Status if dropped on the LIVE shift
+    if(saved.pc_id && isLiveSlot(saved.week_start,saved.dow,saved.shift_type)){
+      try{
+        const member=S.team.find(x=>x.id===saved.operator_id);
+        const upd={assigned_to:saved.operator_id,assigned_name:member?member.name:saved.operator_name};
+        await sb.from('korea_pcs').update(upd).eq('id',saved.pc_id);
+        const pcLive=S.pcs.find(p=>p.id===saved.pc_id);
+        if(pcLive){pcLive.assigned_to=upd.assigned_to;pcLive.assigned_name=upd.assigned_name;}
+        toast(S.lang==='ko'?'✓ 배정 · PC 현황 반영됨':'✓ Assigned · synced to PC Status');
+      }catch(e){console.warn('PC sync failed:',e);toast(S.lang==='ko'?'배정됨 (PC 동기화 실패)':'Saved (PC sync failed)','err');}
+    } else {
+      toast(S.lang==='ko'?'배정됨':'Assigned');
+    }
     render();
-  }catch(e){toast('Error: '+e.message,'err');}
+  }catch(e){toast('Error: '+e.message,'err');console.error(e);}
 }
 async function schedRemove(ev,id){
   ev.stopPropagation();
   if(!can('schedule_edit'))return;
+  const s=S.shifts.find(x=>x.id===id);
   try{
     const {error}=await sb.from('shifts').delete().eq('id',id);
     if(error){toast(error.message,'err');return;}
-    S.shifts=S.shifts.filter(s=>s.id!==id);render();
+    S.shifts=S.shifts.filter(x=>x.id!==id);
+    // If this was a live PC assignment, also unassign on PC Status
+    if(s && s.pc_id && isLiveSlot(s.week_start,s.dow,s.shift_type)){
+      try{
+        await sb.from('korea_pcs').update({assigned_to:null,assigned_name:null}).eq('id',s.pc_id);
+        const pcLive=S.pcs.find(p=>p.id===s.pc_id);
+        if(pcLive){pcLive.assigned_to=null;pcLive.assigned_name=null;}
+        toast(S.lang==='ko'?'제거 · PC 현황도 해제됨':'Removed · PC Status also cleared');
+      }catch(e){console.warn('PC unsync failed:',e);}
+    }
+    render();
   }catch(e){toast('Error: '+e.message,'err');}
 }
 async function schedCycleGame(ev,id){
