@@ -65,6 +65,19 @@ body{font-family:'Inter',-apple-system,sans-serif;font-size:14px;background:var(
 .sb-player{background:var(--re-bg)!important;color:var(--re)!important}
 .sb-div{display:none}
 .sb-sec{font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:18px 10px 6px;margin-top:4px}
+.ni-grip{display:inline-block;opacity:.4;margin-right:6px;cursor:grab;font-size:14px;vertical-align:middle}
+.ni-grip:active{cursor:grabbing}
+.ni.sb-edit{cursor:grab;background:var(--bg-c)}
+.ni.sb-edit:hover{background:var(--bg-i)}
+.ni.sb-edit.on{background:var(--bg-c)}
+.sb-sec.sb-edit{cursor:grab;background:var(--bg-c);padding:8px 10px;border-radius:6px;margin:8px 8px 4px;display:flex;align-items:center}
+.sb-sec.sb-edit:hover{background:var(--bg-i)}
+.ni.sb-dragover,.sb-sec.sb-dragover{box-shadow:inset 0 2px 0 var(--ac)}
+.sb-drop-end{padding:14px 16px;text-align:center;color:var(--tx3);font-size:11px;border:1.5px dashed var(--br);border-radius:8px;margin:10px 12px}
+.sb-drop-end.sb-dragover{border-color:var(--ac);color:var(--ac);background:var(--ac-bg)}
+.sb-customize{margin:14px 12px 8px;padding:8px 12px;border:1px solid var(--br);border-radius:8px;font-size:12px;color:var(--tx3);cursor:pointer;text-align:center;background:var(--bg-c);transition:all .12s}
+.sb-customize:hover{color:var(--tx);border-color:var(--br2)}
+.sb-customize.active{background:var(--ac-bg);color:var(--ac);border-color:var(--ac)}
 .sb-nav{flex:1;padding:8px 10px 8px;overflow-y:auto}
 .ni{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--tx2);transition:all .15s;margin-bottom:4px}
 .ni:hover{background:var(--bg-h);color:var(--tx)}.ni.on{background:var(--bg-a);color:var(--tx);font-weight:500}
@@ -504,7 +517,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v18.0 · Build: 20260527-131</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.0 · Build: 20260527-133</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -608,8 +621,8 @@ const NAV_ITEMS=[
   {key:'schedule',label:'Schedule',labelKo:'스케쥴',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>`,perm:'schedule',sec:'Operations',secKo:'운영'},
   {key:'tasks',label:'Tasks',labelKo:'업무',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,perm:'tasks_view',sec:'Operations'},
   {key:'clients',label:'Clients',labelKo:'클라이언트',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,perm:'clients',sec:'Operations'},
-  {key:'game',label:'Lineage Ops',labelKo:'리니지 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 11h4M8 9v4"/><circle cx="15" cy="10" r="1"/><circle cx="17.5" cy="12.5" r="1"/><path d="M17 4H7a5 5 0 0 0-5 5v6a3 3 0 0 0 5.2 2l1.3-1.5h7l1.3 1.5A3 3 0 0 0 22 15V9a5 5 0 0 0-5-5Z"/></svg>`,perm:'game',sec:'Game Ops',secKo:'게임 운영'},
-  {key:'maple',label:'Maple Ops',labelKo:'메이플 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 2C7 2 3 6 3 11c0 4 3 8 9 11 6-3 9-7 9-11 0-5-4-9-9-9Z"/><path d="M9 11l3-4 3 4"/></svg>`,perm:'maple',sec:'Game Ops',secKo:'게임 운영'},
+  {key:'game',label:'Lineage Ops',labelKo:'리니지 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M6 11h4M8 9v4"/><circle cx="15" cy="10" r="1"/><circle cx="17.5" cy="12.5" r="1"/><path d="M17 4H7a5 5 0 0 0-5 5v6a3 3 0 0 0 5.2 2l1.3-1.5h7l1.3 1.5A3 3 0 0 0 22 15V9a5 5 0 0 0-5-5Z"/></svg>`,perm:'game',sec:'Operations'},
+  {key:'maple',label:'Maple Ops',labelKo:'메이플 운영',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M12 2C7 2 3 6 3 11c0 4 3 8 9 11 6-3 9-7 9-11 0-5-4-9-9-9Z"/><path d="M9 11l3-4 3 4"/></svg>`,perm:'maple',sec:'Operations'},
   {key:'recruitment',label:'Recruitment',labelKo:'채용',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,perm:'recruitment',sec:'HR'},
   {key:'onboarding',label:'Onboarding',labelKo:'온보딩',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`,perm:'onboarding',sec:'HR'},
   {key:'staffdir',label:'Staff Directory',labelKo:'직원 목록',e:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,perm:'team',sec:'HR'},
@@ -654,7 +667,8 @@ let S = {
   attendance:[], myTodayAtt:null, attView:'weekly', trustScores:[], editTrust:null, showAddTrust:false,
   pcGameFilter:'All', shiftDrag:null,
   onboarding:[], onboardStaff:null, manualOpen:{0:true},
-  shifts:[], schedWeek:null, schedDrag:null, schedView:'shift', schedPC:null, schedDay:null
+  shifts:[], schedWeek:null, schedDrag:null, schedView:'shift', schedPC:null, schedDay:null,
+  sbEdit:false, sbOrder:null
 };
 
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -927,6 +941,11 @@ async function loadAll(){
       S.shifts=sh||[];
     }
   }catch(e){console.warn('Shifts load failed:',e);}
+  // Load custom sidebar order
+  try{
+    const {data}=await sb.from('app_settings').select('value').eq('key','sidebar_order').maybeSingle();
+    if(data && data.value) S.sbOrder=data.value;
+  }catch(e){ /* default order */ }
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────
@@ -935,9 +954,125 @@ function initTheme(){const s=localStorage.getItem('l7t')||'dark';document.docume
 function setLang(l){S.lang=l;document.getElementById('btn-en').classList.toggle('on',l==='en');document.getElementById('btn-ko').classList.toggle('on',l==='ko');render();}
 function goPage(p){S.page=p;S.editMember=null;S.showAddMember=false;S.showAddRecruit=false;S.showAddTask=false;S.showAddClient=false;S.showAddReport=false;S.showAddCode=false;render();}
 
+function getSidebarLayout(){
+  if(S.sbOrder && Array.isArray(S.sbOrder) && S.sbOrder.length){
+    const seen=new Set();
+    const result=[];
+    for(const entry of S.sbOrder){
+      if(entry&&entry.type==='item'){
+        if(NAV_ITEMS.find(n=>n.key===entry.key)){ result.push(entry); seen.add(entry.key); }
+      } else if(entry&&entry.type==='section'){
+        result.push(entry);
+      }
+    }
+    // Append any NAV_ITEMS that the saved order doesn't include (e.g. newly added)
+    for(const n of NAV_ITEMS){
+      if(!seen.has(n.key)) result.push({type:'item',key:n.key});
+    }
+    return result;
+  }
+  // Default layout from NAV_ITEMS
+  const result=[];
+  let lastSec=undefined;
+  for(const n of NAV_ITEMS){
+    if(n.sec!==lastSec){
+      if(n.sec) result.push({type:'section',name:n.sec});
+      lastSec=n.sec;
+    }
+    result.push({type:'item',key:n.key});
+  }
+  return result;
+}
+function sbToggleEdit(){ S.sbEdit=!S.sbEdit; render(); }
+let sbDragIdx=null;
+function sbDragStart(ev,idx){
+  sbDragIdx=idx;
+  try{ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',String(idx));}catch(e){}
+}
+function sbDragOver(ev){
+  ev.preventDefault();
+  try{ev.dataTransfer.dropEffect='move';}catch(e){}
+  ev.currentTarget.classList.add('sb-dragover');
+}
+function sbDragLeave(ev){ ev.currentTarget.classList.remove('sb-dragover'); }
+function sbDrop(ev,targetIdx){
+  ev.preventDefault();
+  document.querySelectorAll('.sb-dragover').forEach(el=>el.classList.remove('sb-dragover'));
+  if(sbDragIdx===null||sbDragIdx===targetIdx){ sbDragIdx=null; return; }
+  const layout=getSidebarLayout();
+  if(sbDragIdx>=layout.length||targetIdx>layout.length){ sbDragIdx=null; return; }
+  // If dragging a section, move section header + all its child items together
+  let moveCount=1;
+  if(layout[sbDragIdx].type==='section'){
+    for(let i=sbDragIdx+1;i<layout.length&&layout[i].type!=='section';i++) moveCount++;
+  }
+  // Don't allow dropping a section inside itself
+  if(targetIdx>sbDragIdx && targetIdx<sbDragIdx+moveCount){ sbDragIdx=null; return; }
+  const movedItems=layout.slice(sbDragIdx,sbDragIdx+moveCount);
+  let insertIdx=targetIdx;
+  // Special: dropping an ITEM onto a section header → insert as first child of that section
+  if(targetIdx<layout.length && layout[targetIdx]&&layout[targetIdx].type==='section' && movedItems[0].type==='item'){
+    insertIdx=targetIdx+1;
+  }
+  if(insertIdx>sbDragIdx) insertIdx-=moveCount;
+  layout.splice(sbDragIdx,moveCount);
+  layout.splice(insertIdx,0,...movedItems);
+  S.sbOrder=layout;
+  sbDragIdx=null;
+  saveSidebarOrder();
+  render();
+}
+function sbDropEnd(ev){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('sb-dragover');
+  if(sbDragIdx===null) return;
+  const layout=getSidebarLayout();
+  let moveCount=1;
+  if(layout[sbDragIdx].type==='section'){
+    for(let i=sbDragIdx+1;i<layout.length&&layout[i].type!=='section';i++) moveCount++;
+  }
+  const movedItems=layout.slice(sbDragIdx,sbDragIdx+moveCount);
+  layout.splice(sbDragIdx,moveCount);
+  layout.push(...movedItems);
+  S.sbOrder=layout;
+  sbDragIdx=null;
+  saveSidebarOrder();
+  render();
+}
+async function saveSidebarOrder(){
+  try{
+    await sb.from('app_settings').upsert({key:'sidebar_order',value:S.sbOrder,updated_at:new Date().toISOString(),updated_by:S.user&&S.user.id},{onConflict:'key'});
+  }catch(e){ console.warn('[sb save]',e); }
+}
 function render(){
-  const visNav=NAV_ITEMS.filter(n=>can(n.perm));
-  (()=>{let h='',ls=undefined;visNav.forEach(n=>{if(n.sec&&n.sec!==ls){h+='<div class="sb-sec">'+n.sec+'</div>';ls=n.sec;}else if(!n.sec&&ls){h+='<div style="height:2px"></div>';ls=null;}h+='<div class="ni'+(S.page===n.key?' on':'')+'" onclick="goPage(\''+n.key+'\')">'+'<span class="ni-e">'+n.e+'</span>'+'<span>'+(S.lang==='ko'&&n.labelKo?n.labelKo:n.label)+'</span></div>';});document.getElementById('nav-links').innerHTML=h;})();
+  const SEC_META={Operations:{ko:'운영',icon:'⚙️'},'Game Ops':{ko:'게임',icon:'🎮'},HR:{ko:'인사',icon:'👥'},Management:{ko:'관리',icon:'🛠️'}};
+  const layout=getSidebarLayout();
+  const canEditSb=can('users');
+  (()=>{
+    let h='';
+    layout.forEach((entry,idx)=>{
+      if(entry.type==='section'){
+        const meta=SEC_META[entry.name]||{ko:entry.name,icon:''};
+        const lbl=(S.lang==='ko'?meta.ko:entry.name);
+        const ed=S.sbEdit?(' draggable="true" ondragstart="sbDragStart(event,'+idx+')" ondragover="sbDragOver(event)" ondragleave="sbDragLeave(event)" ondrop="sbDrop(event,'+idx+')"'):'';
+        h+='<div class="sb-sec'+(S.sbEdit?' sb-edit':'')+'"'+ed+'>'+(S.sbEdit?'<span class="ni-grip">⋮⋮</span>':'')+(meta.icon?meta.icon+' ':'')+lbl+'</div>';
+      } else if(entry.type==='item'){
+        const n=NAV_ITEMS.find(x=>x.key===entry.key);
+        if(!n||!can(n.perm)) return;
+        const lbl=(S.lang==='ko'&&n.labelKo)?n.labelKo:n.label;
+        const ed=S.sbEdit?(' draggable="true" ondragstart="sbDragStart(event,'+idx+')" ondragover="sbDragOver(event)" ondragleave="sbDragLeave(event)" ondrop="sbDrop(event,'+idx+')"'):'';
+        const click=S.sbEdit?'':' onclick="goPage(\''+n.key+'\')"';
+        h+='<div class="ni'+(S.page===n.key&&!S.sbEdit?' on':'')+(S.sbEdit?' sb-edit':'')+'"'+ed+click+'>'+(S.sbEdit?'<span class="ni-grip">⋮⋮</span>':'')+'<span class="ni-e">'+n.e+'</span>'+'<span>'+lbl+'</span></div>';
+      }
+    });
+    if(S.sbEdit){
+      h+='<div class="sb-drop-end" ondragover="sbDragOver(event)" ondragleave="sbDragLeave(event)" ondrop="sbDropEnd(event)">'+(S.lang==='ko'?'↓ 끝에 놓기':'↓ Drop at end')+'</div>';
+    }
+    if(canEditSb){
+      h+='<div class="sb-customize'+(S.sbEdit?' active':'')+'" onclick="sbToggleEdit()">'+(S.sbEdit?'✓ '+(S.lang==='ko'?'완료':'Done'):'✏️ '+(S.lang==='ko'?'사이드바 편집':'Customize'))+'</div>';
+    }
+    document.getElementById('nav-links').innerHTML=h;
+  })();
   const pages={dashboard:pgDash,pcs:pgPCs,checklist:pgChecklist,roster:pgRoster,schedule:pgSchedule,game:pgGame,maple:pgMaple,tasks:pgTasks,clients:pgClients,staffdir:pgStaffDir,recruitment:pgRecruitment,reports:pgReports,myreports:pgReports,invite:pgInvite,users:pgUsers,activity:pgActivity,player:pgPlayer,hr_attend:pgHrAttend,trust:pgTrustBoard,onboarding:pgOnboarding};
   try{document.getElementById('main').innerHTML='<div class="page-content">'+((pages[S.page]||pgDash)())+'</div>';}catch(e){document.getElementById('main').innerHTML='<div class="page-content"><p style="color:var(--re);padding:20px">Error: '+e.message+'</p></div>';console.error('[render]',e);}
 }
