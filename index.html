@@ -517,7 +517,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.7 · Build: 20260527-140</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.8 · Build: 20260527-141</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2808,6 +2808,7 @@ function pgChecklist(){
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
         <input id="cl-webhook-mention" type="text" value="${esc(S.webhookMention||'')}" placeholder="@everyone, &lt;@USER_ID&gt;, &lt;@&amp;ROLE_ID&gt;" style="flex:1;padding:9px 12px;background:var(--bg);border:1px solid var(--br);border-radius:6px;color:var(--tx);font-size:12px;font-family:monospace">
         <button class="btn-sm" onclick="saveWebhookMention()">${ko?'저장':'Save'}</button>
+        <button class="btn-sm" onclick="testWebhookMention()" ${!S.webhookMention||!hasUrl?'disabled style="opacity:.4;cursor:not-allowed"':''} title="${ko?'디스코드로 테스트 핑 전송':'Send test ping to Discord'}">${ko?'테스트':'Test'}</button>
       </div>
       <div style="font-size:11px;color:var(--tx3);line-height:1.7">
         ${ko?'알림과 요약 메시지 위에 표시됩니다. 비워두면 멘션 없이 전송됩니다.':'Will appear above reminder & summary messages. Leave empty to send without mention.'}<br>
@@ -2946,17 +2947,48 @@ async function saveChecklistWebhook(){
   }catch(e){ toast('Save failed: '+e.message,'err'); }
 }
 
+// Auto-correct Discord mention format. Accepts:
+//   @everyone, @here          → kept as-is
+//   <@123>, <@&456>, <@!123>  → kept as-is
+//   @123 (user ID)            → <@123>
+//   @&123 (role ID)           → <@&123>
+//   bare digit string         → <@digits>
+function normalizeMention(raw){
+  if(!raw) return '';
+  return raw.split(/\s+/).filter(Boolean).map(t=>{
+    if(t==='@everyone'||t==='@here') return t;
+    if(/^<@[!&]?\d+>$/.test(t)) return t;
+    if(/^@&\d+$/.test(t)) return '<@&'+t.slice(2)+'>';
+    if(/^@\d+$/.test(t)) return '<@'+t.slice(1)+'>';
+    if(/^\d{17,20}$/.test(t)) return '<@'+t+'>';
+    return t;
+  }).join(' ');
+}
+
 async function saveWebhookMention(){
   const el=document.getElementById('cl-webhook-mention');
   if(!el) return;
-  const mention=(el.value||'').trim();
+  const raw=(el.value||'').trim();
   const ko=S.lang==='ko';
+  const mention=normalizeMention(raw);
+  const wasFixed=(mention!==raw && raw!=='');
   S.webhookMention=mention;
   try{
     await sb.from('app_settings').upsert({key:'webhook_mention',value:{mention},updated_at:new Date().toISOString(),updated_by:S.user&&S.user.id},{onConflict:'key'});
-    toast(ko?'태그 저장됨':'Mention saved','ok');
+    toast(wasFixed?(ko?'태그 자동 수정 후 저장됨':'Mention auto-corrected & saved'):(ko?'태그 저장됨':'Mention saved'),'ok');
     render();
   }catch(e){ toast('Save failed: '+e.message,'err'); }
+}
+
+async function testWebhookMention(){
+  const ko=S.lang==='ko';
+  if(!S.webhookChecklist){ toast(ko?'먼저 웹훅 URL을 설정하세요':'Set webhook URL first','err'); return; }
+  if(!S.webhookMention){ toast(ko?'먼저 태그를 저장하세요':'Save mention first','err'); return; }
+  try{
+    const r=await fetch(S.webhookChecklist,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:S.webhookMention+' — '+(ko?'태그 테스트 ✓ (이 메시지는 무시하세요)':'Mention test ✓ (you can ignore this)'),allowed_mentions:{parse:['everyone','roles','users']}})});
+    if(r.ok||r.status===204){ toast(ko?'✅ 테스트 핑 전송됨':'✅ Test ping sent','ok'); }
+    else { const txt=await r.text().catch(()=>''); toast('Discord '+r.status+' '+txt.slice(0,80),'err'); }
+  }catch(e){ toast('Send failed: '+e.message,'err'); }
 }
 
 async function sendChecklistReminder(){
