@@ -463,7 +463,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v13.4 · Build: 20260527-114</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v13.5 · Build: 20260527-115</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2705,8 +2705,11 @@ function pgHrAttend(){
   const canReset=can('attend_reset');
   const rows=filtered.length?filtered.map(a=>{
     const hrs=calcHours(a.clock_in,a.clock_out,a.break_start,a.break_end);
+    const mem=S.team.find(m=>m.id===a.user_id);
+    const avUrl=(a.user_id===S.profile.id?S.profile.avatar_url:mem?.avatar_url)||null;
+    const avInit=mem?.initials||null;
     return `<tr>
-      ${showAll?`<td><div style="display:flex;align-items:center;gap:8px">${av(a.user_name,null,24)}<span style="font-weight:500">${esc(a.user_name||'?')}</span></div></td>`:''}
+      ${showAll?`<td><div style="display:flex;align-items:center;gap:8px">${av(a.user_name,avInit,24,avUrl)}<span style="font-weight:500">${esc(a.user_name||'?')}</span></div></td>`:''}
       <td style="font-variant-numeric:tabular-nums">${a.date||'—'}</td>
       <td style="color:var(--ok);font-weight:600">${fmtTime(a.clock_in)}</td>
       <td style="color:var(--ye)">${a.break_start?fmtTime(a.break_start):'—'}</td>
