@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v17.2 · Build: 20260527-126</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v17.3 · Build: 20260527-127</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2140,7 +2140,11 @@ function pgSchedule(){
       }
       grid+='</div>';
       if(canEditCli){
-        grid+='<div style="margin-top:14px;display:flex;align-items:center;gap:8px"><button class="btn-add btn-sm" onclick="addClientQuick()">+ '+(ko?'클라이언트 추가':'Add client')+'</button><span style="font-size:11px;color:var(--tx3)">'+(ko?'더 상세한 정보는 클라이언트 페이지에서 편집':'edit details on the Clients page')+'</span></div>';
+        grid+='<div style="margin-top:14px;display:flex;align-items:center;gap:8px"><button class="btn-add btn-sm" onclick="addClientQuick()">+ '+(ko?'클라이언트 추가':'Add client')+'</button><span style="font-size:11px;color:var(--tx3)">'+(ko?'또는 클라이언트 페이지에서 더 자세히 편집':'or edit in more detail on the Clients page')+'</span></div>';
+        if(S.showAddClientSched){
+          const cliFields=[['nc-n',ko?'클라이언트 이름':'Client name'],['nc-game',ko?'게임':'Game'],['nc-ch',ko?'캐릭터':'Character'],['nc-sv',ko?'서버':'Server'],['nc-sc',ko?'서비스':'Service'],['nc-st',ko?'시작일':'Start date'],['nc-en',ko?'종료일':'End date'],['nc-pr',ko?'가격 (Rp)':'Price (Rp)'],['nc-em',ko?'플레이어 이메일 (선택)':'Player email (optional)']];
+          grid+='<div class="fbox" style="margin-top:14px"><div class="fbox-t">'+(ko?'새 고객 추가':'New client')+'</div><div class="fgrid">'+cliFields.map(([id,l])=>'<div class="fg2"><label>'+l+'</label><input id="'+id+'" placeholder="'+l+'"></div>').join('')+'</div><div style="display:flex;gap:8px"><button class="btn-add" onclick="addClient()">'+(ko?'저장':'Save')+'</button><button onclick="S.showAddClientSched=false;render()">'+(ko?'취소':'Cancel')+'</button></div></div>';
+        }
       }
     }
   }
@@ -2767,15 +2771,10 @@ async function delClient(id){
     if(!confirm('Delete?'))return;const {error}=await sb.from('clients').delete().eq('id',id);if(error){toast(error.message,'err');console.error(error);return;}S.clients=S.clients.filter(c=>c.id!==id);toast('Deleted');render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[delClient]',e);}
 }
-async function addClientQuick(){
+function addClientQuick(){
   if(!can('clients')){toast(S.lang==='ko'?'권한이 없습니다':'No permission','err');return;}
-  const name=prompt(S.lang==='ko'?'클라이언트 이름:':'Client name:');
-  if(!name||!name.trim())return;
-  try{
-    const {data,error}=await sb.from('clients').insert({name:name.trim(),status:'Active'}).select().single();
-    if(error){toast(error.message,'err');console.error(error);return;}
-    if(data){S.clients.push(data);toast(S.lang==='ko'?'클라이언트 추가됨 ✓':'Client added ✓');render();}
-  }catch(e){toast('Error: '+e.message,'err');console.error('[addClientQuick]',e);}
+  S.showAddClientSched=!S.showAddClientSched;
+  render();
 }
 async function addClient(){
   try{
@@ -2783,7 +2782,7 @@ async function addClient(){
   const gameEl=document.getElementById('nc-game');const {data,error}=await sb.from('clients').insert({name:n,game:gameEl?gameEl.value:null,char_info:document.getElementById('nc-ch').value,server:document.getElementById('nc-sv').value,service:document.getElementById('nc-sc').value,status:'Active',start_date:document.getElementById('nc-st').value,end_date:document.getElementById('nc-en').value,price:document.getElementById('nc-pr').value,player_email:document.getElementById('nc-em').value}).select().single();
   if(error){toast(error.message,'err');console.error(error);return;}
   if(data){S.clients.push(data);toast('Client saved ✓');}
-  S.showAddClient=false;render();
+  S.showAddClient=false;S.showAddClientSched=false;render();
   }catch(e){toast('Error: '+e.message,'err');console.error('[addClient]',e);}
 }
 async function addMember(){
