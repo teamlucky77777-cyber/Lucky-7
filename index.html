@@ -463,7 +463,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v13.2 · Build: 20260527-112</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v13.4 · Build: 20260527-114</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -542,10 +542,10 @@ setInterval(checkForUpdate, 120000); // also check every 2 minutes while open
 // ── PERMISSIONS ──────────────────────────────────────────────────────────
 const PERMS = {
   pending:    [],
-  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule','hr_attend','hr_attend_all','trust','trust_edit','onboarding','onboarding_edit','manual'],
-  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule','hr_attend','hr_attend_all','trust','trust_edit','onboarding','onboarding_edit','manual'],
-  settlement: ['dash','pcs_view','roster','game','maple','manual'],
-  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit','game','maple','hr_attend','hr_attend_all','trust','trust_edit','onboarding','onboarding_edit','manual'],
+  ceo:        ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule','hr_attend','hr_attend_all','attend_reset','trust','trust_edit','onboarding','onboarding_edit','manual'],
+  manager:    ['dash','pcs_view','pcs_edit','tasks_view','tasks_edit','tasks_done','tasks_all','activity','clients','recruitment','recruit_settings','team','reports','users','invite','checklist','checklist_team','roster','roster_edit','game','game_edit','maple','maple_edit','schedule','hr_attend','hr_attend_all','attend_reset','trust','trust_edit','onboarding','onboarding_edit','manual'],
+  settlement: ['dash','pcs_view','roster','game','maple','manual','hr_attend'],
+  hr:         ['dash','pcs_view','tasks_view','tasks_edit','tasks_done','tasks_all','recruitment','recruit_settings','team','reports_submit','checklist','roster','roster_edit','game','maple','hr_attend','hr_attend_all','attend_reset','trust','trust_edit','onboarding','onboarding_edit','manual'],
   staff:      ['dash','pcs_view','tasks_view','tasks_done','reports_submit','checklist','player','roster','game','maple','hr_attend','manual']
 };
 const can = (f) => {
@@ -2682,7 +2682,7 @@ function pgHrAttend(){
       <div style="font-size:13px;font-weight:600">${ko?'오늘':'Today'} · ${new Date().toLocaleDateString(ko?'ko-KR':'en-US',{weekday:'short',month:'short',day:'numeric'})}</div>
       <div style="display:flex;align-items:center;gap:8px">
         ${todayHrs?`<span class="bdg bs">${ko?'총':'Total'} ${todayHrs}</span>`:isIn?`<span class="bdg bi">${ko?'근무 중':'On shift'}</span>`:att?`<span class="bdg bx">${ko?'완료':'Done'}</span>`:`<span class="bdg bx">${ko?'미출근':'Not clocked in'}</span>`}
-        ${att?`<button class="btn-sm" onclick="attResetToday()" title="${ko?'오늘 기록 초기화':'Clear today and start over'}">↺ ${ko?'초기화':'Reset'}</button>`:''}
+        ${att&&can('attend_reset')?`<button class="btn-sm" onclick="attResetToday()" title="${ko?'오늘 기록 초기화':'Clear today and start over'}">↺ ${ko?'초기화':'Reset'}</button>`:''}
       </div>
     </div>
     <div style="display:flex;gap:20px;flex-wrap:wrap">
@@ -2691,7 +2691,7 @@ function pgHrAttend(){
       <div><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${ko?'휴게 종료':'Break End'}</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:${att?.break_end?'var(--ye)':'var(--tx3)'}">${fmtTime(att?.break_end)}</div></div>
       <div><div style="font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">${ko?'퇴근':'Clock Out'}</div><div style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:${att?.clock_out?'var(--re)':'var(--tx3)'}">${fmtTime(att?.clock_out)}</div></div>
     </div>
-    ${isOut?`<div style="margin-top:12px;font-size:11px;color:var(--tx3)">${ko?'오늘 근무 완료. 다시 출근하려면 초기화를 누르세요.':"Shift complete for today. Press Reset to clock in again."}</div>`:''}
+    ${isOut?`<div style="margin-top:12px;font-size:11px;color:var(--tx3)">${can('attend_reset')?(ko?'오늘 근무 완료. 다시 출근하려면 초기화를 누르세요.':"Shift complete for today. Press Reset to clock in again."):(ko?'오늘 근무 완료.':'Shift complete for today.')}</div>`:''}
   </div>`;
 
   // Record table
@@ -2702,6 +2702,7 @@ function pgHrAttend(){
   if(attView==='weekly'){const wk=new Date(now);wk.setDate(wk.getDate()-(wk.getDay()+6)%7);const wkIso=isoDate(wk);filtered=S.attendance.filter(a=>a.date>=wkIso&&a.date<=todayIso);}
   else if(attView==='monthly'){const mon=todayIso.slice(0,7);filtered=S.attendance.filter(a=>a.date&&a.date.startsWith(mon));}
   const showAll=can('hr_attend_all');
+  const canReset=can('attend_reset');
   const rows=filtered.length?filtered.map(a=>{
     const hrs=calcHours(a.clock_in,a.clock_out,a.break_start,a.break_end);
     return `<tr>
@@ -2712,8 +2713,9 @@ function pgHrAttend(){
       <td style="color:var(--ye)">${a.break_end?fmtTime(a.break_end):'—'}</td>
       <td style="color:var(--re);font-weight:600">${fmtTime(a.clock_out)}</td>
       <td>${hrs?`<span class="bdg bs">${hrs}</span>`:'<span class="bdg bi">On shift</span>'}</td>
+      ${canReset?`<td><button class="btn-del btn-sm" onclick="attResetRow(${a.id})" title="${ko?'이 기록 초기화':'Reset this record'}">↺</button></td>`:''}
     </tr>`;
-  }).join(''):`<tr><td colspan="7" class="empty" style="border:none">${ko?'기록 없음':'No records'}</td></tr>`;
+  }).join(''):`<tr><td colspan="${(showAll?1:0)+(canReset?1:0)+6}" class="empty" style="border:none">${ko?'기록 없음':'No records'}</td></tr>`;
 
   const tabRow=`<div class="att-tab-row">
     ${['weekly','monthly','yearly'].map(v=>`<button class="att-tab ${attView===v?'on':''}" onclick="S.attView='${v}';render()">${ko?{weekly:'이번 주',monthly:'이번 달',yearly:'올해'}[v]:{weekly:'This Week',monthly:'This Month',yearly:'All Time'}[v]}</button>`).join('')}
@@ -2725,7 +2727,7 @@ function pgHrAttend(){
     +clockBtns
     +todayCard
     +tabRow
-    +`<div class="tw"><table><thead><tr>${showAll?`<th>${ko?'이름':'Name'}</th>`:''}<th>${ko?'날짜':'Date'}</th><th>${ko?'출근':'In'}</th><th>${ko?'휴게 시작':'Break'}</th><th>${ko?'휴게 종료':'Resume'}</th><th>${ko?'퇴근':'Out'}</th><th>${ko?'총 시간':'Hours'}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    +`<div class="tw"><table><thead><tr>${showAll?`<th>${ko?'이름':'Name'}</th>`:''}<th>${ko?'날짜':'Date'}</th><th>${ko?'출근':'In'}</th><th>${ko?'휴게 시작':'Break'}</th><th>${ko?'휴게 종료':'Resume'}</th><th>${ko?'퇴근':'Out'}</th><th>${ko?'총 시간':'Hours'}</th>${canReset?`<th></th>`:''}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 async function attClockIn(){
@@ -2741,6 +2743,7 @@ async function attClockIn(){
   }catch(e){toast('Error: '+e.message,'err');}
 }
 async function attResetToday(){
+  if(!can('attend_reset')){toast(S.lang==='ko'?'권한이 없습니다 (CEO/매니저만 가능)':'Only CEO / Manager can reset','err');return;}
   if(!S.myTodayAtt)return;
   if(!confirm(S.lang==='ko'?'오늘 출퇴근 기록을 초기화하시겠습니까? 다시 출근할 수 있습니다.':"Reset today's attendance? This clears your clock-in/out for today so you can start over.")) return;
   const id=S.myTodayAtt.id;
@@ -2750,6 +2753,20 @@ async function attResetToday(){
     S.attendance=S.attendance.filter(a=>a.id!==id);
     S.myTodayAtt=null;
     toast(S.lang==='ko'?'초기화 완료 — 다시 출근하세요':'Reset done — you can clock in again');
+    render();
+  }catch(e){toast('Error: '+e.message,'err');}
+}
+async function attResetRow(id){
+  if(!can('attend_reset')){toast(S.lang==='ko'?'권한이 없습니다 (CEO/매니저만 가능)':'Only CEO / Manager can reset','err');return;}
+  const rec=S.attendance.find(a=>a.id===id);
+  if(!confirm(S.lang==='ko'?`${rec?.user_name||''}님의 ${rec?.date||''} 기록을 초기화하시겠습니까?`:`Reset ${rec?.user_name||'this'} record for ${rec?.date||'this day'}?`)) return;
+  try{
+    const {error}=await sb.from('attendance').delete().eq('id',id);
+    if(error){toast(error.message,'err');console.error(error);return;}
+    S.attendance=S.attendance.filter(a=>a.id!==id);
+    if(S.myTodayAtt&&S.myTodayAtt.id===id)S.myTodayAtt=null;
+    toast(S.lang==='ko'?'기록 초기화 완료':'Record reset');
+    logActivity('Attendance reset',rec?(rec.user_name+' · '+rec.date):id);
     render();
   }catch(e){toast('Error: '+e.message,'err');}
 }
