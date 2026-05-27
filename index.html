@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.4 · Build: 20260527-123</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v17.0 · Build: 20260527-124</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2046,19 +2046,23 @@ function pgSchedule(){
   const gameClass=g=>g==='Lineage'?'g-lin':g==='Maple'?'g-map':'';
   const weekShifts=S.shifts.filter(s=>s.week_start===wk);
 
-  const cellChips=(dow,shift,pcId)=>{
+  const cellChips=(dow,shift,pcId,clientId)=>{
     let list=weekShifts.filter(s=>s.dow===dow&&s.shift_type===shift);
     if(pcId!==undefined&&pcId!==null) list=list.filter(s=>s.pc_id===pcId);
+    if(clientId!==undefined&&clientId!==null) list=list.filter(s=>s.client_id===clientId);
     if(!list.length)return '<span class="sh-empty">'+(ko?'비어있음':'empty')+'</span>';
     return list.map(s=>{
       const gc=gameClass(s.game);
       const nm=esc(s.operator_name||'?');
-      // In Shift view, show a small PC tag if this assignment is tied to a PC
-      const pcTag=(S.schedView==='shift'&&s.pc_num)?'<span style="font-size:9px;font-weight:600;background:var(--bg-a);color:var(--tx3);padding:1px 5px;border-radius:3px;margin-right:2px">PC-'+esc(s.pc_num)+'</span>':'';
-      if(!canEdit)return '<span class="sh-chip '+gc+'">'+pcTag+nm+'</span>';
+      // Context-aware tags: show PC tag in Shift+Client views (when row isn't the PC), Client tag in Shift+PC views
+      const showPCTag=(S.schedView==='shift'||S.schedView==='client')&&s.pc_num;
+      const showCliTag=(S.schedView==='shift'||S.schedView==='pc')&&s.client_name;
+      const pcTag=showPCTag?'<span style="font-size:9px;font-weight:600;background:var(--bg-a);color:var(--tx3);padding:1px 5px;border-radius:3px;margin-right:2px">PC-'+esc(s.pc_num)+'</span>':'';
+      const cliTag=showCliTag?'<span style="font-size:9px;font-weight:600;background:var(--ac-bg);color:var(--ac);padding:1px 5px;border-radius:3px;margin-right:2px" title="'+(ko?'클라이언트':'Client')+'">'+esc(s.client_name)+'</span>':'';
+      if(!canEdit)return '<span class="sh-chip '+gc+'">'+pcTag+cliTag+nm+'</span>';
       return '<span class="sh-chip '+gc+'">'
         +'<span class="sh-gdot '+gc+'" title="'+(ko?'게임 변경':'cycle game')+'" onclick="schedCycleGame(event,'+s.id+')"></span>'
-        +pcTag+nm
+        +pcTag+cliTag+nm
         +'<span class="sh-x" title="'+(ko?'제거':'remove')+'" onclick="schedRemove(event,'+s.id+')">✕</span>'
         +'</span>';
     }).join('');
@@ -2069,11 +2073,13 @@ function pgSchedule(){
     +'<button onclick="S.schedView=\'shift\';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='shift'?'var(--tx)':'transparent')+';color:'+(S.schedView==='shift'?'var(--bg)':'var(--tx2)')+'">'+(ko?'시프트':'Shift')+'</button>'
     +'<span style="width:1px;background:var(--br)"></span>'
     +'<button onclick="schedSetView(\'pc\')" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='pc'?'var(--tx)':'transparent')+';color:'+(S.schedView==='pc'?'var(--bg)':'var(--tx2)')+'">PC</button>'
+    +'<span style="width:1px;background:var(--br)"></span>'
+    +'<button onclick="schedSetView(\'client\')" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='client'?'var(--tx)':'transparent')+';color:'+(S.schedView==='client'?'var(--bg)':'var(--tx2)')+'">'+(ko?'클라이언트':'Client')+'</button>'
     +'</div>';
 
-  // Day selector (only in PC view) — all PCs visible at once for the selected day
+  // Day selector (shown in PC and Client views)
   let daySelector='';
-  if(S.schedView==='pc'){
+  if(S.schedView==='pc' || S.schedView==='client'){
     if(S.schedDay===null||S.schedDay===undefined) S.schedDay=todayDow();
     const realToday=todayDow();
     const realWk=isoDate(mondayOf(new Date()));
@@ -2093,11 +2099,12 @@ function pgSchedule(){
     +ops.map(m=>'<span class="sh-chip drag" draggable="true" ondragstart="schedDragStart(event,\''+m.id+'\')"><span class="sh-grip">⠿</span>'+esc(m.name)+'</span>').join('')
     +'<span style="font-size:11px;color:var(--tx3);margin-left:auto">'+(ko?'슬롯으로 드래그 →':'drag onto a slot →')+'</span></div>'):'';
 
-  const cell=(dow,shift,pcId)=>{
+  const cell=(dow,shift,pcId,clientId)=>{
     const cls='sh-cell '+(shift==='Day'?'day':'night')+(canEdit?' editable':'');
     const pcArg=(pcId!==undefined&&pcId!==null)?pcId:'null';
-    const handlers=canEdit?(' ondragover="schedDragOver(event)" ondragleave="event.currentTarget.classList.remove(\'dragover\')" ondrop="schedDrop(event,'+dow+',\''+shift+'\','+pcArg+')"'):'';
-    return '<div class="'+cls+'"'+handlers+'>'+cellChips(dow,shift,pcId)+'</div>';
+    const cliArg=(clientId!==undefined&&clientId!==null)?clientId:'null';
+    const handlers=canEdit?(' ondragover="schedDragOver(event)" ondragleave="event.currentTarget.classList.remove(\'dragover\')" ondrop="schedDrop(event,'+dow+',\''+shift+'\','+pcArg+','+cliArg+')"'):'';
+    return '<div class="'+cls+'"'+handlers+'>'+cellChips(dow,shift,pcId,clientId)+'</div>';
   };
 
   let grid='';
@@ -2109,7 +2116,26 @@ function pgSchedule(){
       grid+='<div class="sh-rowlbl">'+days[i]+'<small>'+dates[i]+'</small></div>'+cell(i,'Day')+cell(i,'Night');
     }
     grid+='</div>';
-  } else {
+  } else if(S.schedView==='client') {
+    // Client view: rows = each client, cols = Day/Night, for the selected day
+    const cliList=(S.clients||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    if(!cliList.length){
+      grid='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:13px;background:var(--bg-c);border:1px dashed var(--br);border-radius:10px">'+(ko?'클라이언트가 없습니다. 클라이언트 페이지에서 추가하세요.':'No clients yet — add some on the Clients page first.')+'</div>';
+    } else {
+      const dy=S.schedDay;
+      const pcs=(S.pcs||[]).slice().sort((a,b)=>(a.num||0)-(b.num||0));
+      grid='<div class="sh-grid">';
+      grid+='<span></span><div class="sh-head day">☀ '+(ko?'주간':'Day')+'</div><div class="sh-head night">☾ '+(ko?'야간':'Night')+'</div>';
+      for(const c of cliList){
+        const boundPC=c.pc_id?pcs.find(p=>p.id===c.pc_id):null;
+        const bindLbl=boundPC?'PC-'+String(boundPC.num).padStart(2,'0'):(ko?'PC 미연결':'No PC');
+        const bindSel=canEdit?'<select onchange="schedBindClientPC('+c.id+',this.value)" style="margin-top:3px;margin-left:14px;font-size:10px;padding:2px 5px;border:1px solid var(--br);border-radius:4px;background:var(--bg-i);color:'+(boundPC?'var(--ac)':'var(--tx3)')+';font-family:inherit;max-width:88px"><option value=""'+(!boundPC?' selected':'')+'>'+(ko?'PC 미연결':'No PC')+'</option>'+pcs.map(p=>'<option value="'+p.id+'"'+(p.id===c.pc_id?' selected':'')+'>PC-'+String(p.num).padStart(2,'0')+'</option>').join('')+'</select>':'<small style="display:block;color:'+(boundPC?'var(--ac)':'var(--tx3)')+';font-size:10px;font-weight:500;margin-top:3px;margin-left:14px">→ '+bindLbl+'</small>';
+        grid+='<div class="sh-rowlbl" style="flex-direction:column;align-items:stretch;justify-content:center"><div style="display:flex;align-items:center;gap:5px"><span style="color:var(--tx3)">●</span><span>'+esc(c.name||'?')+'</span></div>'+bindSel+'</div>'+cell(dy,'Day',undefined,c.id)+cell(dy,'Night',undefined,c.id);
+      }
+      grid+='</div>';
+    }
+  }
+  if(S.schedView==='pc'){
     // PC view: rows = each PC, cols = Day/Night, for the selected day
     const pcs=(S.pcs||[]).slice().sort((a,b)=>(a.num||0)-(b.num||0));
     if(!pcs.length){
@@ -2149,10 +2175,22 @@ function pgSchedule(){
 }
 function schedSetView(v){
   S.schedView=v;
-  if(v==='pc' && (S.schedDay===null||S.schedDay===undefined)){
+  if((v==='pc'||v==='client') && (S.schedDay===null||S.schedDay===undefined)){
     S.schedDay=todayDow();
   }
   render();
+}
+async function schedBindClientPC(clientId,pcVal){
+  if(!can('schedule_edit'))return;
+  const pcId=pcVal?parseInt(pcVal):null;
+  try{
+    const {data,error}=await sb.from('clients').update({pc_id:pcId}).eq('id',clientId).select().single();
+    if(error){toast(error.message,'err');console.error(error);return;}
+    S.clients=S.clients.map(c=>c.id===clientId?data:c);
+    const pc=pcId?(S.pcs||[]).find(p=>p.id===pcId):null;
+    toast(pc?(S.lang==='ko'?'PC-'+String(pc.num).padStart(2,'0')+' 연결됨':'Linked to PC-'+String(pc.num).padStart(2,'0')):(S.lang==='ko'?'PC 연결 해제':'PC binding cleared'));
+    render();
+  }catch(e){toast('Error: '+e.message,'err');console.error(e);}
 }
 function currentShift(){const h=new Date().getHours(); return (h>=6&&h<18)?'Day':'Night';}
 function todayDow(){return (new Date().getDay()+6)%7;}
@@ -2175,7 +2213,7 @@ function schedDragOver(ev){
   try{ev.dataTransfer.dropEffect='copy';}catch(e){}
   ev.currentTarget.classList.add('dragover');
 }
-async function schedDrop(ev,dow,shift,pcId){
+async function schedDrop(ev,dow,shift,pcId,clientId){
   ev.preventDefault();
   ev.currentTarget.classList.remove('dragover');
   if(!can('schedule_edit'))return;
@@ -2184,30 +2222,49 @@ async function schedDrop(ev,dow,shift,pcId){
   const m=(S.team||[]).find(x=>x.id===id);
   const name=m?m.name:'?';
   const wk=S.schedWeek;
-  // PC context comes from the drop target (the cell knows its PC)
+  // View context — PC view sets pcId, Client view sets clientId
   const inPCView=pcId!==null&&pcId!==undefined;
-  const pc=inPCView?(S.pcs||[]).find(p=>p.id===pcId):null;
-  const pcNum=pc?String(pc.num).padStart(2,'0'):null;
+  const inClientView=clientId!==null&&clientId!==undefined;
+  const client=inClientView?(S.clients||[]).find(c=>c.id===clientId):null;
+  const clientName=client?client.name:null;
+  // Resolve effective PC: explicit (PC view) wins; otherwise inherit from client binding
+  let effPcId=inPCView?pcId:(inClientView&&client&&client.pc_id?client.pc_id:null);
+  let effPcNum=null;
+  if(effPcId){
+    const p=(S.pcs||[]).find(x=>x.id===effPcId);
+    if(p) effPcNum=String(p.num).padStart(2,'0');
+  }
   // Existing assignment for this operator at this (week,dow,shift)?
   const existing=S.shifts.find(s=>s.week_start===wk&&s.dow===dow&&s.shift_type===shift&&s.operator_id===id);
+  const oldPcId=existing?existing.pc_id:null;
   try{
     let saved;
     if(existing){
+      // Dup checks per view
       if(inPCView && existing.pc_id===pcId){ toast(S.lang==='ko'?'이미 이 PC에 배정됨':'Already on this PC','err'); return; }
-      if(!inPCView && !existing.pc_id){ toast(S.lang==='ko'?'이미 이 슬롯에 배정됨':'Already in this slot','err'); return; }
-      const upd=inPCView?{pc_id:pcId,pc_num:pcNum}:{pc_id:null,pc_num:null};
+      if(inClientView && existing.client_id===clientId){ toast(S.lang==='ko'?'이미 이 클라이언트에 배정됨':'Already on this client','err'); return; }
+      if(!inPCView && !inClientView && !existing.pc_id && !existing.client_id){ toast(S.lang==='ko'?'이미 이 슬롯에 배정됨':'Already in this slot','err'); return; }
+      // Build update — fill in whichever dimension we're editing
+      const upd={};
+      if(inPCView){ upd.pc_id=effPcId; upd.pc_num=effPcNum; }
+      else if(inClientView){
+        upd.client_id=clientId; upd.client_name=clientName;
+        // also cascade pc from client binding (or clear if newly-empty)
+        upd.pc_id=effPcId; upd.pc_num=effPcNum;
+      } else { upd.pc_id=null; upd.pc_num=null; upd.client_id=null; upd.client_name=null; }
       const {data,error}=await sb.from('shifts').update(upd).eq('id',existing.id).select().single();
       if(error){toast(error.message,'err');console.error(error);return;}
       saved=data;
       S.shifts=S.shifts.map(s=>s.id===saved.id?saved:s);
     } else {
-      const rec={week_start:wk,dow,shift_type:shift,operator_id:id,operator_name:name,game:null,pc_id:inPCView?pcId:null,pc_num:pcNum};
+      const rec={week_start:wk,dow,shift_type:shift,operator_id:id,operator_name:name,game:null,pc_id:effPcId,pc_num:effPcNum,client_id:inClientView?clientId:null,client_name:clientName};
       const {data,error}=await sb.from('shifts').insert(rec).select().single();
       if(error){toast(error.message,'err');console.error(error);return;}
       saved=data;
       S.shifts.unshift(saved);
     }
-    // Sync to PC Status whenever a PC view drop happens (any day/shift)
+    // Sync to PC Status whenever the saved row has a pc_id
+    let syncedMsg='';
     if(saved.pc_id){
       try{
         const member=S.team.find(x=>x.id===saved.operator_id);
@@ -2215,11 +2272,20 @@ async function schedDrop(ev,dow,shift,pcId){
         await sb.from('korea_pcs').update(upd).eq('id',saved.pc_id);
         const pcLive=S.pcs.find(p=>p.id===saved.pc_id);
         if(pcLive){pcLive.assigned_to=upd.assigned_to;pcLive.assigned_name=upd.assigned_name;}
-        toast(S.lang==='ko'?'✓ 배정 · PC 현황 반영됨':'✓ Assigned · synced to PC Status');
-      }catch(e){console.warn('PC sync failed:',e);toast(S.lang==='ko'?'배정됨 (PC 동기화 실패)':'Saved (PC sync failed)','err');}
-    } else {
-      toast(S.lang==='ko'?'배정됨':'Assigned');
+        syncedMsg=' · PC-'+(pcLive?String(pcLive.num).padStart(2,'0'):saved.pc_num)+' '+(S.lang==='ko'?'반영':'synced');
+      }catch(e){console.warn('PC sync failed:',e);}
     }
+    // Unassign old PC if we just moved the operator to a different PC
+    if(oldPcId && oldPcId!==saved.pc_id){
+      const oldPc=S.pcs.find(p=>p.id===oldPcId);
+      if(oldPc && oldPc.assigned_to===saved.operator_id){
+        try{
+          await sb.from('korea_pcs').update({assigned_to:null,assigned_name:null}).eq('id',oldPcId);
+          oldPc.assigned_to=null; oldPc.assigned_name=null;
+        }catch(e){console.warn('Old PC unsync failed:',e);}
+      }
+    }
+    toast((S.lang==='ko'?'✓ 배정됨':'✓ Assigned')+syncedMsg);
     render();
   }catch(e){toast('Error: '+e.message,'err');console.error(e);}
 }
