@@ -517,7 +517,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.5 · Build: 20260527-138</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.7 · Build: 20260527-140</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -673,7 +673,7 @@ let S = {
   onboarding:[], onboardStaff:null, manualOpen:{0:true},
   shifts:[], schedWeek:null, schedDrag:null, schedView:'shift', schedPC:null, schedDay:null,
   sbEdit:false, sbOrder:null,
-  webhookChecklist:'',
+  webhookChecklist:'', webhookMention:'',
   checklistItems:null, checklistEdit:false, checklistDraft:null,
   checklistTab:'checklist'
 };
@@ -957,6 +957,11 @@ async function loadAll(){
   try{
     const {data}=await sb.from('app_settings').select('value').eq('key','webhook_daily_checklist').maybeSingle();
     if(data && data.value && data.value.url) S.webhookChecklist=data.value.url;
+  }catch(e){ /* not configured */ }
+  // Load Discord mention/tag string
+  try{
+    const {data}=await sb.from('app_settings').select('value').eq('key','webhook_mention').maybeSingle();
+    if(data && data.value && typeof data.value.mention==='string') S.webhookMention=data.value.mention;
   }catch(e){ /* not configured */ }
   // Load custom daily checklist items
   try{
@@ -2799,6 +2804,23 @@ function pgChecklist(){
       <div style="font-size:11px;color:var(--tx3);line-height:1.5">${ko?'디스코드 채널 설정 → 연동 → 웹훅 → 새 웹훅 → URL 복사':'Discord channel settings → Integrations → Webhooks → New Webhook → Copy URL'}</div>
     </div>
     <div class="panel" style="margin-bottom:16px;border-color:var(--br)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div style="font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.14em;text-transform:uppercase">${ko?'태그 / 멘션':'Tag / Mention'}</div>${S.webhookMention?`<div style="font-size:11px;color:var(--ok);display:flex;align-items:center;gap:5px"><div style="width:6px;height:6px;border-radius:50%;background:var(--ok)"></div>${ko?'활성':'Active'}</div>`:`<div style="font-size:11px;color:var(--tx3)">${ko?'없음':'None'}</div>`}</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <input id="cl-webhook-mention" type="text" value="${esc(S.webhookMention||'')}" placeholder="@everyone, &lt;@USER_ID&gt;, &lt;@&amp;ROLE_ID&gt;" style="flex:1;padding:9px 12px;background:var(--bg);border:1px solid var(--br);border-radius:6px;color:var(--tx);font-size:12px;font-family:monospace">
+        <button class="btn-sm" onclick="saveWebhookMention()">${ko?'저장':'Save'}</button>
+      </div>
+      <div style="font-size:11px;color:var(--tx3);line-height:1.7">
+        ${ko?'알림과 요약 메시지 위에 표시됩니다. 비워두면 멘션 없이 전송됩니다.':'Will appear above reminder & summary messages. Leave empty to send without mention.'}<br>
+        <b style="color:var(--tx2)">${ko?'예시':'Examples'}:</b>
+        <code style="background:var(--bg-c);padding:1px 5px;border-radius:3px;font-size:10px">@everyone</code>
+        <code style="background:var(--bg-c);padding:1px 5px;border-radius:3px;font-size:10px">@here</code>
+        <code style="background:var(--bg-c);padding:1px 5px;border-radius:3px;font-size:10px">&lt;@123456789&gt;</code>
+        <code style="background:var(--bg-c);padding:1px 5px;border-radius:3px;font-size:10px">&lt;@&amp;987654321&gt;</code>
+        <br>
+        <span style="font-size:10px;color:var(--tx3)">${ko?'ID 찾기 → 디스코드 설정 → 고급 → 개발자 모드 ON → 사용자/역할 우클릭 → ID 복사':'Get IDs → Discord Settings → Advanced → enable Developer Mode → right-click user/role → Copy ID'}</span>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:16px;border-color:var(--br)">
       <div style="font-size:11px;font-weight:600;color:var(--tx3);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px">${ko?'알림 보내기':'Send Notifications'}</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;background:var(--bg-c);border:1px solid var(--br);border-radius:8px">
@@ -2924,28 +2946,46 @@ async function saveChecklistWebhook(){
   }catch(e){ toast('Save failed: '+e.message,'err'); }
 }
 
+async function saveWebhookMention(){
+  const el=document.getElementById('cl-webhook-mention');
+  if(!el) return;
+  const mention=(el.value||'').trim();
+  const ko=S.lang==='ko';
+  S.webhookMention=mention;
+  try{
+    await sb.from('app_settings').upsert({key:'webhook_mention',value:{mention},updated_at:new Date().toISOString(),updated_by:S.user&&S.user.id},{onConflict:'key'});
+    toast(ko?'태그 저장됨':'Mention saved','ok');
+    render();
+  }catch(e){ toast('Save failed: '+e.message,'err'); }
+}
+
 async function sendChecklistReminder(){
   const ko=S.lang==='ko';
   if(!S.webhookChecklist){ toast(ko?'먼저 웹훅 URL을 설정하세요':'Set webhook URL first','err'); return; }
   const today=new Date();
-  const dateStr=today.toLocaleDateString(ko?'ko-KR':'en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const secs=[['before',ko?'🌅 시프트 전':'🌅 Before Shift'],['during',ko?'⚡ 시프트 중':'⚡ During Shift'],['end',ko?'🌙 시프트 종료':'🌙 End of Shift']];
+  const dateEN=today.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const dateKO=today.toLocaleDateString('ko-KR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const secs=[
+    ['before','🌅 Before Shift · 시프트 전'],
+    ['during','⚡ During Shift · 시프트 중'],
+    ['end','🌙 End of Shift · 시프트 종료']
+  ];
   const fields=secs.map(([sec,label])=>{
     const items=getChecklist().filter(c=>c.sec===sec);
     let v=items.map((c,i)=>(i+1)+'. '+c.label).join('\n');
     if(v.length>1024) v=v.slice(0,1020)+'…';
-    return {name:label,value:v,inline:false};
+    return {name:label,value:v||'_No items_',inline:false};
   });
   const embed={
-    title:ko?'🔔 오늘의 일일 체크리스트':'🔔 Today\'s Daily Checklist',
-    description:ko?'**'+dateStr+'**\n\n팀 여러분, 오늘의 시프트 체크리스트입니다. 시프트 중에 차근차근 완료해주세요. 화이팅! 💪':'**'+dateStr+'**\n\nGood morning team! Here is today\'s shift checklist. Please work through each item during your shift. Let\'s have a productive day! 💪',
+    title:'🔔 Today\'s Daily Task · 오늘의 일일 업무',
+    description:'**'+dateEN+'**\n**'+dateKO+'**\n\nGood morning team! Here is today\'s shift checklist. Let\'s have a productive day! 💪\n팀 여러분, 오늘의 시프트 체크리스트입니다. 화이팅! 💪',
     color:0xF5A623,
     fields:fields,
     footer:{text:'Buju Market · Lucky 7'},
     timestamp:today.toISOString()
   };
   try{
-    const r=await fetch(S.webhookChecklist,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({embeds:[embed]})});
+    const r=await fetch(S.webhookChecklist,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:S.webhookMention||'',embeds:[embed],allowed_mentions:{parse:['everyone','roles','users']}})});
     if(r.ok||r.status===204){ toast(ko?'✅ 디스코드로 알림 전송됨':'✅ Reminder sent to Discord','ok'); }
     else { const txt=await r.text().catch(()=>''); toast('Discord '+r.status+' '+txt.slice(0,80),'err'); }
   }catch(e){ toast('Send failed: '+e.message,'err'); }
@@ -2956,7 +2996,8 @@ async function sendChecklistSummary(){
   if(!S.webhookChecklist){ toast(ko?'먼저 웹훅 URL을 설정하세요':'Set webhook URL first','err'); return; }
   const today=new Date();
   const todayISO=today.toISOString().slice(0,10);
-  const dateStr=today.toLocaleDateString(ko?'ko-KR':'en-US',{weekday:'short',month:'short',day:'numeric'});
+  const dateEN=today.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const dateKO=today.toLocaleDateString('ko-KR',{weekday:'short',month:'short',day:'numeric'});
   const total=getChecklist().length;
   // Fetch fresh team data
   let team=[];
@@ -2967,7 +3008,7 @@ async function sendChecklistSummary(){
   let teamSummary;
   let totalDone=0;
   if(!team.length){
-    teamSummary=ko?'_오늘 체크리스트를 시작한 팀원이 없습니다._':'_No team members have started a checklist today._';
+    teamSummary='_No team members have started a checklist today._\n_오늘 체크리스트를 시작한 팀원이 없습니다._';
   } else {
     teamSummary=team.map(cl=>{
       const items=cl.items||{};
@@ -2988,25 +3029,25 @@ async function sendChecklistSummary(){
   });
   const topSkipped=Object.entries(skipCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).filter(([,n])=>n>0);
   const skippedField=topSkipped.length&&team.length>0?{
-    name:ko?'🚨 가장 많이 빠진 항목':'🚨 Most Skipped Items',
+    name:'🚨 Most Skipped Items · 가장 많이 빠진 항목',
     value:topSkipped.map(([id,n])=>{
       const c=getChecklist().find(x=>x.id===id);
       return '• '+(c?c.label:id)+' _('+n+'×)_';
     }).join('\n').slice(0,1024),
     inline:false
   }:null;
-  const fields=[{name:ko?'👥 개인별 진행':'👥 Individual Progress',value:teamSummary,inline:false}];
+  const fields=[{name:'👥 Individual Progress · 개인별 진행',value:teamSummary,inline:false}];
   if(skippedField) fields.push(skippedField);
   const embed={
-    title:ko?'📊 일일 체크리스트 요약':'📊 Daily Checklist Summary',
-    description:ko?'**'+dateStr+'**\n\n팀 완료율: **'+pct+'%** ('+totalDone+'/'+totalPossible+' 항목)':'**'+dateStr+'**\n\nTeam completion: **'+pct+'%** ('+totalDone+'/'+totalPossible+' items)',
+    title:'📊 Daily Task Summary · 일일 업무 요약',
+    description:'**'+dateEN+'** · **'+dateKO+'**\n\nTeam completion: **'+pct+'%** ('+totalDone+'/'+totalPossible+' items)\n팀 완료율: **'+pct+'%** ('+totalDone+'/'+totalPossible+' 항목)',
     color:pct>=80?0x1D9E75:pct>=50?0xF5A623:0xE63946,
     fields:fields,
     footer:{text:'Buju Market · Lucky 7'},
     timestamp:today.toISOString()
   };
   try{
-    const r=await fetch(S.webhookChecklist,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({embeds:[embed]})});
+    const r=await fetch(S.webhookChecklist,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:S.webhookMention||'',embeds:[embed],allowed_mentions:{parse:['everyone','roles','users']}})});
     if(r.ok||r.status===204){ toast(ko?'✅ 디스코드로 요약 전송됨':'✅ Summary sent to Discord','ok'); }
     else { const txt=await r.text().catch(()=>''); toast('Discord '+r.status+' '+txt.slice(0,80),'err'); }
   }catch(e){ toast('Send failed: '+e.message,'err'); }
