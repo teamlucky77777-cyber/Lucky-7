@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v17.4 · Build: 20260527-128</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v17.6 · Build: 20260527-130</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2046,7 +2046,7 @@ function pgSchedule(){
   const wkLabel=fmt(mon)+' – '+fmt(sun);
   const days=ko?['월','화','수','목','금','토','일']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const dates=Array.from({length:7},(_,i)=>{const dd=new Date(mon);dd.setDate(dd.getDate()+i);return dd.getDate();});
-  const ops=(S.team||[]).filter(m=>m.role==='staff').sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const ops=(S.team||[]).filter(m=>m.role&&m.role!=='pending').sort((a,b)=>(a.name||'').localeCompare(b.name||''));
   const gameClass=g=>g==='Lineage'?'g-lin':g==='Maple'?'g-map':'';
   const weekShifts=S.shifts.filter(s=>s.week_start===wk);
 
@@ -2099,7 +2099,7 @@ function pgSchedule(){
       +'</div>';
   }
 
-  const pool=canEdit?('<div class="sh-pool"><span class="sh-pool-lbl">'+(ko?'플레이어':'Players')+'</span>'
+  const pool=canEdit?('<div class="sh-pool"><span class="sh-pool-lbl">'+(ko?'⭐ 팀':'⭐ Team')+'</span>'
     +ops.map(m=>'<span class="sh-chip drag" draggable="true" ondragstart="schedDragStart(event,\''+m.id+'\')"><span class="sh-grip">⠿</span>'+esc(m.name)+'</span>').join('')
     +'<span style="font-size:11px;color:var(--tx3);margin-left:auto">'+(ko?'슬롯으로 드래그 →':'drag onto a slot →')+'</span></div>'):'';
 
@@ -2174,7 +2174,7 @@ function pgSchedule(){
 
   return '<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'운영':'Operations')+'</div>'
     +'<div class="ph" style="margin-bottom:6px">'+(ko?'스케쥴':'Schedule')+'</div>'
-    +'<div class="psub" style="margin-bottom:18px">'+(ko?'주간 근무 배정 — 플레이어를 주간/야간 슬롯으로 드래그':'Weekly shift planning — drag players into Day / Night slots')+'</div>'
+    +'<div class="psub" style="margin-bottom:18px">'+(ko?'주간 근무 배정 — 팀원을 주간/야간 슬롯으로 드래그':'Weekly shift planning — drag your team into Day / Night slots')+'</div>'
     +'<div class="sh-wk"><button class="btn-sm" onclick="schedWeekNav(-1)">‹ '+(ko?'이전':'Prev')+'</button>'
       +'<span class="sh-wk-label">'+wkLabel+'</span>'
       +'<button class="btn-sm" onclick="schedWeekNav(1)">'+(ko?'다음':'Next')+' ›</button>'
