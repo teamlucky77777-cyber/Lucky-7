@@ -517,7 +517,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.0 · Build: 20260527-133</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.1 · Build: 20260527-134</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -1045,7 +1045,13 @@ async function saveSidebarOrder(){
   }catch(e){ console.warn('[sb save]',e); }
 }
 function render(){
-  const SEC_META={Operations:{ko:'운영',icon:'⚙️'},'Game Ops':{ko:'게임',icon:'🎮'},HR:{ko:'인사',icon:'👥'},Management:{ko:'관리',icon:'🛠️'}};
+  const svgIcon=(p)=>'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:6px">'+p+'</svg>';
+  const SEC_META={
+    Operations:{ko:'운영',icon:svgIcon('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>')},
+    'Game Ops':{ko:'게임',icon:svgIcon('<rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="17" y1="7" x2="17.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/><line x1="17" y1="17" x2="17.01" y2="17"/><line x1="12" y1="12" x2="12.01" y2="12"/>')},
+    HR:{ko:'인사',icon:svgIcon('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>')},
+    Management:{ko:'관리',icon:svgIcon('<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>')}
+  };
   const layout=getSidebarLayout();
   const canEditSb=can('users');
   (()=>{
@@ -1055,7 +1061,7 @@ function render(){
         const meta=SEC_META[entry.name]||{ko:entry.name,icon:''};
         const lbl=(S.lang==='ko'?meta.ko:entry.name);
         const ed=S.sbEdit?(' draggable="true" ondragstart="sbDragStart(event,'+idx+')" ondragover="sbDragOver(event)" ondragleave="sbDragLeave(event)" ondrop="sbDrop(event,'+idx+')"'):'';
-        h+='<div class="sb-sec'+(S.sbEdit?' sb-edit':'')+'"'+ed+'>'+(S.sbEdit?'<span class="ni-grip">⋮⋮</span>':'')+(meta.icon?meta.icon+' ':'')+lbl+'</div>';
+        h+='<div class="sb-sec'+(S.sbEdit?' sb-edit':'')+'"'+ed+'>'+(S.sbEdit?'<span class="ni-grip">⋮⋮</span>':'')+(meta.icon||'')+lbl+'</div>';
       } else if(entry.type==='item'){
         const n=NAV_ITEMS.find(x=>x.key===entry.key);
         if(!n||!can(n.perm)) return;
@@ -2233,7 +2239,8 @@ function pgSchedule(){
       +'</div>';
   }
 
-  const pool=canEdit?('<div class="sh-pool"><span class="sh-pool-lbl">'+(ko?'⭐ 팀':'⭐ Team')+'</span>'
+  const teamStar='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><polygon points="12 2 15 9 22 9 17 14 19 22 12 17 5 22 7 14 2 9 9 9"/></svg>';
+  const pool=canEdit?('<div class="sh-pool"><span class="sh-pool-lbl">'+teamStar+(ko?'팀':'Team')+'</span>'
     +ops.map(m=>'<span class="sh-chip drag" draggable="true" ondragstart="schedDragStart(event,\''+m.id+'\')"><span class="sh-grip">⠿</span>'+esc(m.name)+'</span>').join('')
     +'<span style="font-size:11px;color:var(--tx3);margin-left:auto">'+(ko?'슬롯으로 드래그 →':'drag onto a slot →')+'</span></div>'):'';
 
