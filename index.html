@@ -425,7 +425,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .sh-chip .sh-gdot.g-map{background:#FFA500}
 .sh-chip .sh-x{cursor:pointer;opacity:.5;font-size:13px;line-height:1}
 .sh-chip .sh-x:hover{opacity:1;color:var(--re)}
-.sh-grid{display:grid;grid-template-columns:64px 1fr 1fr;gap:8px}
+.sh-grid{display:grid;grid-template-columns:104px 1fr 1fr;gap:8px}
 .sh-head{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;font-size:12px;font-weight:600}
 .sh-head.day{background:var(--ye-bg);color:var(--ye)}
 .sh-head.night{background:var(--ac-bg);color:var(--ac)}
@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.3 · Build: 20260527-122</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v16.4 · Build: 20260527-123</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2122,8 +2122,9 @@ function pgSchedule(){
       for(const p of pcs){
         const lbl='PC-'+String(p.num).padStart(2,'0');
         const sc=p.status==='Online'?'var(--ok)':p.status==='Warning'?'var(--warn)':'var(--tx4)';
-        const rmBtn=canEditPC?' <span onclick="removePC('+p.id+','+p.num+')" style="cursor:pointer;color:var(--tx4);font-size:11px;opacity:.45;margin-left:4px" title="'+(ko?'PC 제거':'Remove PC')+'">✕</span>':'';
-        grid+='<div class="sh-rowlbl"><span style="color:'+sc+';margin-right:5px">●</span>'+lbl+rmBtn+(p.assigned_name?'<small style="display:block;color:var(--ac);font-size:9px;margin-top:2px">'+esc(p.assigned_name)+'</small>':'')+'</div>'+cell(dy,'Day',p.id)+cell(dy,'Night',p.id);
+        const rmBtn=canEditPC?'<span onclick="removePC('+p.id+','+p.num+')" style="cursor:pointer;color:var(--tx4);font-size:11px;opacity:.4;margin-left:auto;padding:0 2px" title="'+(ko?'PC 제거':'Remove PC')+'">✕</span>':'';
+        const sub=p.assigned_name?'<small style="display:block;color:var(--ac);font-size:10px;font-weight:500;margin-top:3px;margin-left:14px;line-height:1.2">'+esc(p.assigned_name)+'</small>':'';
+        grid+='<div class="sh-rowlbl" style="flex-direction:column;align-items:stretch;justify-content:center"><div style="display:flex;align-items:center;gap:5px"><span style="color:'+sc+'">●</span><span>'+lbl+'</span>'+rmBtn+'</div>'+sub+'</div>'+cell(dy,'Day',p.id)+cell(dy,'Night',p.id);
       }
       grid+='</div>';
       if(canEditPC){
