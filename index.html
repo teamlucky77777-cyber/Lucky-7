@@ -504,7 +504,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v15.0 · Build: 20260527-117</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v15.1 · Build: 20260527-118</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2031,15 +2031,10 @@ function schSave(){saveSched();render();}
 function schSwitch(v){schedState().cur=v;render();}
 function schAddRemote(){const d=schedState();const n=prompt(S.lang==='ko'?'새 Remote T ID:':'New Remote T ID:');if(!n)return;const v=n.trim();if(!v||d.remotes.indexOf(v)>=0)return;d.remotes.push(v);d.pcs[v]=[];d.cur=v;schSave();}
 function schDelRemote(){const d=schedState();if(d.remotes.length<=1){toast(S.lang==='ko'?'최소 1개는 있어야 합니다':'Need at least one','err');return;}if(!confirm((S.lang==='ko'?'이 Remote T 삭제: ':'Delete Remote T: ')+d.cur+'?'))return;const i=d.remotes.indexOf(d.cur);delete d.pcs[d.cur];d.remotes.splice(i,1);d.cur=d.remotes[0];schSave();}
-function mondayOf(d){
-  const x=new Date(d); const off=(x.getDay()+6)%7;
-  x.setDate(x.getDate()-off);
-  return isoDate(x);
-}
 function pgSchedule(){
   const ko=S.lang==='ko';
   const canEdit=can('schedule_edit');
-  if(!S.schedWeek) S.schedWeek=mondayOf(new Date());
+  if(!S.schedWeek) S.schedWeek=isoDate(mondayOf(new Date()));
   const wk=S.schedWeek;
   const mon=new Date(wk+'T00:00:00');
   const sun=new Date(mon); sun.setDate(sun.getDate()+6);
@@ -2095,8 +2090,8 @@ function pgSchedule(){
     +(canEdit?'<div style="font-size:11px;color:var(--tx3);margin-top:6px">'+(ko?'팁: 칩의 점을 클릭해 게임 변경 (라인G→메이플→없음), ✕로 제거':'Tip: click a chip\'s dot to cycle its game (Lineage → Maple → none), ✕ to remove')+'</div>':'');
 }
 function schedWeekNav(delta){
-  if(!S.schedWeek)S.schedWeek=mondayOf(new Date());
-  if(delta===0){S.schedWeek=mondayOf(new Date());render();return;}
+  if(!S.schedWeek)S.schedWeek=isoDate(mondayOf(new Date()));
+  if(delta===0){S.schedWeek=isoDate(mondayOf(new Date()));render();return;}
   const m=new Date(S.schedWeek+'T00:00:00');
   m.setDate(m.getDate()+delta*7);
   S.schedWeek=isoDate(m);render();
