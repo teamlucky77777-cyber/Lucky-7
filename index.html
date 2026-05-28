@@ -438,13 +438,28 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .sh-chip .sh-gdot.g-map{background:#FFA500}
 .sh-chip .sh-x{cursor:pointer;opacity:.5;font-size:13px;line-height:1}
 .sh-chip .sh-x:hover{opacity:1;color:var(--re)}
+.sh-card{display:flex;border:1px solid var(--br2);border-radius:7px;overflow:hidden;background:var(--bg-c)}
+.sh-card-stripe{width:5px;background:var(--tx4);flex-shrink:0}
+.sh-card.g-lin .sh-card-stripe{background:#6495ED}
+.sh-card.g-map .sh-card-stripe{background:#FFA500}
+.sh-card-stripe.clk{cursor:pointer;transition:filter .12s}
+.sh-card-stripe.clk:hover{filter:brightness(1.35)}
+.sh-card-body{flex:1;padding:6px 9px;min-width:0}
+.sh-card-top{display:flex;align-items:center;gap:6px}
+.sh-card-avatar{width:20px;height:20px;border-radius:50%;background:var(--bg-a);color:var(--tx2);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.sh-card-name{flex:1;font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sh-card-badge{font-size:9px;font-weight:600;background:var(--bg-a);color:var(--tx3);padding:1px 5px;border-radius:3px;flex-shrink:0}
+.sh-card-badge.cli{background:var(--ac-bg);color:var(--ac)}
+.sh-card-x{cursor:pointer;opacity:.45;font-size:12px;line-height:1;flex-shrink:0}
+.sh-card-x:hover{opacity:1;color:var(--re)}
+.sh-card-sub{font-size:10px;color:var(--tx3);margin-top:2px;padding-left:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sh-grid{display:grid;grid-template-columns:104px 1fr 1fr;gap:8px}
 .sh-head{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;font-size:12px;font-weight:600}
 .sh-head.day{background:var(--ye-bg);color:var(--ye)}
 .sh-head.night{background:var(--ac-bg);color:var(--ac)}
 .sh-rowlbl{display:flex;align-items:center;font-size:12px;font-weight:600;color:var(--tx2)}
 .sh-rowlbl small{font-weight:400;color:var(--tx3);font-size:10px;margin-left:4px}
-.sh-cell{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:46px;padding:8px 10px;border-radius:8px;border:1px solid var(--br);transition:border-color .12s,background .12s}
+.sh-cell{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:6px;min-height:46px;padding:7px;border-radius:8px;border:1px solid var(--br);transition:border-color .12s,background .12s}
 .sh-cell.day{background:rgba(212,165,90,.05)}
 .sh-cell.night{background:rgba(120,140,200,.06)}
 .sh-cell.dragover{border-color:var(--ac);border-style:dashed;background:var(--ac-bg)}
@@ -517,7 +532,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.8 · Build: 20260527-141</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.9 · Build: 20260527-142</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2220,17 +2235,31 @@ function pgSchedule(){
     return list.map(s=>{
       const gc=gameClass(s.game);
       const nm=esc(s.operator_name||'?');
-      // Context-aware tags: show PC tag in Shift+Client views (when row isn't the PC), Client tag in Shift+PC views
-      const showPCTag=(S.schedView==='shift'||S.schedView==='client')&&s.pc_num;
-      const showCliTag=(S.schedView==='shift'||S.schedView==='pc')&&s.client_name;
-      const pcTag=showPCTag?'<span style="font-size:9px;font-weight:600;background:var(--bg-a);color:var(--tx3);padding:1px 5px;border-radius:3px;margin-right:2px">PC-'+esc(s.pc_num)+'</span>':'';
-      const cliTag=showCliTag?'<span style="font-size:9px;font-weight:600;background:var(--ac-bg);color:var(--ac);padding:1px 5px;border-radius:3px;margin-right:2px" title="'+(ko?'클라이언트':'Client')+'">'+esc(s.client_name)+'</span>':'';
-      if(!canEdit)return '<span class="sh-chip '+gc+'">'+pcTag+cliTag+nm+'</span>';
-      return '<span class="sh-chip '+gc+'">'
-        +'<span class="sh-gdot '+gc+'" title="'+(ko?'게임 변경':'cycle game')+'" onclick="schedCycleGame(event,'+s.id+')"></span>'
-        +pcTag+cliTag+nm
-        +'<span class="sh-x" title="'+(ko?'제거':'remove')+'" onclick="schedRemove(event,'+s.id+')">✕</span>'
-        +'</span>';
+      const initial=esc((s.operator_name||'?').trim().charAt(0).toUpperCase()||'?');
+      // Context-aware: PC badge in Shift+Client views, client line in Shift+PC views
+      const showPC=(S.schedView==='shift'||S.schedView==='client')&&s.pc_num;
+      const showCli=(S.schedView==='shift'||S.schedView==='pc')&&s.client_name;
+      const gameLabel=s.game?esc(s.game):(ko?'게임 없음':'No game');
+      const subParts=[];
+      if(showCli) subParts.push(esc(s.client_name));
+      subParts.push(gameLabel);
+      const sub=subParts.join(' · ');
+      const badge=showPC?'<span class="sh-card-badge">PC-'+esc(s.pc_num)+'</span>':'';
+      if(!canEdit){
+        return '<div class="sh-card '+gc+'"><div class="sh-card-stripe"></div><div class="sh-card-body"><div class="sh-card-top"><span class="sh-card-avatar">'+initial+'</span><span class="sh-card-name">'+nm+'</span>'+badge+'</div><div class="sh-card-sub">'+sub+'</div></div></div>';
+      }
+      return '<div class="sh-card '+gc+'">'
+        +'<div class="sh-card-stripe clk" title="'+(ko?'게임 변경':'cycle game')+'" onclick="schedCycleGame(event,'+s.id+')"></div>'
+        +'<div class="sh-card-body">'
+          +'<div class="sh-card-top">'
+            +'<span class="sh-card-avatar">'+initial+'</span>'
+            +'<span class="sh-card-name">'+nm+'</span>'
+            +badge
+            +'<span class="sh-card-x" title="'+(ko?'제거':'remove')+'" onclick="schedRemove(event,'+s.id+')">✕</span>'
+          +'</div>'
+          +'<div class="sh-card-sub">'+sub+'</div>'
+        +'</div>'
+      +'</div>';
     }).join('');
   };
 
@@ -2347,7 +2376,7 @@ function pgSchedule(){
     +pool
     +grid
     +'<div class="sh-legend"><div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:#6495ED"></span>Lineage</div><div class="pc-legend-item"><span class="dot" style="background:#FFA500"></span>Maple</div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span>'+(ko?'게임 미지정':'No game')+'</div></div></div>'
-    +(canEdit?'<div style="font-size:11px;color:var(--tx3);margin-top:6px">'+(ko?'팁: 칩의 점을 클릭해 게임 변경 (라인G→메이플→없음), ✕로 제거':'Tip: click a chip\'s dot to cycle its game (Lineage → Maple → none), ✕ to remove')+'</div>':'');
+    +(canEdit?'<div style="font-size:11px;color:var(--tx3);margin-top:6px">'+(ko?'팁: 카드의 색상 막대를 클릭해 게임 변경 (라인G→메이플→없음), ✕로 제거':'Tip: click a card\'s colored stripe to cycle its game (Lineage → Maple → none), ✕ to remove')+'</div>':'');
 }
 function schedSetView(v){
   S.schedView=v;
