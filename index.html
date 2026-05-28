@@ -438,34 +438,41 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
 .sh-chip .sh-gdot.g-map{background:#FFA500}
 .sh-chip .sh-x{cursor:pointer;opacity:.5;font-size:13px;line-height:1}
 .sh-chip .sh-x:hover{opacity:1;color:var(--re)}
-.sh-card{display:flex;border:1px solid var(--br2);border-radius:7px;overflow:hidden;background:var(--bg-c)}
-.sh-card-stripe{width:5px;background:var(--tx4);flex-shrink:0}
-.sh-card.g-lin .sh-card-stripe{background:#6495ED}
-.sh-card.g-map .sh-card-stripe{background:#FFA500}
-.sh-card-stripe.clk{cursor:pointer;transition:filter .12s}
-.sh-card-stripe.clk:hover{filter:brightness(1.35)}
-.sh-card-body{flex:1;padding:6px 9px;min-width:0}
-.sh-card-top{display:flex;align-items:center;gap:6px}
-.sh-card-avatar{width:20px;height:20px;border-radius:50%;background:var(--bg-a);color:var(--tx2);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
-.sh-card-name{flex:1;font-size:12px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.sh-card-badge{font-size:9px;font-weight:600;background:var(--bg-a);color:var(--tx3);padding:1px 5px;border-radius:3px;flex-shrink:0}
-.sh-card-badge.cli{background:var(--ac-bg);color:var(--ac)}
-.sh-card-x{cursor:pointer;opacity:.45;font-size:12px;line-height:1;flex-shrink:0}
-.sh-card-x:hover{opacity:1;color:var(--re)}
-.sh-card-sub{font-size:10px;color:var(--tx3);margin-top:2px;padding-left:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sh-grid{display:grid;grid-template-columns:104px 1fr 1fr;gap:8px}
 .sh-head{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;font-size:12px;font-weight:600}
 .sh-head.day{background:var(--ye-bg);color:var(--ye)}
 .sh-head.night{background:var(--ac-bg);color:var(--ac)}
 .sh-rowlbl{display:flex;align-items:center;font-size:12px;font-weight:600;color:var(--tx2)}
 .sh-rowlbl small{font-weight:400;color:var(--tx3);font-size:10px;margin-left:4px}
-.sh-cell{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:6px;min-height:46px;padding:7px;border-radius:8px;border:1px solid var(--br);transition:border-color .12s,background .12s}
+.sh-cell{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:46px;padding:8px 10px;border-radius:8px;border:1px solid var(--br);transition:border-color .12s,background .12s}
 .sh-cell.day{background:rgba(212,165,90,.05)}
 .sh-cell.night{background:rgba(120,140,200,.06)}
 .sh-cell.dragover{border-color:var(--ac);border-style:dashed;background:var(--ac-bg)}
 .sh-cell.editable{cursor:copy}
 .sh-empty{font-size:11px;color:var(--tx4);font-style:italic}
 .sh-legend{display:flex;align-items:center;gap:16px;margin:14px 0 4px;flex-wrap:wrap}
+/* Swimlane (team) view */
+.sl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:6px}
+.sl-board{display:grid;grid-template-columns:120px repeat(7, minmax(86px, 1fr));gap:4px 6px;min-width:740px;font-size:11px;align-items:center}
+.sl-corner{height:1px}
+.sl-daycol{text-align:center;padding:6px 4px;font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+.sl-daycol.today{background:var(--ac-bg);color:var(--ac);border-radius:5px}
+.sl-opbox{display:flex;align-items:center;gap:7px;padding:6px 8px;min-width:0}
+.sl-avatar{width:24px;height:24px;border-radius:50%;background:var(--bg-a);color:var(--tx2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.sl-opname{font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-cell{display:flex;flex-direction:column;gap:3px;min-height:54px}
+.sl-half{flex:1;display:flex;align-items:center;padding:0 6px;border-radius:5px;font-size:10px;border:1px dashed transparent;background:var(--bg-c);color:var(--tx4);transition:all .12s;min-height:24px}
+.sl-half.empty{cursor:pointer}
+.sl-half.empty:hover{border-color:var(--ac);color:var(--ac);background:var(--ac-bg)}
+.sl-half.dragover{border-color:var(--ac) !important;border-style:dashed !important;background:var(--ac-bg) !important;color:var(--ac) !important}
+.sl-half.filled{color:#fff;font-weight:500;border-style:solid;justify-content:space-between;cursor:grab;padding:0 4px 0 8px}
+.sl-half.filled:active{cursor:grabbing}
+.sl-half.filled.g-lin{background:#6495ED}
+.sl-half.filled.g-map{background:#FFA500}
+.sl-half.filled.g-none{background:var(--tx4)}
+.sl-content{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.sl-x{padding:0 4px;opacity:.75;cursor:pointer;font-size:11px;line-height:1;flex-shrink:0}
+.sl-x:hover{opacity:1}
 .sh-legend .pc-legend-item{font-size:11px;color:var(--tx3)}
 </style>
 </head>
@@ -532,7 +539,7 @@ td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--br);color:var(
           <button class="lbtn on" id="btn-en" onclick="setLang('en')">EN</button>
           <button class="lbtn" id="btn-ko" onclick="setLang('ko')">한국어</button>
         </div>
-        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v19.9 · Build: 20260527-142</div>
+        <div id="app-version" style="font-size:10px;color:var(--tx3);text-align:center;padding:4px 0">v20.0 · Build: 20260527-144</div>
         
         <button class="so-btn" onclick="signOut()">⎋ Sign out</button>
       </div>
@@ -2235,41 +2242,28 @@ function pgSchedule(){
     return list.map(s=>{
       const gc=gameClass(s.game);
       const nm=esc(s.operator_name||'?');
-      const initial=esc((s.operator_name||'?').trim().charAt(0).toUpperCase()||'?');
-      // Context-aware: PC badge in Shift+Client views, client line in Shift+PC views
-      const showPC=(S.schedView==='shift'||S.schedView==='client')&&s.pc_num;
-      const showCli=(S.schedView==='shift'||S.schedView==='pc')&&s.client_name;
-      const gameLabel=s.game?esc(s.game):(ko?'게임 없음':'No game');
-      const subParts=[];
-      if(showCli) subParts.push(esc(s.client_name));
-      subParts.push(gameLabel);
-      const sub=subParts.join(' · ');
-      const badge=showPC?'<span class="sh-card-badge">PC-'+esc(s.pc_num)+'</span>':'';
-      if(!canEdit){
-        return '<div class="sh-card '+gc+'"><div class="sh-card-stripe"></div><div class="sh-card-body"><div class="sh-card-top"><span class="sh-card-avatar">'+initial+'</span><span class="sh-card-name">'+nm+'</span>'+badge+'</div><div class="sh-card-sub">'+sub+'</div></div></div>';
-      }
-      return '<div class="sh-card '+gc+'">'
-        +'<div class="sh-card-stripe clk" title="'+(ko?'게임 변경':'cycle game')+'" onclick="schedCycleGame(event,'+s.id+')"></div>'
-        +'<div class="sh-card-body">'
-          +'<div class="sh-card-top">'
-            +'<span class="sh-card-avatar">'+initial+'</span>'
-            +'<span class="sh-card-name">'+nm+'</span>'
-            +badge
-            +'<span class="sh-card-x" title="'+(ko?'제거':'remove')+'" onclick="schedRemove(event,'+s.id+')">✕</span>'
-          +'</div>'
-          +'<div class="sh-card-sub">'+sub+'</div>'
-        +'</div>'
-      +'</div>';
+      // Context-aware tags: show PC tag in Shift+Client views (when row isn't the PC), Client tag in Shift+PC views
+      const showPCTag=(S.schedView==='shift'||S.schedView==='client')&&s.pc_num;
+      const showCliTag=(S.schedView==='shift'||S.schedView==='pc')&&s.client_name;
+      const pcTag=showPCTag?'<span style="font-size:9px;font-weight:600;background:var(--bg-a);color:var(--tx3);padding:1px 5px;border-radius:3px;margin-right:2px">PC-'+esc(s.pc_num)+'</span>':'';
+      const cliTag=showCliTag?'<span style="font-size:9px;font-weight:600;background:var(--ac-bg);color:var(--ac);padding:1px 5px;border-radius:3px;margin-right:2px" title="'+(ko?'클라이언트':'Client')+'">'+esc(s.client_name)+'</span>':'';
+      if(!canEdit)return '<span class="sh-chip '+gc+'">'+pcTag+cliTag+nm+'</span>';
+      return '<span class="sh-chip '+gc+'">'
+        +'<span class="sh-gdot '+gc+'" title="'+(ko?'게임 변경':'cycle game')+'" onclick="schedCycleGame(event,'+s.id+')"></span>'
+        +pcTag+cliTag+nm
+        +'<span class="sh-x" title="'+(ko?'제거':'remove')+'" onclick="schedRemove(event,'+s.id+')">✕</span>'
+        +'</span>';
     }).join('');
   };
 
   // View toggle
+  const vbtn=(k,lbl)=>'<button onclick="schedSetView(\''+k+'\')" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView===k?'var(--tx)':'transparent')+';color:'+(S.schedView===k?'var(--bg)':'var(--tx2)')+'">'+lbl+'</button>';
+  const vsep='<span style="width:1px;background:var(--br)"></span>';
   const viewToggle='<div style="display:inline-flex;border:1px solid var(--br);border-radius:8px;overflow:hidden;margin-bottom:14px">'
-    +'<button onclick="S.schedView=\'shift\';render()" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='shift'?'var(--tx)':'transparent')+';color:'+(S.schedView==='shift'?'var(--bg)':'var(--tx2)')+'">'+(ko?'시프트':'Shift')+'</button>'
-    +'<span style="width:1px;background:var(--br)"></span>'
-    +'<button onclick="schedSetView(\'pc\')" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='pc'?'var(--tx)':'transparent')+';color:'+(S.schedView==='pc'?'var(--bg)':'var(--tx2)')+'">PC</button>'
-    +'<span style="width:1px;background:var(--br)"></span>'
-    +'<button onclick="schedSetView(\'client\')" style="padding:7px 16px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:'+(S.schedView==='client'?'var(--tx)':'transparent')+';color:'+(S.schedView==='client'?'var(--bg)':'var(--tx2)')+'">'+(ko?'클라이언트':'Client')+'</button>'
+    +vbtn('shift',ko?'시프트':'Shift')+vsep
+    +vbtn('pc','PC')+vsep
+    +vbtn('client',ko?'클라이언트':'Client')+vsep
+    +vbtn('team',ko?'팀':'Team')
     +'</div>';
 
   // Day selector (shown in PC and Client views)
@@ -2291,7 +2285,7 @@ function pgSchedule(){
   }
 
   const teamStar='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:5px"><polygon points="12 2 15 9 22 9 17 14 19 22 12 17 5 22 7 14 2 9 9 9"/></svg>';
-  const pool=canEdit?('<div class="sh-pool"><span class="sh-pool-lbl">'+teamStar+(ko?'팀':'Team')+'</span>'
+  const pool=(canEdit && S.schedView!=='team')?('<div class="sh-pool"><span class="sh-pool-lbl">'+teamStar+(ko?'팀':'Team')+'</span>'
     +ops.map(m=>'<span class="sh-chip drag" draggable="true" ondragstart="schedDragStart(event,\''+m.id+'\')"><span class="sh-grip">⠿</span>'+esc(m.name)+'</span>').join('')
     +'<span style="font-size:11px;color:var(--tx3);margin-left:auto">'+(ko?'슬롯으로 드래그 →':'drag onto a slot →')+'</span></div>'):'';
 
@@ -2363,6 +2357,53 @@ function pgSchedule(){
       }
     }
   }
+  if(S.schedView==='team'){
+    // Swimlane view: rows = operators, cols = 7 days, each cell has Day & Night halves
+    if(!ops.length){
+      grid='<div style="padding:32px;text-align:center;color:var(--tx3);font-size:13px;background:var(--bg-c);border:1px dashed var(--br);border-radius:10px">'+(ko?'팀원이 없습니다.':'No team members yet.')+'</div>';
+    } else {
+      const realToday=todayDow();
+      const realWk=isoDate(mondayOf(new Date()));
+      const todayIdx=(S.schedWeek===realWk)?realToday:-1;
+      let board='<div class="sl-corner"></div>';
+      for(let i=0;i<7;i++){
+        const tCls=i===todayIdx?' today':'';
+        board+='<div class="sl-daycol'+tCls+'">'+days[i]+'<span style="font-weight:400;opacity:.55;margin-left:4px">'+dates[i]+'</span></div>';
+      }
+      for(const op of ops){
+        const initial=esc((op.name||'?').trim().charAt(0).toUpperCase()||'?');
+        board+='<div class="sl-opbox"><span class="sl-avatar">'+initial+'</span><span class="sl-opname">'+esc(op.name||'?')+'</span></div>';
+        for(let i=0;i<7;i++){
+          let cellHtml='<div class="sl-cell">';
+          for(const st of ['Day','Night']){
+            const sh=weekShifts.find(s=>s.operator_id===op.id&&s.dow===i&&s.shift_type===st);
+            if(sh){
+              const gc=sh.game==='Lineage'?'g-lin':sh.game==='Maple'?'g-map':'g-none';
+              const parts=[];
+              if(sh.pc_num) parts.push('PC-'+esc(sh.pc_num));
+              if(sh.client_name) parts.push(esc(sh.client_name));
+              const txt=parts.length?parts.join(' · '):(st==='Day'?(ko?'주간':'Day'):(ko?'야간':'Night'));
+              if(canEdit){
+                cellHtml+='<div class="sl-half filled '+gc+'" draggable="true" ondragstart="slDragStart(event,'+sh.id+')" onclick="schedCycleGame(event,'+sh.id+')" title="'+(ko?'클릭=게임 변경 · 드래그=이동':'click = cycle game · drag = move')+'"><span class="sl-content">'+txt+'</span><span class="sl-x" onclick="schedRemove(event,'+sh.id+')" title="'+(ko?'제거':'remove')+'">✕</span></div>';
+              } else {
+                cellHtml+='<div class="sl-half filled '+gc+'"><span class="sl-content">'+txt+'</span></div>';
+              }
+            } else {
+              if(canEdit){
+                const addLbl=st==='Day'?(ko?'+ 주':'+ Day'):(ko?'+ 야':'+ Night');
+                cellHtml+='<div class="sl-half empty" onclick="slAddShift(\''+op.id+'\','+i+',\''+st+'\')" ondragover="slDragOver(event)" ondragleave="slDragLeave(event)" ondrop="slDrop(event,\''+op.id+'\','+i+',\''+st+'\')">'+addLbl+'</div>';
+              } else {
+                cellHtml+='<div class="sl-half empty"></div>';
+              }
+            }
+          }
+          cellHtml+='</div>';
+          board+=cellHtml;
+        }
+      }
+      grid='<div class="sl-wrap"><div class="sl-board">'+board+'</div></div>';
+    }
+  }
 
   return '<div style="font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.14em;font-weight:500;margin-bottom:8px">'+(ko?'운영':'Operations')+'</div>'
     +'<div class="ph" style="margin-bottom:6px">'+(ko?'스케쥴':'Schedule')+'</div>'
@@ -2376,7 +2417,7 @@ function pgSchedule(){
     +pool
     +grid
     +'<div class="sh-legend"><div class="pc-legend"><div class="pc-legend-item"><span class="dot" style="background:#6495ED"></span>Lineage</div><div class="pc-legend-item"><span class="dot" style="background:#FFA500"></span>Maple</div><div class="pc-legend-item"><span class="dot" style="background:var(--tx4)"></span>'+(ko?'게임 미지정':'No game')+'</div></div></div>'
-    +(canEdit?'<div style="font-size:11px;color:var(--tx3);margin-top:6px">'+(ko?'팁: 카드의 색상 막대를 클릭해 게임 변경 (라인G→메이플→없음), ✕로 제거':'Tip: click a card\'s colored stripe to cycle its game (Lineage → Maple → none), ✕ to remove')+'</div>':'');
+    +(canEdit?'<div style="font-size:11px;color:var(--tx3);margin-top:6px">'+(S.schedView==='team'?(ko?'팁: 빈 슬롯 클릭=시프트 추가, 블록 클릭=게임 변경, 블록 드래그=다른 슬롯/사람으로 이동, ✕로 제거':'Tip: click empty = add shift · click block = cycle game · drag block = move to another slot/person · ✕ to remove'):(ko?'팁: 칩의 점을 클릭해 게임 변경 (라인G→메이플→없음), ✕로 제거':'Tip: click a chip\'s dot to cycle its game (Lineage → Maple → none), ✕ to remove'))+'</div>':'');
 }
 function schedSetView(v){
   S.schedView=v;
@@ -2526,6 +2567,73 @@ async function schedCycleGame(ev,id){
     if(error){toast(error.message,'err');return;}
     S.shifts=S.shifts.map(x=>x.id===id?data:x);render();
   }catch(e){toast('Error: '+e.message,'err');}
+}
+
+// ── Swimlane (team view) drag/drop and add ──
+let slDragShiftId=null;
+function slDragStart(ev,shiftId){
+  if(!can('schedule_edit')){ ev.preventDefault(); return; }
+  ev.stopPropagation();
+  slDragShiftId=shiftId;
+  try{ ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain',String(shiftId)); }catch(e){}
+}
+function slDragOver(ev){
+  if(slDragShiftId===null) return;
+  ev.preventDefault();
+  try{ ev.dataTransfer.dropEffect='move'; }catch(e){}
+  ev.currentTarget.classList.add('dragover');
+}
+function slDragLeave(ev){ ev.currentTarget.classList.remove('dragover'); }
+async function slDrop(ev,toOpId,toDow,toShift){
+  ev.preventDefault();
+  ev.stopPropagation();
+  document.querySelectorAll('.sl-half.dragover').forEach(el=>el.classList.remove('dragover'));
+  const id=slDragShiftId; slDragShiftId=null;
+  if(id===null) return;
+  if(!can('schedule_edit')) return;
+  const sh=S.shifts.find(s=>s.id===id);
+  if(!sh) return;
+  const ko=S.lang==='ko';
+  if(sh.operator_id===toOpId && sh.dow===toDow && sh.shift_type===toShift) return;
+  const conflict=S.shifts.find(s=>s.week_start===sh.week_start && s.dow===toDow && s.shift_type===toShift && s.operator_id===toOpId);
+  if(conflict){ toast(ko?'대상 슬롯에 이미 배정됨':'Destination already has a shift','err'); return; }
+  const m=(S.team||[]).find(x=>x.id===toOpId);
+  if(!m) return;
+  const oldPcId=sh.pc_id;
+  const oldOpId=sh.operator_id;
+  try{
+    const upd={operator_id:toOpId, operator_name:m.name, dow:toDow, shift_type:toShift};
+    const {data,error}=await sb.from('shifts').update(upd).eq('id',sh.id).select().single();
+    if(error){toast(error.message,'err');return;}
+    S.shifts=S.shifts.map(s=>s.id===data.id?data:s);
+    // If PC assigned and operator changed, sync the PC Status (re-assign to new operator)
+    if(data.pc_id && oldOpId!==data.operator_id){
+      const pcLive=S.pcs.find(p=>p.id===data.pc_id);
+      if(pcLive && pcLive.assigned_to===oldOpId){
+        try{
+          await sb.from('korea_pcs').update({assigned_to:data.operator_id, assigned_name:data.operator_name}).eq('id',data.pc_id);
+          pcLive.assigned_to=data.operator_id; pcLive.assigned_name=data.operator_name;
+        }catch(e){console.warn('PC sync failed:',e);}
+      }
+    }
+    render();
+  }catch(e){toast(e.message,'err');}
+}
+async function slAddShift(opId,dow,shiftType){
+  if(!can('schedule_edit')) return;
+  const ko=S.lang==='ko';
+  const wk=S.schedWeek;
+  const m=(S.team||[]).find(x=>x.id===opId);
+  if(!m) return;
+  const existing=S.shifts.find(s=>s.week_start===wk && s.dow===dow && s.shift_type===shiftType && s.operator_id===opId);
+  if(existing){ toast(ko?'이미 이 슬롯에 배정됨':'Already in this slot','err'); return; }
+  try{
+    const rec={week_start:wk, dow, shift_type:shiftType, operator_id:opId, operator_name:m.name, game:null, pc_id:null, pc_num:null, client_id:null, client_name:null};
+    const {data,error}=await sb.from('shifts').insert(rec).select().single();
+    if(error){toast(error.message,'err');return;}
+    S.shifts.unshift(data);
+    render();
+  }catch(e){toast(e.message,'err');}
 }
 
 function pgGame(){
